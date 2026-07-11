@@ -2304,15 +2304,25 @@ function t(key,params){
   return s;
 }
 /* applyI18n() — sweeps every element carrying data-i18n="key" and sets its
-   content from t(key). Uses innerHTML (not textContent) because a few
-   strings legitimately contain inline markup (e.g. home.stateless.note's
-   <strong>) — safe here since every value comes from our own lang/*.js
-   files, never from user input. Call this again after rendering any HTML
-   that itself contains data-i18n attributes (e.g. inside a template
-   literal), since it only affects elements present in the DOM right now. */
+   content from the active language dictionary. Uses innerHTML (not
+   textContent) because a few strings legitimately contain inline markup
+   (e.g. home.stateless.note's <strong>) — safe here since every value
+   comes from our own lang/*.js files, never from user input.
+   IMPORTANT (bug fix): every data-i18n element's original HTML is already
+   the real, correct English text (that's what was there before this
+   mechanism existed) — it is the fallback, not a placeholder. So this
+   only OVERWRITES an element if a translation was actually found in the
+   active (or English) dictionary; if lang/en.js failed to load, 404'd, or
+   is just missing a key, the element is left completely alone rather than
+   being replaced with the raw "home.hero.title"-style key — a lang file
+   failing to load should never make the app show worse text than before
+   i18n existed, let alone visibly broken-looking key names. */
 function applyI18n(){
   document.querySelectorAll("[data-i18n]").forEach(el=>{
-    el.innerHTML=t(el.getAttribute("data-i18n"));
+    const key=el.getAttribute("data-i18n");
+    const dict=LANG_DICTS[APP_LANG]&&LANG_DICTS[APP_LANG][key]!==undefined?LANG_DICTS[APP_LANG]:(LANG_DICTS.en&&LANG_DICTS.en[key]!==undefined?LANG_DICTS.en:null);
+    if(dict)el.innerHTML=dict[key];
+    else if(window.console&&console.warn)console.warn("i18n: no translation found for \""+key+"\" — leaving original text in place (check that lang/en.js loaded — see Network tab for a 404 on lang/en.js)");
   });
 }
 
