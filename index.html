@@ -1396,14 +1396,6 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
   background:var(--c-danger);color:#fff;border-radius:99px;font-size:10px;font-weight:700;
   padding:0 5px;margin-left:4px;vertical-align:middle}
 </style>
-<!-- i18n language files — plain <script> tags (not fetch+JSON) so this keeps
-     working identically whether index.html is hosted or opened as a local
-     file. Add new <script src="lang/xx.js"> tags here as languages are
-     added (see lang/en.js's header comment for the full how-to). Loaded
-     with `defer` so they don't block first paint; the t()/applyI18n()
-     helpers near the top of the main script tolerate these not having
-     loaded yet (e.g. if a file 404s) by falling back to the raw key. -->
-<script src="lang/en.js"></script>
 </head>
 <body>
 
@@ -1445,10 +1437,10 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
     <span style="position:absolute;top:16px;right:20px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.34);z-index:1">Built by Sandeep Hakki</span>
     <div style="position:relative;z-index:1;max-width:680px">
       <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border-radius:99px;padding:3px 12px;margin-bottom:8px">
-        <span data-i18n="home.hero.badge" style="font-size:10px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.5px;text-transform:uppercase">Privacy First • Browser Based • No Student Data Uploaded</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.5px;text-transform:uppercase">Privacy First • Browser Based • No Student Data Uploaded</span>
       </div>
-      <h1 data-i18n="home.hero.title" style="font-family:var(--font-display);font-size:21px;font-weight:800;color:#fff;margin-bottom:5px;line-height:1.25">Transform Student Marks into Actionable Insights</h1>
-      <p data-i18n="home.hero.subtitle" style="font-size:12px;color:rgba(255,255,255,.78);line-height:1.55;margin-bottom:0">Student Insight helps teachers and schools transform assessment data into meaningful insights. Upload marks, identify learning gaps, detect at-risk students, monitor academic progress, and generate actionable reports — all securely within your browser.</p>
+      <h1 style="font-family:var(--font-display);font-size:21px;font-weight:800;color:#fff;margin-bottom:5px;line-height:1.25">Transform Student Marks into Actionable Insights</h1>
+      <p style="font-size:12px;color:rgba(255,255,255,.78);line-height:1.55;margin-bottom:0">Student Insight helps teachers and schools transform assessment data into meaningful insights. Upload marks, identify learning gaps, detect at-risk students, monitor academic progress, and generate actionable reports — all securely within your browser.</p>
     </div>
   </div>
 
@@ -1463,15 +1455,15 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
       onmouseenter="this.style.borderColor='var(--c-primary)'" onmouseleave="this.style.borderColor='transparent'">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
         <div style="font-size:22px">📋</div>
-        <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-primary)" data-i18n="home.newproject.title">New Project</div>
+        <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-primary)">New Project</div>
       </div>
-      <div style="font-size:12px;color:var(--c-text2);line-height:1.5;margin-bottom:12px" data-i18n="home.newproject.desc">
+      <div style="font-size:12px;color:var(--c-text2);line-height:1.5;margin-bottom:12px">
         First time? Set up your details, subjects &amp; tests. Download a ready-to-fill Excel template, fill it offline, then import to analyse.
       </div>
-      <button class="btn btn-primary" onclick="goStep('setup')" style="width:100%;justify-content:center" data-i18n="home.newproject.btn">
+      <button class="btn btn-primary" onclick="goStep('setup')" style="width:100%;justify-content:center">
         ➕ Setup &amp; Generate Template
       </button>
-      <div style="margin-top:8px;font-size:10.5px;color:var(--c-text3)" data-i18n="home.newproject.steps">
+      <div style="margin-top:8px;font-size:10.5px;color:var(--c-text3)">
         Step 1 of 2 — Setup → Download template → Fill marks in Excel → Import &amp; Analyse
       </div>
     </div>
@@ -1481,16 +1473,16 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
       onmouseenter="this.style.borderColor='var(--c-success)'" onmouseleave="this.style.borderColor='transparent'">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
         <div style="font-size:22px">📂</div>
-        <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-success)" data-i18n="home.import.title">Import Filled Excel</div>
+        <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-success)">Import Filled Excel</div>
       </div>
-      <div style="font-size:12px;color:var(--c-text2);line-height:1.5;margin-bottom:12px" data-i18n="home.import.desc">
+      <div style="font-size:12px;color:var(--c-text2);line-height:1.5;margin-bottom:12px">
         Already have a filled Excel file? Import it directly — setup details, students &amp; marks are all read automatically.
       </div>
       <input type="file" id="home-import-input" accept=".xlsx,.xls" style="display:none" onchange="handleHomeImport(this)"/>
-      <div class="btn btn-success" style="width:100%;justify-content:center;cursor:pointer;text-align:center" onclick="document.getElementById('home-import-input').click()" data-i18n="home.import.btn">
+      <div class="btn btn-success" style="width:100%;justify-content:center;cursor:pointer;text-align:center" onclick="document.getElementById('home-import-input').click()">
         📤 Import Excel (.xlsx)
       </div>
-      <div style="margin-top:8px;font-size:10.5px;color:var(--c-text3)" data-i18n="home.import.hint">
+      <div style="margin-top:8px;font-size:10.5px;color:var(--c-text3)">
         Requires a 2-tab Excel workbook: SETUP · MARKS+CONTEXT. CSV is not supported here — use the "Upload Data" step if you only have a marks CSV.
       </div>
     </div>
@@ -1502,42 +1494,42 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
       <div style="flex:1;min-width:220px">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
           <div style="font-size:22px">🏫</div>
-          <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text)" data-i18n="home.compare.title">Compare Sections / Batches</div>
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--c-text)">Compare Sections / Batches</div>
         </div>
-        <div style="font-size:12px;color:var(--c-text2);line-height:1.5" data-i18n="home.compare.desc">
+        <div style="font-size:12px;color:var(--c-text2);line-height:1.5">
           Managing more than one class or batch — Class 5-A/B/C, UPSC Batch A/B, anything? Upload each section's filled sheet and see them ranked and charted side by side. Institution mode only.
         </div>
       </div>
-      <button class="btn btn-secondary" onclick="startCompareMode()" style="flex-shrink:0" data-i18n="home.compare.btn">🏫 Compare Sections →</button>
+      <button class="btn btn-secondary" onclick="startCompareMode()" style="flex-shrink:0">🏫 Compare Sections →</button>
     </div>
   </div>
 
   <!-- PRIVACY PILLARS -->
   <div class="card" style="padding:20px">
-    <div style="font-size:12px;font-weight:700;color:var(--c-text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px" data-i18n="home.howitworks.title">How it works</div>
+    <div style="font-size:12px;font-weight:700;color:var(--c-text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">How it works</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
       <div style="padding:12px;background:var(--c-surface2);border-radius:var(--r-sm)">
         <div style="font-size:18px;margin-bottom:6px">⚙️</div>
-        <div style="font-weight:600;font-size:12.5px;margin-bottom:3px" data-i18n="home.step1.title">1. Setup</div>
-        <div style="font-size:11.5px;color:var(--c-text2)" data-i18n="home.step1.desc">Enter your details, subjects, tests &amp; max marks. Takes 2 minutes.</div>
+        <div style="font-weight:600;font-size:12.5px;margin-bottom:3px">1. Setup</div>
+        <div style="font-size:11.5px;color:var(--c-text2)">Enter your details, subjects, tests &amp; max marks. Takes 2 minutes.</div>
       </div>
       <div style="padding:12px;background:var(--c-surface2);border-radius:var(--r-sm)">
         <div style="font-size:18px;margin-bottom:6px">⬇️</div>
-        <div style="font-weight:600;font-size:12.5px;margin-bottom:3px" data-i18n="home.step2.title">2. Download Template</div>
-        <div style="font-size:11.5px;color:var(--c-text2)" data-i18n="home.step2.desc">Get a pre-built Excel with your subjects &amp; tests. Fill student marks offline.</div>
+        <div style="font-weight:600;font-size:12.5px;margin-bottom:3px">2. Download Template</div>
+        <div style="font-size:11.5px;color:var(--c-text2)">Get a pre-built Excel with your subjects &amp; tests. Fill student marks offline.</div>
       </div>
       <div style="padding:12px;background:var(--c-surface2);border-radius:var(--r-sm)">
         <div style="font-size:18px;margin-bottom:6px">📤</div>
-        <div style="font-weight:600;font-size:12.5px;margin-bottom:3px" data-i18n="home.step3.title">3. Import &amp; Analyse</div>
-        <div style="font-size:11.5px;color:var(--c-text2)" data-i18n="home.step3.desc">Upload the filled Excel. AI instantly computes ranks, trends, flags &amp; narratives.</div>
+        <div style="font-weight:600;font-size:12.5px;margin-bottom:3px">3. Import &amp; Analyse</div>
+        <div style="font-size:11.5px;color:var(--c-text2)">Upload the filled Excel. AI instantly computes ranks, trends, flags &amp; narratives.</div>
       </div>
       <div style="padding:12px;background:var(--c-surface2);border-radius:var(--r-sm)">
         <div style="font-size:18px;margin-bottom:6px">📄</div>
-        <div style="font-weight:600;font-size:12.5px;margin-bottom:3px" data-i18n="home.step4.title">4. Export Reports</div>
-        <div style="font-size:11.5px;color:var(--c-text2)" data-i18n="home.step4.desc">Download per-student PDFs, class dashboard &amp; ZIP bundle — ready to share.</div>
+        <div style="font-weight:600;font-size:12.5px;margin-bottom:3px">4. Export Reports</div>
+        <div style="font-size:11.5px;color:var(--c-text2)">Download per-student PDFs, class dashboard &amp; ZIP bundle — ready to share.</div>
       </div>
     </div>
-    <div style="margin-top:14px;padding:10px 14px;background:var(--c-primary-soft);border-radius:var(--r-sm);font-size:11.5px;color:var(--c-primary)" data-i18n="home.stateless.note">
+    <div style="margin-top:14px;padding:10px 14px;background:var(--c-primary-soft);border-radius:var(--r-sm);font-size:11.5px;color:var(--c-primary)">
       🔒 <strong>Stateless by design.</strong> Close the tab and everything is gone — your Excel is the permanent record. Student Insight is the intelligence engine, not a data store.
     </div>
   </div>
@@ -1549,7 +1541,7 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
 <!-- SETUP -->
 <div id="panel-setup" class="panel">
   <div class="phase-actionbar">
-    <div><div class="phase-actionbar-title" data-i18n="setup.title">⚙️ Step 1 · Setup</div><div class="phase-actionbar-sub" data-i18n="setup.subtitle">Configure your institution, academic year, class, subjects and assessment details before importing student data.</div></div>
+    <div><div class="phase-actionbar-title">⚙️ Step 1 · Setup</div><div class="phase-actionbar-sub">Configure your institution, academic year, class, subjects and assessment details before importing student data.</div></div>
     <div class="phase-actionbar-btns">
       <button class="btn btn-primary btn-sm" id="btn-download-template" onclick="generateTemplate()" disabled style="opacity:.45;cursor:not-allowed" title="Fill mandatory fields first">⬇ Download Template</button>
       <button class="btn btn-secondary btn-sm" id="btn-setup-next" onclick="goStep('data')">Next: Upload Data →</button>
@@ -2286,45 +2278,6 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
 <script>
-
-/* ════ i18n (v1.8 Phase A — see Localization_Plan.md) ════
-   LANG_DICTS maps a language code to the window.SI_LANG_XX object that
-   language's <script> tag (in <head>) defined. Add a new language by:
-   adding its lang/xx.js <script> tag in <head>, then one line here. */
-const LANG_DICTS={en:(typeof SI_LANG_EN!=="undefined"?SI_LANG_EN:{})};
-let APP_LANG="en"; // always starts English — no persistence, matching §1 (stateless by design); a real language switcher (Phase B) would just call a setter that re-runs applyI18n(), still without ever writing to storage
-/* t(key,params) — looks up `key` in the active language, falling back to
-   English and then to the raw key itself if even English is missing it
-   (e.g. a lang file failed to load, or a key hasn't been added yet for
-   that language) — the UI never shows a blank string or throws. params
-   is an optional {name:value} map substituted into {name} tokens. */
-function t(key,params){
-  let s=(LANG_DICTS[APP_LANG]&&LANG_DICTS[APP_LANG][key])!==undefined?LANG_DICTS[APP_LANG][key]:(LANG_DICTS.en&&LANG_DICTS.en[key])!==undefined?LANG_DICTS.en[key]:key;
-  if(params)Object.keys(params).forEach(k=>{s=s.split("{"+k+"}").join(params[k]);});
-  return s;
-}
-/* applyI18n() — sweeps every element carrying data-i18n="key" and sets its
-   content from the active language dictionary. Uses innerHTML (not
-   textContent) because a few strings legitimately contain inline markup
-   (e.g. home.stateless.note's <strong>) — safe here since every value
-   comes from our own lang/*.js files, never from user input.
-   IMPORTANT (bug fix): every data-i18n element's original HTML is already
-   the real, correct English text (that's what was there before this
-   mechanism existed) — it is the fallback, not a placeholder. So this
-   only OVERWRITES an element if a translation was actually found in the
-   active (or English) dictionary; if lang/en.js failed to load, 404'd, or
-   is just missing a key, the element is left completely alone rather than
-   being replaced with the raw "home.hero.title"-style key — a lang file
-   failing to load should never make the app show worse text than before
-   i18n existed, let alone visibly broken-looking key names. */
-function applyI18n(){
-  document.querySelectorAll("[data-i18n]").forEach(el=>{
-    const key=el.getAttribute("data-i18n");
-    const dict=LANG_DICTS[APP_LANG]&&LANG_DICTS[APP_LANG][key]!==undefined?LANG_DICTS[APP_LANG]:(LANG_DICTS.en&&LANG_DICTS.en[key]!==undefined?LANG_DICTS.en:null);
-    if(dict)el.innerHTML=dict[key];
-    else if(window.console&&console.warn)console.warn("i18n: no translation found for \""+key+"\" — leaving original text in place (check that lang/en.js loaded — see Network tab for a 404 on lang/en.js)");
-  });
-}
 
 /* ════ APP STATE ════ */
 const APP={setup:{mode:"institution",modeLocked:false,instName:"",instType:"",location:"",contact:"",className:"",section:"",year:"",teacher:"",scoring:{marks:true,pct:true,grade:false,pf:false},passThreshold:35,absentAlert:3,dropAlert:20,subjects:[],tests:[]},rawData:null,students:[],classStats:null,genderAnalysis:null,filter:"all",sort:"rank",aiFeatures:new Set(),individualSelectedId:null,
@@ -4648,9 +4601,21 @@ function generateIntervention(st){
 // edit the exported PDF/text afterward. Flagging this limitation here
 // rather than silently pretending it's editable.
 function generateReportCardComment(st){
-  const a=st.analysis,name=st.name.split(" ")[0],band=a.overallAvg>=90?"outstanding":a.overallAvg>=75?"very good":a.overallAvg>=60?"satisfactory":a.overallAvg>=APP.setup.passThreshold?"below expectations":"needs urgent attention";
+  const a=st.analysis,name=st.name.split(" ")[0];
+  // Bug fix: "needs urgent attention" is a verb phrase, not an adjective
+  // like the other bands ("outstanding", "very good", etc.) — plugged into
+  // "performance this term is {band}" it produced the broken sentence
+  // "performance this term is needs urgent attention". isPhrase tracks
+  // which bands need "is" dropped instead of kept.
+  const bandInfo=a.overallAvg>=90?{txt:"outstanding",isPhrase:false}
+    :a.overallAvg>=75?{txt:"very good",isPhrase:false}
+    :a.overallAvg>=60?{txt:"satisfactory",isPhrase:false}
+    :a.overallAvg>=APP.setup.passThreshold?{txt:"below expectations",isPhrase:false}
+    :{txt:"needs urgent attention",isPhrase:true};
   const trendBit=a.trend==="improving"?" Showing clear improvement.":a.trend==="declining"?" Recent decline needs attention.":"";
-  return `${name}'s overall performance this term is ${band} (${a.overallAvg}%).${trendBit}`;
+  return bandInfo.isPhrase
+    ?`${name}'s overall performance this term ${bandInfo.txt} (${a.overallAvg}%).${trendBit}`
+    :`${name}'s overall performance this term is ${bandInfo.txt} (${a.overallAvg}%).${trendBit}`;
 }
 
 /* ════ DASHBOARD ════ */
@@ -4916,14 +4881,47 @@ function openStudentModal(id){
   const st=APP.students.find(s=>s.id===id);if(!st)return;
   const a=st.analysis,{subjects,tests}=APP.setup;
   const isIndividual=APP.setup.mode==="individual";
-  const testRows=tests.map((t,ti)=>{const td=st.testData[t.name]||{marks:{},absents:0,remark:""};return `<tr><td style="font-weight:600">${esc(t.name)}</td>${subjects.map(s=>`<td>${td.marks[s]!==undefined&&td.marks[s]!==null&&td.marks[s]!==""?td.marks[s]:"-"}</td>`).join("")}<td style="font-weight:700">${a.testAvgs[ti]!==null?a.testAvgs[ti]+"%":"-"}</td><td>${td.absents||0}</td><td style="font-size:11px">${esc(td.remark||"")}</td></tr>`;}).join("");
-  const idLine=isIndividual?`ID: ${esc(st.id)} · Grade: ${a.grade}`:`ID: ${esc(st.id)} · Rank #${a.rank} · ${a.percentile}th percentile · Grade: ${a.grade}`;
-  $("#modal-content").html(`<h3 style="font-family:var(--font-display);font-size:18px;margin-bottom:4px">${esc(st.name)}</h3><div style="font-size:12px;color:var(--c-text3);margin-bottom:16px">${idLine}</div><div class="grid-4" style="margin-bottom:16px"><div class="kpi-card"><div class="kpi-label">Overall Avg</div><div class="kpi-val">${a.overallAvg}%</div></div><div class="kpi-card"><div class="kpi-label">Trend</div><div class="kpi-val" style="font-size:16px">${a.trend==="improving"?"📈":a.trend==="declining"?"📉":"➡"} ${a.trend}</div></div><div class="kpi-card"><div class="kpi-label">Absences</div><div class="kpi-val">${a.totalAbsent}</div></div><div class="kpi-card"><div class="kpi-label">Stress</div><div class="kpi-val" style="font-size:16px">${a.wellbeingFlag}</div></div></div><div class="tbl-wrap" style="margin-bottom:16px"><table class="data-table"><thead><tr><th>Test</th>${subjects.map(s=>`<th>${esc(s)}</th>`).join("")}<th>Avg</th><th>Absent</th><th>Remark</th></tr></thead><tbody>${testRows}</tbody></table></div>${a.healthScore!=null?`<div style="margin-bottom:10px;padding:8px 12px;border-radius:var(--r-sm);display:flex;align-items:center;gap:10px;background:${a.healthScore>=80?'#e6f9f7':a.healthScore>=65?'#eef0fd':a.healthScore>=50?'#fff4e0':'#fdecea'}"><div style="font-size:22px;font-weight:700;font-family:var(--font-display);color:${a.healthScore>=80?'#1a5c50':a.healthScore>=65?'#2d3ab1':a.healthScore>=50?'#9a6200':'#8b1a1a'}">♥ ${a.healthScore}</div><div><div style="font-weight:700;font-size:12px">Health Score — ${a.healthBand||''}</div><div style="font-size:11px;color:var(--c-text2)">Academics 40% · Consistency 20% · Trend 20% · Engagement 20%</div></div></div>`:""}
+  // v1.5: Total column = scored/max across subjects opted for that test
+  // (some may be "-" i.e. not taken), so a parent sees the real total, not
+  // just a percentage — same fix as the PDF's "All Test Scores" table.
+  const testRows=tests.map((t,ti)=>{
+    const td=st.testData[t.name]||{marks:{},absents:0,remark:""};
+    let sumScored=0,sumMax=0,opted=0;
+    const cells=subjects.map(s=>{
+      const v=td.marks[s];
+      if(v===undefined||v===null||v===""){return `<td style="color:var(--c-text3)">-</td>`;}
+      const mx=(t.maxMarks&&t.maxMarks[s])||100;
+      opted++;sumScored+=parseFloat(v)||0;sumMax+=mx;
+      return `<td>${esc(String(v))}/${mx}</td>`;
+    }).join("");
+    const totalCell=opted>0?`${sumScored}/${sumMax}<div style="font-size:10px;color:var(--c-text3)">${opted}/${subjects.length} opted</div>`:`<span style="color:var(--c-text3)">-</span>`;
+    return `<tr><td style="font-weight:600">${esc(t.name)}</td>${cells}<td>${totalCell}</td><td style="font-weight:700">${a.testAvgs[ti]!==null?a.testAvgs[ti]+"%":"-"}</td><td>${td.absents||0}</td><td style="font-size:11px">${esc(td.remark||"")}</td></tr>`;
+  }).join("");
+  // Class Avg row directly under the marks table (Institution mode only —
+  // there's no "class" to compare against in Individual mode) so "where does
+  // this child stand" is answered right next to the table, not only via the
+  // separate "vs. Class Average, by Subject" badges further down the modal.
+  const classAvgRow=(!isIndividual&&APP.students&&APP.students.length>1)?(()=>{
+    const perSubjAvgs=subjects.map(s=>{
+      const vals=[];
+      tests.forEach(t=>{APP.students.forEach(s2=>{const d=s2.testData&&s2.testData[t.name];const v=d&&d.marks?d.marks[s]:undefined;const mx=(t.maxMarks&&t.maxMarks[s])||100;if(v!==undefined&&v!==null&&v!=="")vals.push(Math.min(100,(parseFloat(v)||0)/mx*100));});});
+      return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
+    });
+    const classOverallAvgs=APP.students.map(s2=>s2.analysis&&s2.analysis.overallAvg).filter(v=>v!==undefined&&v!==null);
+    const classOverall=classOverallAvgs.length?Math.round(classOverallAvgs.reduce((a,b)=>a+b,0)/classOverallAvgs.length):null;
+    return `<tr style="font-style:italic;background:var(--c-primary-soft)"><td>Class Avg</td>${perSubjAvgs.map(v=>`<td>${v!==null?v+"%":"-"}</td>`).join("")}<td>-</td><td>${classOverall!==null?classOverall+"%":"-"}</td><td>-</td><td></td></tr>`;
+  })():"";
+  // Percentile is a ranking, not a percentage score — clarified inline
+  // right where a parent actually reads it, not only in the FAQ (a 78th
+  // percentile student can have a 60% average if the rest of the class
+  // scored lower still).
+  const idLine=isIndividual?`ID: ${esc(st.id)} · Grade: ${a.grade}`:`ID: ${esc(st.id)} · Rank #${a.rank} of ${APP.students.length} · ${a.percentile}th percentile (better than ${a.percentile}% of classmates — not a % score) · Grade: ${a.grade}`;
+  $("#modal-content").html(`<h3 style="font-family:var(--font-display);font-size:18px;margin-bottom:4px">${esc(st.name)}</h3><div style="font-size:12px;color:var(--c-text3);margin-bottom:16px">${idLine}</div><div class="grid-4" style="margin-bottom:16px"><div class="kpi-card"><div class="kpi-label">Overall Avg</div><div class="kpi-val">${a.overallAvg}%</div></div><div class="kpi-card"><div class="kpi-label">Trend</div><div class="kpi-val" style="font-size:16px">${a.trend==="improving"?"📈":a.trend==="declining"?"📉":"➡"} ${a.trend}</div></div><div class="kpi-card"><div class="kpi-label">Absences</div><div class="kpi-val">${a.totalAbsent}</div></div><div class="kpi-card" title="Estimated from absences + score trend only — not a certified wellbeing or psychological assessment"><div class="kpi-label">Stress ⓘ</div><div class="kpi-val" style="font-size:16px">${a.wellbeingFlag}</div></div></div><div class="tbl-wrap" style="margin-bottom:4px"><table class="data-table"><thead><tr><th>Test</th>${subjects.map(s=>`<th>${esc(s)}</th>`).join("")}<th>Total</th><th>Avg</th><th>Absent</th><th>Remark</th></tr></thead><tbody>${testRows}${classAvgRow}</tbody></table></div><div style="font-size:10.5px;color:var(--c-text3);margin-bottom:16px">Total = scored/max marks across subjects opted for that test.</div>${a.healthScore!=null?`<div style="margin-bottom:10px;padding:8px 12px;border-radius:var(--r-sm);display:flex;align-items:center;gap:10px;background:${a.healthScore>=80?'#e6f9f7':a.healthScore>=65?'#eef0fd':a.healthScore>=50?'#fff4e0':'#fdecea'}"><div style="font-size:22px;font-weight:700;font-family:var(--font-display);color:${a.healthScore>=80?'#1a5c50':a.healthScore>=65?'#2d3ab1':a.healthScore>=50?'#9a6200':'#8b1a1a'}">♥ ${a.healthScore}</div><div><div style="font-weight:700;font-size:12px">Health Score — ${a.healthBand||''}</div><div style="font-size:11px;color:var(--c-text2)">Academics 40% · Consistency 20% · Trend 20% · Engagement 20%</div></div></div>`:""}
 ${a.explainedWarnings&&a.explainedWarnings.length?`<div style="margin-bottom:12px"><div style="font-weight:600;font-size:11px;margin-bottom:6px">⚠ Alerts &amp; Explanations</div>${a.explainedWarnings.map(f=>`<div style="margin-bottom:5px;padding:6px 10px;border-radius:var(--r-sm);background:${f.color}18;border-left:3px solid ${f.color}"><div style="font-weight:700;font-size:11px;color:${f.color}">${f.label}</div><div style="font-size:11px;color:var(--c-text2);margin-top:2px">${f.reason||''}</div></div>`).join('')}</div>`:st.flags.length?`<div style="margin-bottom:14px"><div style="font-weight:600;margin-bottom:6px">Flags</div>${st.flags.map(f=>`<span class="badge" style="background:${f.color}22;color:${f.color};margin-right:6px">${f.label}</span>`).join("")}</div>`:""}
 <div class="grid-4" style="margin-bottom:14px">
   <div class="kpi-card"><div class="kpi-label">Consistency</div><div class="kpi-val" style="font-size:18px">${a.consistencyScore||"—"}%</div></div>
   <div class="kpi-card"><div class="kpi-label">Growth Rate</div><div class="kpi-val" style="font-size:18px;color:${(a.growthRate||0)>=0?"var(--c-success)":"var(--c-danger)"}">${(a.growthRate||0)>=0?"+":""}${a.growthRate||0}%</div></div>
-  <div class="kpi-card"><div class="kpi-label">Engagement</div><div class="kpi-val" style="font-size:18px">${a.engagementIndex||"—"}</div></div>
+  <div class="kpi-card" title="Estimated from attendance + score trend only — the app cannot directly measure classroom participation"><div class="kpi-label">Engagement ⓘ</div><div class="kpi-val" style="font-size:18px">${a.engagementIndex||"—"}</div></div>
   <div class="kpi-card"><div class="kpi-label">EW Score</div><div class="kpi-val" style="font-size:18px;color:${(a.earlyWarningScore||0)>=50?"var(--c-danger)":(a.earlyWarningScore||0)>=25?"var(--c-warn)":"var(--c-success)"}">${a.earlyWarningScore||0}</div></div>
   ${isIndividual?"":`<div class="kpi-card"><div class="kpi-label">Competitive</div><div class="kpi-val" style="font-size:13px">${a.competitiveReadiness||"—"}</div></div>
   <div class="kpi-card"><div class="kpi-label">Topper Gap</div><div class="kpi-val" style="font-size:18px">${a.topperGap||0}%</div></div>`}
@@ -4932,13 +4930,29 @@ ${a.explainedWarnings&&a.explainedWarnings.length?`<div style="margin-bottom:12p
   <div class="kpi-card"><div class="kpi-label">Best Test</div><div class="kpi-val" style="font-size:14px">${a.bestTest?esc(a.bestTest.name)+" ("+a.bestTest.pct+"%)":"—"}</div></div>
   <div class="kpi-card"><div class="kpi-label">Weakest Test</div><div class="kpi-val" style="font-size:14px">${a.worstTest?esc(a.worstTest.name)+" ("+a.worstTest.pct+"%)":"—"}</div></div>
 </div>
-${!isIndividual&&a.subjectDeltas&&Object.keys(a.subjectDeltas).length?`<div class="card" style="padding:12px;margin-bottom:14px"><div class="card-title" style="margin-bottom:6px">📊 vs. Class Average, by Subject</div><div style="display:flex;flex-wrap:wrap;gap:6px">${Object.entries(a.subjectDeltas).map(([s,d])=>`<span class="badge" style="background:${d>=0?'var(--c-success)':'var(--c-danger)'}18;color:${d>=0?'var(--c-success)':'var(--c-danger)'}" title="${esc(s)}: ${d>=0?'above':'below'} the class average by ${Math.abs(d)} points">${esc(s)} ${d>=0?"+":""}${d}</span>`).join("")}</div></div>`:""}</div><div style="display:flex;flex-direction:column;gap:10px">${a.reportCardComment?`<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">📝 Report Card Comment</div><div style="font-size:13px">${esc(a.reportCardComment)}</div></div>`:""}<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">💬 Parent Summary</div><div style="font-size:13px">${esc(a.parentSummary)}</div></div><div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">🌟 Motivation</div><div style="font-size:13px">${esc(a.motivation)}</div></div>
-<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">⭐ Strengths</div><div style="font-size:13px">${esc(a.strengthsLetter||"")}</div></div><div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">📚 Study Plan</div><div style="font-size:13px">${esc(a.studyPlan)}</div></div>${!isIndividual&&a.intervention?`<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">🚨 Intervention Note</div><div style="font-size:13px">${esc(a.intervention)}</div></div>`:""}</div>`);
+${!isIndividual&&a.subjectDeltas&&Object.keys(a.subjectDeltas).length?`<div class="card" style="padding:12px;margin-bottom:14px"><div class="card-title" style="margin-bottom:6px">📊 vs. Class Average, by Subject</div><div style="display:flex;flex-wrap:wrap;gap:6px">${Object.entries(a.subjectDeltas).map(([s,d])=>`<span class="badge" style="background:${d>=0?'var(--c-success)':'var(--c-danger)'}18;color:${d>=0?'var(--c-success)':'var(--c-danger)'}" title="${esc(s)}: ${d>=0?'above':'below'} the class average by ${Math.abs(d)} points">${esc(s)} ${d>=0?"+":""}${d}</span>`).join("")}</div></div>`:""}</div><div style="display:flex;flex-direction:column;gap:10px">${a.reportCardComment!==undefined?narrativeCard("📝","Report Card Comment","reportCardComment",a.reportCardComment,st.id):""}${narrativeCard("💬","For Parents","parentSummary",a.parentSummary,st.id)}${narrativeCard("🌟","Motivation","motivation",a.motivation,st.id)}
+${narrativeCard("⭐","Strengths","strengthsLetter",a.strengthsLetter,st.id)}${narrativeCard("📚","Study Plan","studyPlan",a.studyPlan,st.id)}${!isIndividual&&a.intervention!==undefined?narrativeCard("🚨","Intervention Note","intervention",a.intervention,st.id):""}</div>`);
   $("#modal-overlay").addClass("open");
   _modalLastFocus=document.activeElement;
   setTimeout(()=>{const f=document.querySelector('#modal-overlay.open .modal-close');if(f)f.focus();},0);
 }
 let _modalLastFocus=null;
+// One shared builder for every editable narrative box (Report Card Comment,
+// For Parents, Strengths, Motivation, Study Plan, Intervention Note) instead
+// of hand-duplicating the textarea+Save markup six times — each edit still
+// only ever touches its own field on st.analysis, in-memory, same stateless
+// model as everything else.
+function narrativeCard(icon,title,field,value,studentId){
+  return `<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">${icon} ${title} <span style="font-weight:400;color:var(--c-text3);font-size:11px">(editable — used in the exported PDF)</span></div><textarea class="narrative-edit" data-field="${field}" style="width:100%;min-height:56px;font-size:13px;font-family:inherit;padding:8px;border:1px solid var(--c-border);border-radius:var(--r-sm);resize:vertical" oninput="$(this).next('.narrative-save-row').find('button').prop('disabled',false)">${esc(value||"")}</textarea><div class="narrative-save-row" style="display:flex;justify-content:flex-end;margin-top:6px"><button class="btn btn-secondary" style="padding:5px 14px;font-size:12px" disabled onclick="saveNarrativeField('${esc(studentId)}','${field}',this)">Save</button></div></div>`;
+}
+function saveNarrativeField(id,field,btnEl){
+  const st=APP.students.find(s=>s.id===id);if(!st)return;
+  const $ta=$(btnEl).closest(".card").find("textarea.narrative-edit");
+  st.analysis[field]=$ta.val();
+  $(btnEl).prop("disabled",true);
+  const labels={reportCardComment:"Report card comment",parentSummary:"Parent summary",motivation:"Motivation message",strengthsLetter:"Strengths note",studyPlan:"Study plan",intervention:"Intervention note"};
+  toast((labels[field]||"Field")+" saved for "+st.name.split(" ")[0]+".","success");
+}
 function showSampleFiles(){
   const base="https://studin.in/";
   const files=[
@@ -5174,34 +5188,46 @@ function buildStudentPDF(doc,st){
     doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(155,164,192);
     doc.text("Score shown as scored/max marks  ·  Green = strong (80%+)  ·  Blue = passing  ·  Red = below "+s.passThreshold+"%  ·  gray dash = not taken",10,y+4);
     y+=8;
-    const firstColW=38,lastColW=16,colW=(W-16-firstColW-lastColW)/s.subjects.length;
-    // header row
-    doc.setFillColor(30,58,95);doc.rect(8,y,W-16,7,"F");
-    doc.setFont("helvetica","bold");doc.setFontSize(6.8);doc.setTextColor(255,255,255);
-    doc.text("Test",10,y+4.7);
-    s.subjects.forEach((sub,i)=>{doc.text(fitText(doc,sub,colW-2),firstColW+i*colW+1,y+4.7);});
-    doc.text("Avg",W-8-lastColW+2,y+4.7);
-    y+=7;
+    // v1.5 — added a "Total" column (scored/max marks across the subjects
+    // actually opted, e.g. "231/450 (4/5 opted)") so a parent can see the
+    // real total instead of only a percentage, and — for Institution mode —
+    // a "Class Avg" row directly under this table so "where does my child
+    // stand" is answered right here, not just in the KPI cards up top.
+    const firstColW=34,avgColW=13,totalColW=27,lastColW=avgColW+totalColW,
+      colW=(W-16-firstColW-lastColW)/s.subjects.length;
+    const drawMarksHeader=()=>{
+      doc.setFillColor(30,58,95);doc.rect(8,y,W-16,7,"F");
+      doc.setFont("helvetica","bold");doc.setFontSize(6.8);doc.setTextColor(255,255,255);
+      doc.text("Test",10,y+4.7);
+      s.subjects.forEach((sub,i)=>{doc.text(fitText(doc,sub,colW-2),firstColW+i*colW+1,y+4.7);});
+      doc.text("Total",firstColW+s.subjects.length*colW+2,y+4.7);
+      doc.text("Avg",W-8-avgColW+1,y+4.7);
+      y+=7;
+    };
+    drawMarksHeader();
+    // studentsForClassAvg / classAvgForTestSubject only matter in Institution
+    // mode — there is no "class" behind an Individual-mode session (§ ~5075).
+    const studentsForClassAvg=(!isIndividual&&APP.students&&APP.students.length>1)?APP.students:null;
+    const classAvgForTestSubject=(tName,sub,mx)=>{
+      if(!studentsForClassAvg)return null;
+      const vals=studentsForClassAvg.map(s2=>{const d=s2.testData&&s2.testData[tName];const v=d&&d.marks?d.marks[sub]:undefined;return(v!==undefined&&v!==null&&v!=="")?Math.min(100,(parseFloat(v)||0)/mx*100):null;}).filter(v=>v!==null);
+      return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
+    };
     s.tests.forEach((t,ti)=>{
-      if(y>272){doc.addPage();y=20;
-        doc.setFillColor(30,58,95);doc.rect(8,y,W-16,7,"F");
-        doc.setFont("helvetica","bold");doc.setFontSize(6.8);doc.setTextColor(255,255,255);
-        doc.text("Test",10,y+4.7);
-        s.subjects.forEach((sub,i)=>{doc.text(fitText(doc,sub,colW-2),firstColW+i*colW+1,y+4.7);});
-        doc.text("Avg",W-8-lastColW+2,y+4.7);
-        y+=7;
-      }
+      if(y>270){doc.addPage();y=20;drawMarksHeader();}
       const td=st.testData&&st.testData[t.name]||{marks:{}};
       const rowBg=ti%2===0?[248,249,255]:[255,255,255];
       doc.setFillColor(...rowBg);doc.rect(8,y,W-16,6.2,"F");
       doc.setFont("helvetica","normal");doc.setFontSize(6.8);doc.setTextColor(26,29,46);
       doc.text(fitText(doc,t.name,firstColW-3),10,y+4.2);
+      let sumScored=0,sumMax=0,opted=0;
       s.subjects.forEach((sub,i)=>{
         const raw=td.marks?td.marks[sub]:undefined;
         const cx=firstColW+i*colW,mx=(t.maxMarks&&t.maxMarks[sub])||100;
         if(raw===undefined||raw===null||raw===""){
           doc.setTextColor(190,196,214);doc.setFontSize(6.8);doc.text("—",cx+colW/2,y+4.2,{align:"center"});
         }else{
+          opted++;sumScored+=parseFloat(raw)||0;sumMax+=mx;
           const pctv=Math.min(100,(parseFloat(raw)||0)/mx*100);
           const cc=pctv>=80?[46,196,182]:pctv>=(s.passThreshold||35)?[67,97,238]:[242,92,84];
           doc.setFillColor(...cc.map(v=>Math.min(255,v+165)));
@@ -5213,13 +5239,52 @@ function buildStudentPDF(doc,st){
           doc.text(raw+"/"+mx,cx+colW/2,y+4.2,{align:"center"});
         }
       });
+      // Total column: scored/max across subjects opted for this test, plus
+      // how many of the subjects were actually attempted (some may be "—").
+      doc.setFont("helvetica","bold");doc.setFontSize(6.2);doc.setTextColor(90,96,122);
+      const totalX=firstColW+s.subjects.length*colW+totalColW/2;
+      if(opted>0){
+        doc.text(sumScored+"/"+sumMax,totalX,y+3.2,{align:"center"});
+        doc.setFont("helvetica","normal");doc.setFontSize(5.4);doc.setTextColor(155,164,192);
+        doc.text(opted+"/"+s.subjects.length+" opted",totalX,y+5.7,{align:"center"});
+      }else{doc.setTextColor(190,196,214);doc.text("—",totalX,y+4.2,{align:"center"});}
       doc.setFont("helvetica","bold");doc.setFontSize(6.8);
       const tavg=a.testAvgs[ti];
       doc.setTextColor(tavg===null?190:26,tavg===null?196:29,tavg===null?214:46);
-      doc.text(tavg!==null?tavg+"%":"—",W-8-lastColW+2,y+4.2);
+      doc.text(tavg!==null?tavg+"%":"—",W-8-avgColW+1,y+4.2);
       y+=6.2;
+      // Class Avg row — repeated right under each test row (Institution mode
+      // only) so the comparison is read in the same glance as the score,
+      // instead of forcing a flip back to the KPI cards or dashboard.
+      if(studentsForClassAvg){
+        if(y>272){doc.addPage();y=20;drawMarksHeader();}
+        doc.setFillColor(242,244,252);doc.rect(8,y,W-16,5,"F");
+        doc.setFont("helvetica","italic");doc.setFontSize(6);doc.setTextColor(90,96,122);
+        doc.text("Class Avg",10,y+3.4);
+        s.subjects.forEach((sub,i)=>{
+          const cx=firstColW+i*colW,mx=(t.maxMarks&&t.maxMarks[sub])||100;
+          const cAvg=classAvgForTestSubject(t.name,sub,mx);
+          doc.text(cAvg!==null?cAvg+"%":"—",cx+colW/2,y+3.4,{align:"center"});
+        });
+        doc.text("—",totalX,y+3.4,{align:"center"});
+        const classTestAvgs=studentsForClassAvg.map(s2=>s2.analysis&&s2.analysis.testAvgs&&s2.analysis.testAvgs[ti]).filter(v=>v!==undefined&&v!==null);
+        const classTestAvg=classTestAvgs.length?Math.round(classTestAvgs.reduce((a,b)=>a+b,0)/classTestAvgs.length):null;
+        doc.text(classTestAvg!==null?classTestAvg+"%":"—",W-8-avgColW+1,y+3.4);
+        y+=5;
+      }
     });
-    y+=8;
+    y+=3;
+    // Where this child stands — tied directly to the table above, not just
+    // the KPI cards at the top of the page. Percentile gets a one-line
+    // clarifier inline (it's a rank, not a score — easy to misread; see
+    // the "Percentile" FAQ entry) rather than only being explained in the
+    // FAQ where a parent reading just this PDF would never see it.
+    if(studentsForClassAvg){
+      doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(90,96,122);
+      doc.text(st.name.split(" ")[0]+" ranks #"+a.rank+" of "+studentsForClassAvg.length+" in this class ("+a.percentile+"th percentile — meaning better than "+a.percentile+"% of classmates by overall average; percentile is a ranking, not a percentage score).",10,y,{maxWidth:W-16});
+      y+=9;
+    }
+    y+=5;
   }
   // ── TEST TREND SPARKLINE ──
   const valid=a.testAvgs.filter(v=>v!==null);
@@ -5744,8 +5809,7 @@ $(function(){
   if(location.protocol!=="file:"){const ml=document.createElement("link");ml.rel="manifest";ml.href="manifest.json";document.head.appendChild(ml);}
   // Stateless design: wipe any previously stored session data on load
   try{localStorage.removeItem("sia_sessions");localStorage.removeItem("sia_auth");localStorage.removeItem("sia_gs_url");}catch(e){}
-  renderAICheckboxes();selectAllAI();initEnvBadge();applyCompareModeUI();
-  applyI18n(); // v1.8: populate every [data-i18n] element with the active language's text
+  Object.values(AI_FEATURES).flat().forEach(f=>APP.aiFeatures.add(f.id));renderAICheckboxes();initEnvBadge();applyCompareModeUI(); // pre-select all AI features silently (no toast) — selectAllAI() is reserved for the explicit "Select All" button / analysis-time fallback
   setUsageMode("institution",true); // default card visuals before any Setup interaction
   goStep("home"); // always shows clean home
   // v1.8: the first-load Institution/Individual popup (v1.4-v1.7) was
