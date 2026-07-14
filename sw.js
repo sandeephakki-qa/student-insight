@@ -14,9 +14,9 @@ const CACHE_NAME    = CACHE_VERSION;
 
 // App shell assets to cache on install
 const SHELL_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
+  '/student-insight/',
+  '/student-insight/index.html',
+  '/student-insight/manifest.json',
 ];
 
 // CDN assets the app depends on (cache on first fetch)
