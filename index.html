@@ -1946,7 +1946,107 @@ window.SI_LANG_EN = {
 
   /* ── i18n v2.0 — country + language selector (see Localization_Plan.md) ── */
   "toast.languageLoadFailed": "Couldn't load this language's file. Switched back to English.",
-  "toast.aiTranslationNotice": "This translation was generated using AI from the original English. If you notice an incorrect translation or meaning, please email sandeep@hakki.in with the correction — it will be updated."
+  "toast.aiTranslationNotice": "This translation was generated using AI from the original English. If you notice an incorrect translation or meaning, please email sandeep@hakki.in with the correction — it will be updated.",
+
+  /* ── Report card / student modal — flag badges ── */
+  "flag.dataError": "⚠ Data Error",
+  "flag.atRisk": "At Risk",
+  "flag.firstBelowPass": "First Time Below Pass",
+  "flag.declining": "Declining",
+  "flag.improving": "Improving",
+  "flag.sharpDrop": "Sharp Drop",
+  "flag.highAbsence": "High Absence",
+  "flag.volatile": "Volatile",
+  "flag.burnoutRisk": "Burnout Risk",
+  "flag.resilient": "Resilient",
+  "flag.plateau": "Plateau",
+  "flag.dataGap": "⚠ Missing: {subjects}",
+
+  /* ── Report card / student modal — narrative templates ── */
+  "report.parentSummary.scored": "{name} scored an overall average of {avg}% this period. ",
+  "report.parentSummary.improving": "Performance is improving - encourage this positive trend.",
+  "report.parentSummary.declining": "There has been a decline. Additional support at home will help.",
+  "report.parentSummary.consistent": "Performance has been consistent. Continued focus will help.",
+  "report.parentSummary.strongSubject": " Strongest subject: {subject}.",
+  "report.parentSummary.weakSubject": " Needs attention in: {subject}.",
+
+  "report.motivation.excellent": "Excellent work, {name}! Keep pushing your limits - you have the potential to excel consistently.",
+  "report.motivation.improving": "Great progress, {name}! You are moving in the right direction. Keep this momentum going!",
+  "report.motivation.belowPass": "{name}, every expert was once a beginner. With focused effort and the right support, you can turn this around.",
+  "report.motivation.default": "Good effort, {name}. A little more focus on weaker areas will take you to the next level.",
+
+  "report.studyPlan.none": "Maintain your current study habits. Consider challenging yourself with advanced problems in your strong subjects.",
+  "report.studyPlan.focus": "Focus areas: {subjects}. Steps: (1) Revise fundamentals. (2) Practice 30 min daily. (3) Attempt past papers. (4) Ask the teacher for targeted exercises.",
+
+  "report.intervention.none": "No immediate intervention needed. Continue regular monitoring.",
+  "report.intervention.flags": "Flags: {flags}. ",
+  "report.intervention.highStress": "High stress indicators - consider a one-on-one check-in. ",
+  "report.intervention.recommended": "Recommended: parent-teacher meeting, additional practice material, monitor next test.",
+
+  "report.card.summary": "{name}'s overall performance this term is {band} ({avg}%).",
+  "report.card.improving": " Showing clear improvement.",
+  "report.card.declining": " Recent decline needs attention.",
+  "report.band.outstanding": "outstanding",
+  "report.band.veryGood": "very good",
+  "report.band.satisfactory": "satisfactory",
+  "report.band.belowExpectations": "below expectations",
+  "report.band.needsUrgent": "needs urgent attention",
+
+  /* ── PDF — student report card section titles ── */
+  "pdf.section.reportCardComment": "Report Card Comment",
+  "pdf.section.forParents": "For Parents",
+  "pdf.section.strengths": "Strengths",
+  "pdf.section.motivation": "Motivation",
+  "pdf.section.studyPlan": "Personalised Study Plan",
+  "pdf.section.focusSubjects": "Focus subjects: {subjects}",
+  "pdf.section.coachingNote": "Coaching Note",
+  "pdf.section.interventionNote": "Teacher Intervention Note",
+  "pdf.comment.editedNotice": "(Edited by teacher)",
+
+  /* ── PDF — Teacher Report ── */
+  "pdf.teacher.title": "Teacher Report",
+  "pdf.kpi.students": "Students",
+  "pdf.kpi.classAvg": "Class Avg",
+  "pdf.kpi.passRate": "Pass Rate",
+  "pdf.kpi.atRisk": "At Risk",
+  "pdf.kpi.improving": "Improving",
+  "pdf.kpi.declining": "Declining",
+  "pdf.teacher.subjectAverages": "Subject Averages",
+  "pdf.teacher.studentRankings": "Student Rankings",
+  "pdf.table.rank": "#",
+  "pdf.table.name": "Name",
+  "pdf.table.avg": "Avg",
+  "pdf.table.grade": "Grade",
+  "pdf.table.trend": "Trend",
+  "pdf.table.ew": "EW",
+  "pdf.table.flags": "Flags",
+  "pdf.trend.up": "Up",
+  "pdf.trend.down": "Down",
+  "pdf.trend.stable": "Stable",
+  "pdf.teacher.attentionNeeded": "Students Requiring Attention",
+  "pdf.footer.teacherConfidential": "TEACHER CONFIDENTIAL",
+
+  /* ── PDF — Management Report ── */
+  "pdf.mgmt.title": "Management Report",
+  "pdf.kpi.totalStudents": "Total Students",
+  "pdf.kpi.classAverage": "Class Average",
+  "pdf.kpi.classTopper": "Class Topper",
+  "pdf.mgmt.needsAttention": "Needs attention",
+  "pdf.mgmt.allClear": "All clear",
+  "pdf.mgmt.studentsSuffix": "{count} students",
+  "pdf.mgmt.pctOfClass": "{pct}% of class",
+  "pdf.mgmt.subjectPerformance": "Subject Performance Overview",
+  "pdf.trendBox.improving": "Consistently Improving",
+  "pdf.trendBox.declining": "Consistently Declining",
+  "pdf.trendBox.atRisk": "At-Risk Students",
+  "pdf.trendBox.stable": "Stable Performance",
+  "pdf.mgmt.topPerformers": "Top Performers",
+  "pdf.mgmt.needsSupport": "Needs Support",
+  "pdf.mgmt.genderAnalysis": "Gender Performance Analysis",
+  "pdf.mgmt.passRateLabel": "Pass rate: {pct}%",
+  "pdf.footer.mgmtConfidential": "MANAGEMENT CONFIDENTIAL",
+  "pdf.footer.parentConfidential": "CONFIDENTIAL — For parent/guardian only",
+  "pdf.footer.personalRecord": "Personal record — not for redistribution"
 };
 
 </script>
@@ -2863,6 +2963,18 @@ const COUNTRY_CONFIG = {
   // Future countries added here, e.g.:
   // US: { name: "United States", languages: [ { code:"en", name:"English", inline:true } ] }
 };
+/* PDF_FONT_CONFIG — maps a *script* (not a language) to the font needed to
+   render it inside a PDF via canvas, since jsPDF's built-in fonts have no
+   Devanagari/Kannada glyphs at all. Keyed by script rather than by
+   language/country because a teacher can type or paste Hindi/Kannada text
+   into an editable field (e.g. the Report Card Comment) regardless of
+   which language the UI itself is currently displaying — detection runs
+   on the actual text content, not on APP_LANG. See scriptOf(),
+   loadPdfFont(), and pdfText()/pdfMultilineText() further down. */
+const PDF_FONT_CONFIG = {
+  hi: { file: "languages/India/fonts/hi-font.js", global: "SI_FONT_HI_B64", family: "SI_PDF_Devanagari" },
+  kn: { file: "languages/India/fonts/kn-font.js", global: "SI_FONT_KN_B64", family: "SI_PDF_Kannada" }
+};
 const DEFAULT_COUNTRY = "IN";
 const DEFAULT_LANGUAGE = "en";
 
@@ -2964,12 +3076,42 @@ function setAppLang(code){
     if($("#ai-perf-checks").length)renderAICheckboxes();
     if(typeof updateAICount==="function")updateAICount();
     if(APP.setup)applyModeUI();
+    refreshFlagLabelsAndNarratives(); // re-label flags + regenerate report-card narratives (parentSummary/motivation/studyPlan/intervention/reportCardComment) in the new language, for students already analyzed before this switch
     if(APP.students&&APP.students.length&&typeof renderKPIs==="function")renderKPIs();
     if(APP.compareMode&&typeof applyCompareModeUI==="function")applyCompareModeUI();
     if(ok&&APP_LANG!=="en")toast(t("toast.aiTranslationNotice"),"warn");
     const lsEl=document.getElementById("lang-switcher");
     if(lsEl)lsEl.value=APP_LANG; // keep the dropdown in sync if we fell back to English
   });
+}
+/* refreshFlagLabelsAndNarratives() — flags and the five report-card
+   narrative fields (parentSummary/motivation/studyPlan/intervention/
+   reportCardComment) are computed ONCE per student inside computeAnalysis()
+   and stored as plain strings (st.flags[].label, st.analysis.*) — cheap to
+   recompute, but not automatically reactive to a language switch on their
+   own. This re-derives just the text for already-analyzed students,
+   without re-running the full numeric analysis, then re-renders whatever
+   currently displays them. NOTE: if a student's detail modal
+   (openStudentModal) is open at the moment of switching, it will show the
+   old language until reopened/reopened — closing and reopening the
+   student card after a language switch is the workaround for now. */
+function refreshFlagLabelsAndNarratives(){
+  if(!APP.students||!APP.students.length)return;
+  const FLAG_LABEL_KEYS={"data-error":"flag.dataError","at-risk":"flag.atRisk","first-below-pass":"flag.firstBelowPass","declining":"flag.declining","improving":"flag.improving","sharp-drop":"flag.sharpDrop","absent":"flag.highAbsence","volatile":"flag.volatile","burnout":"flag.burnoutRisk","resilient":"flag.resilient","plateau":"flag.plateau"};
+  APP.students.forEach(st=>{
+    if(st.flags)st.flags.forEach(f=>{
+      if(f.type==="data-gap")f.label=t("flag.dataGap",{subjects:(st.analysis.missingSubjects||[]).join(", ")});
+      else if(FLAG_LABEL_KEYS[f.type])f.label=t(FLAG_LABEL_KEYS[f.type]);
+    });
+    if(!st.analysis)return;
+    st.analysis.parentSummary=generateParentSummary(st);
+    st.analysis.motivation=generateMotivation(st);
+    st.analysis.studyPlan=generateStudyPlan(st);
+    st.analysis.intervention=generateIntervention(st);
+    if(!st.analysis.reportCardCommentEdited)st.analysis.reportCardComment=generateReportCardComment(st); // don't overwrite a teacher's manual edit
+  });
+  if(typeof renderStudentCards==="function")renderStudentCards();
+  if(typeof renderFlagsTable==="function")renderFlagsTable();
 }
 
 /* ════ COUNTRY + LANGUAGE DROPDOWNS ════
@@ -4382,23 +4524,23 @@ function computeAnalysis(){
     let trend="stable";if(valid.length>=2){const diff=valid[valid.length-1]-valid[0];trend=diff>=5?"improving":diff<=-5?"declining":"stable";}
     st.analysis.trend=trend;
     st.flags=[];
-    if(APP.dataIssues.some(di=>di.studentId===st.id))st.flags.push({type:"data-error",label:"⚠ Data Error",color:"#c0392b"});
-    if(a<passThreshold)st.flags.push({type:"at-risk",label:"At Risk",color:"var(--c-danger)"});
+    if(APP.dataIssues.some(di=>di.studentId===st.id))st.flags.push({type:"data-error",label:t("flag.dataError"),color:"#c0392b"});
+    if(a<passThreshold)st.flags.push({type:"at-risk",label:t("flag.atRisk"),color:"var(--c-danger)"});
     // Distinct from At Risk (which looks at the cumulative overall average
     // and can't fire until several bad tests have already dragged it down).
     // This catches the exact moment a previously-passing student's *latest*
     // test dropped below the pass threshold for the first time — useful even
     // when their overall average is still comfortably above the line.
     if(valid.length>=2&&valid[valid.length-1]<passThreshold&&valid.slice(0,-1).every(v=>v>=passThreshold)){
-      st.flags.push({type:"first-below-pass",label:"First Time Below Pass",color:"#d35400"});
+      st.flags.push({type:"first-below-pass",label:t("flag.firstBelowPass"),color:"#d35400"});
     }
-    if(trend==="declining")st.flags.push({type:"declining",label:"Declining",color:"var(--c-warn)"});
-    if(trend==="improving")st.flags.push({type:"improving",label:"Improving",color:"var(--c-success)"});
-    if(valid.length>=2)for(let i=1;i<valid.length;i++){if(valid[i]!==null&&valid[i-1]!==null&&(valid[i-1]-valid[i])>=dropAlert){st.flags.push({type:"sharp-drop",label:"Sharp Drop",color:"var(--c-danger)"});break;}}
+    if(trend==="declining")st.flags.push({type:"declining",label:t("flag.declining"),color:"var(--c-warn)"});
+    if(trend==="improving")st.flags.push({type:"improving",label:t("flag.improving"),color:"var(--c-success)"});
+    if(valid.length>=2)for(let i=1;i<valid.length;i++){if(valid[i]!==null&&valid[i-1]!==null&&(valid[i-1]-valid[i])>=dropAlert){st.flags.push({type:"sharp-drop",label:t("flag.sharpDrop"),color:"var(--c-danger)"});break;}}
     let totalAbsent=0;tests.forEach(t=>{totalAbsent+=(st.testData[t.name]&&st.testData[t.name].absents)||0;});
     st.analysis.totalAbsent=totalAbsent;
-    if(totalAbsent>=absentAlert)st.flags.push({type:"absent",label:"High Absence",color:"var(--c-purple)"});
-    if(valid.length>=2){const mean=valid.reduce((a,b)=>a+b,0)/valid.length;const variance=valid.reduce((a,b)=>a+(b-mean)**2,0)/valid.length;if(Math.sqrt(variance)>15)st.flags.push({type:"volatile",label:"Volatile",color:"#3bc9db"});}
+    if(totalAbsent>=absentAlert)st.flags.push({type:"absent",label:t("flag.highAbsence"),color:"var(--c-purple)"});
+    if(valid.length>=2){const mean=valid.reduce((a,b)=>a+b,0)/valid.length;const variance=valid.reduce((a,b)=>a+(b-mean)**2,0)/valid.length;if(Math.sqrt(variance)>15)st.flags.push({type:"volatile",label:t("flag.volatile"),color:"#3bc9db"});}
     const subjectAvgs={};subjects.forEach(s=>{const vals=tests.map(t=>{const m=(st.testData[t.name]||{}).marks&&st.testData[t.name].marks[s];const mx=(t.maxMarks&&t.maxMarks[s])||100;return m!==null&&m!==undefined&&m!==""?Math.min(100,m/mx*100):null;}).filter(v=>v!==null);subjectAvgs[s]=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;});
     st.analysis.subjectAvgs=subjectAvgs;
     const sortedSubjs=Object.entries(subjectAvgs).sort((a,b)=>b[1]-a[1]);
@@ -4416,10 +4558,10 @@ function computeAnalysis(){
     st.analysis.cumulativeAvg=valid.length?Math.round(valid.reduce((a,b)=>a+b,0)/valid.length):0;
     // Burnout: was high (>70) then dropped
     const wasHigh=valid.length>=2&&valid[0]>=70;const nowLow=valid.length>=2&&valid[valid.length-1]<(valid[0]-15);st.analysis.burnoutRisk=wasHigh&&nowLow;
-    if(st.analysis.burnoutRisk)st.flags.push({type:"burnout",label:"Burnout Risk",color:"#e67e22"});
+    if(st.analysis.burnoutRisk)st.flags.push({type:"burnout",label:t("flag.burnoutRisk"),color:"#e67e22"});
     // Resilience: recovered after drop
     let recovered=false;for(let i=2;i<valid.length;i++){if(valid[i-1]<valid[i-2]-10&&valid[i]>valid[i-1]+8)recovered=true;}st.analysis.resilient=recovered;
-    if(recovered)st.flags.push({type:"resilient",label:"Resilient",color:"#27ae60"});
+    if(recovered)st.flags.push({type:"resilient",label:t("flag.resilient"),color:"#27ae60"});
     // Engagement index: (100 - absentPct) * trend multiplier
     const absentPct=Math.min(100,(st.analysis.totalAbsent/(APP.setup.tests.length*3||1))*100);
     const trendMult=st.analysis.trend==="improving"?1.1:st.analysis.trend==="declining"?0.8:1;
@@ -4432,7 +4574,7 @@ function computeAnalysis(){
     const ewScore=(st.flags.filter(f=>f.type==="at-risk").length*40)+(st.flags.filter(f=>f.type==="sharp-drop").length*20)+(st.flags.filter(f=>f.type==="absent").length*15)+(st.flags.filter(f=>f.type==="volatile").length*10)+(st.flags.filter(f=>f.type==="burnout").length*15);
     st.analysis.earlyWarningScore=Math.min(100,ewScore);
     // Plateau: all avgs within 5% of each other across 3+ tests
-    if(valid.length>=3){const r=Math.max(...valid)-Math.min(...valid);st.analysis.plateau=r<=8;if(st.analysis.plateau&&st.analysis.overallAvg<70)st.flags.push({type:"plateau",label:"Plateau",color:"#8e44ad"});}
+    if(valid.length>=3){const r=Math.max(...valid)-Math.min(...valid);st.analysis.plateau=r<=8;if(st.analysis.plateau&&st.analysis.overallAvg<70)st.flags.push({type:"plateau",label:t("flag.plateau"),color:"#8e44ad"});}
     else st.analysis.plateau=false;
 
     // ── STUDENT HEALTH SCORE (0–100) ──
@@ -4450,7 +4592,7 @@ function computeAnalysis(){
     st.analysis.hasDataGaps=st.analysis.missingSubjects.length>0||(valid.length<tests.length);
     // This was computed but never surfaced anywhere in the UI — a student
     // missing marks for an entire subject had no visible indicator at all.
-    if(st.analysis.missingSubjects.length)st.flags.push({type:"data-gap",label:"⚠ Missing: "+st.analysis.missingSubjects.join(", "),color:"#8e7cc3"});
+    if(st.analysis.missingSubjects.length)st.flags.push({type:"data-gap",label:t("flag.dataGap",{subjects:st.analysis.missingSubjects.join(", ")}),color:"#8e7cc3"});
 
     // Moved here (was previously called mid-way through flag computation, before
     // burnout/resilient/plateau/data-gap were pushed — those flags were silently
@@ -5292,7 +5434,7 @@ async function exportComparisonReportPDF(){
     });
     y+=4;
   });
-  stampFooterAllPages(doc,"MANAGEMENT CONFIDENTIAL");
+  stampFooterAllPages(doc,t("pdf.footer.mgmtConfidential"));
   const fname=safeFileName((APP.setup.instName||"StudentInsight")+"_Section_Comparison")+".pdf";
   doc.save(fname);
   toast(t("toast.comparisonReportDownloaded",{filename:fname}),"success");
@@ -5308,24 +5450,24 @@ function computePercentiles(){const n=APP.students.length;if(!n)return;const sor
 
 /* ════ NARRATIVES ════ */
 function generateParentSummary(st){
-  const a=st.analysis,name=st.name.split(" ")[0],t=a.trend,avg=a.overallAvg;
-  let msg=name+" scored an overall average of "+avg+"% this period. ";
-  if(t==="improving") msg+="Performance is improving - encourage this positive trend.";
-  else if(t==="declining") msg+="There has been a decline. Additional support at home will help.";
-  else msg+="Performance has been consistent. Continued focus will help.";
-  if(a.strongSubject) msg+=" Strongest subject: "+a.strongSubject+".";
-  if(a.weakSubject&&a.weakSubject!==a.strongSubject) msg+=" Needs attention in: "+a.weakSubject+".";
+  const a=st.analysis,name=st.name.split(" ")[0],tr=a.trend,avg=a.overallAvg;
+  let msg=t("report.parentSummary.scored",{name,avg});
+  if(tr==="improving") msg+=t("report.parentSummary.improving");
+  else if(tr==="declining") msg+=t("report.parentSummary.declining");
+  else msg+=t("report.parentSummary.consistent");
+  if(a.strongSubject) msg+=t("report.parentSummary.strongSubject",{subject:a.strongSubject});
+  if(a.weakSubject&&a.weakSubject!==a.strongSubject) msg+=t("report.parentSummary.weakSubject",{subject:a.weakSubject});
   return msg;
 }
-function generateMotivation(st){const a=st.analysis,name=st.name.split(" ")[0];if(a.overallAvg>=80)return `Excellent work, ${name}! Keep pushing your limits - you have the potential to excel consistently.`;if(a.trend==="improving")return `Great progress, ${name}! You are moving in the right direction. Keep this momentum going!`;if(a.overallAvg<APP.setup.passThreshold)return `${name}, every expert was once a beginner. With focused effort and the right support, you can turn this around.`;return `Good effort, ${name}. A little more focus on weaker areas will take you to the next level.`;}
-function generateStudyPlan(st){const a=st.analysis,weak=Object.entries(a.subjectAvgs).filter(([s,v])=>v<60).map(([s])=>s);if(!weak.length)return "Maintain your current study habits. Consider challenging yourself with advanced problems in your strong subjects.";return `Focus areas: ${weak.join(", ")}. Steps: (1) Revise fundamentals. (2) Practice 30 min daily. (3) Attempt past papers. (4) Ask the teacher for targeted exercises.`;}
+function generateMotivation(st){const a=st.analysis,name=st.name.split(" ")[0];if(a.overallAvg>=80)return t("report.motivation.excellent",{name});if(a.trend==="improving")return t("report.motivation.improving",{name});if(a.overallAvg<APP.setup.passThreshold)return t("report.motivation.belowPass",{name});return t("report.motivation.default",{name});}
+function generateStudyPlan(st){const a=st.analysis,weak=Object.entries(a.subjectAvgs).filter(([s,v])=>v<60).map(([s])=>s);if(!weak.length)return t("report.studyPlan.none");return t("report.studyPlan.focus",{subjects:weak.join(", ")});}
 function generateIntervention(st){
   const a=st.analysis;
   const RISK_TYPES=["data-error","at-risk","first-below-pass","declining","sharp-drop","absent","volatile","burnout","data-gap"];
   const riskFlags=st.flags.filter(f=>RISK_TYPES.includes(f.type));
-  if(!riskFlags.length)return "No immediate intervention needed. Continue regular monitoring.";
+  if(!riskFlags.length)return t("report.intervention.none");
   const flags=riskFlags.map(f=>f.label).join(", ");
-  return `Flags: ${flags}. `+(a.stressScore>=60?"High stress indicators - consider a one-on-one check-in. ":"")+"Recommended: parent-teacher meeting, additional practice material, monitor next test.";
+  return t("report.intervention.flags",{flags})+(a.stressScore>=60?t("report.intervention.highStress"):"")+t("report.intervention.recommended");
 }
 // Short, single-line "report card" style remark — deliberately shorter and
 // plainer than parentSummary/motivation above, closer to what a teacher
@@ -5336,9 +5478,10 @@ function generateIntervention(st){
 // edit the exported PDF/text afterward. Flagging this limitation here
 // rather than silently pretending it's editable.
 function generateReportCardComment(st){
-  const a=st.analysis,name=st.name.split(" ")[0],band=a.overallAvg>=90?"outstanding":a.overallAvg>=75?"very good":a.overallAvg>=60?"satisfactory":a.overallAvg>=APP.setup.passThreshold?"below expectations":"needs urgent attention";
-  const trendBit=a.trend==="improving"?" Showing clear improvement.":a.trend==="declining"?" Recent decline needs attention.":"";
-  return `${name}'s overall performance this term is ${band} (${a.overallAvg}%).${trendBit}`;
+  const a=st.analysis,name=st.name.split(" ")[0];
+  const bandKey=a.overallAvg>=90?"report.band.outstanding":a.overallAvg>=75?"report.band.veryGood":a.overallAvg>=60?"report.band.satisfactory":a.overallAvg>=APP.setup.passThreshold?"report.band.belowExpectations":"report.band.needsUrgent";
+  const trendBit=a.trend==="improving"?t("report.card.improving"):a.trend==="declining"?t("report.card.declining"):"";
+  return t("report.card.summary",{name,band:t(bandKey),avg:a.overallAvg})+trendBit;
 }
 
 /* ════ DASHBOARD ════ */
@@ -5600,6 +5743,28 @@ function sortStudents(s){APP.sort=s;renderStudentCards();}
 $(document).on("click",".student-card",function(){
   openStudentModal($(this).attr("data-student-id"));
 });
+/* Editable Report Card Comment (student modal) — a teacher can override
+   the auto-generated remark, typing or pasting English/Hindi/Kannada;
+   whatever they enter is what gets printed on the PDF (see
+   buildStudentPDF's pdfPrepareMultiline/pdfDrawPrepared calls, which are
+   script-aware regardless of source — auto-generated or teacher-typed).
+   Saved directly onto st.analysis.reportCardComment as the person types
+   (no separate "Save" step — matches the app's stateless-but-in-memory
+   editing pattern elsewhere) and flagged with reportCardCommentEdited so
+   the "(Edited by teacher)" notice appears and Reset knows to show. */
+$(document).on("input",".report-card-comment-input",function(){
+  const id=$(this).attr("data-student-id"),st=APP.students.find(s=>s.id===id);
+  if(!st||!st.analysis)return;
+  st.analysis.reportCardComment=this.value;
+  st.analysis.reportCardCommentEdited=true;
+});
+$(document).on("click",".reset-report-comment-btn",function(){
+  const id=$(this).attr("data-student-id"),st=APP.students.find(s=>s.id===id);
+  if(!st)return;
+  st.analysis.reportCardComment=generateReportCardComment(st);
+  st.analysis.reportCardCommentEdited=false;
+  openStudentModal(id); // re-render so the textarea and "(Edited by teacher)" notice reflect the reset
+});
 function openStudentModal(id){
   const st=APP.students.find(s=>s.id===id);if(!st)return;
   const a=st.analysis,{subjects,tests}=APP.setup;
@@ -5620,7 +5785,7 @@ ${a.explainedWarnings&&a.explainedWarnings.length?`<div style="margin-bottom:12p
   <div class="kpi-card"><div class="kpi-label">Best Test</div><div class="kpi-val" style="font-size:14px">${a.bestTest?esc(a.bestTest.name)+" ("+a.bestTest.pct+"%)":"—"}</div></div>
   <div class="kpi-card"><div class="kpi-label">Weakest Test</div><div class="kpi-val" style="font-size:14px">${a.worstTest?esc(a.worstTest.name)+" ("+a.worstTest.pct+"%)":"—"}</div></div>
 </div>
-${!isIndividual&&a.subjectDeltas&&Object.keys(a.subjectDeltas).length?`<div class="card" style="padding:12px;margin-bottom:14px"><div class="card-title" style="margin-bottom:6px">📊 vs. Class Average, by Subject</div><div style="display:flex;flex-wrap:wrap;gap:6px">${Object.entries(a.subjectDeltas).map(([s,d])=>`<span class="badge" style="background:${d>=0?'var(--c-success)':'var(--c-danger)'}18;color:${d>=0?'var(--c-success)':'var(--c-danger)'}" title="${esc(s)}: ${d>=0?'above':'below'} the class average by ${Math.abs(d)} points">${esc(s)} ${d>=0?"+":""}${d}</span>`).join("")}</div></div>`:""}</div><div style="display:flex;flex-direction:column;gap:10px">${a.reportCardComment?`<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">📝 Report Card Comment</div><div style="font-size:13px">${esc(a.reportCardComment)}</div></div>`:""}<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">💬 Parent Summary</div><div style="font-size:13px">${esc(a.parentSummary)}</div></div><div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">🌟 Motivation</div><div style="font-size:13px">${esc(a.motivation)}</div></div>
+${!isIndividual&&a.subjectDeltas&&Object.keys(a.subjectDeltas).length?`<div class="card" style="padding:12px;margin-bottom:14px"><div class="card-title" style="margin-bottom:6px">📊 vs. Class Average, by Subject</div><div style="display:flex;flex-wrap:wrap;gap:6px">${Object.entries(a.subjectDeltas).map(([s,d])=>`<span class="badge" style="background:${d>=0?'var(--c-success)':'var(--c-danger)'}18;color:${d>=0?'var(--c-success)':'var(--c-danger)'}" title="${esc(s)}: ${d>=0?'above':'below'} the class average by ${Math.abs(d)} points">${esc(s)} ${d>=0?"+":""}${d}</span>`).join("")}</div></div>`:""}</div><div style="display:flex;flex-direction:column;gap:10px">${a.reportCardComment!==undefined?`<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:8px"><span>📝 Report Card Comment${a.reportCardCommentEdited?` <span style="font-weight:400;font-size:11px;color:var(--c-text3)">${esc(t("pdf.comment.editedNotice"))}</span>`:""}</span><button type="button" class="btn btn-secondary btn-sm reset-report-comment-btn" data-student-id="${esc(st.id)}" style="font-size:10px;padding:2px 8px;flex-shrink:0">↺ Reset to auto-generated</button></div><textarea class="report-card-comment-input" data-student-id="${esc(st.id)}" style="width:100%;min-height:70px;font-size:13px;font-family:inherit;line-height:1.5;border:1px solid var(--c-border);border-radius:var(--r-sm);padding:8px;resize:vertical;box-sizing:border-box" placeholder="Type or paste a comment here — English, Hindi, or Kannada all print correctly on the PDF.">${esc(a.reportCardComment)}</textarea></div>`:""}<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">💬 Parent Summary</div><div style="font-size:13px">${esc(a.parentSummary)}</div></div><div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">🌟 Motivation</div><div style="font-size:13px">${esc(a.motivation)}</div></div>
 <div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">⭐ Strengths</div><div style="font-size:13px">${esc(a.strengthsLetter||"")}</div></div><div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">📚 Study Plan</div><div style="font-size:13px">${esc(a.studyPlan)}</div></div>${!isIndividual&&a.intervention?`<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">🚨 Intervention Note</div><div style="font-size:13px">${esc(a.intervention)}</div></div>`:""}</div>`);
   $("#modal-overlay").addClass("open");
   _modalLastFocus=document.activeElement;
@@ -5689,6 +5854,21 @@ async function generateAllPDFs(){
   function safeName(n){return n.replace(/[^\w\s-]/g,"").replace(/\s+/g,"_");}
   const urlsToRevoke=[];
   function downloadBlob(blob,fname){const url=URL.createObjectURL(blob);urlsToRevoke.push(url);const link=document.createElement("a");link.href=url;link.download=fname;document.body.appendChild(link);link.click();link.remove();}
+  // Font loading is async; jsPDF page-building below is not — so any
+  // Devanagari/Kannada font this export run will need (whether from a
+  // translated narrative, a teacher-typed/pasted comment, or a student
+  // name in a regional script) must finish loading before the loops
+  // start. Scanning is cheap; do it for every selected report type.
+  if(doS||doT||doM){
+    const textsToScan=[];
+    APP.students.forEach(st=>{
+      textsToScan.push(st.name);
+      if(st.analysis)textsToScan.push(st.analysis.reportCardComment,st.analysis.parentSummary,st.analysis.motivation,st.analysis.studyPlan,st.analysis.intervention,st.analysis.strengthsLetter);
+      if(st.flags)st.flags.forEach(f=>textsToScan.push(f.label));
+    });
+    prog("Preparing regional fonts…",2);
+    await ensurePdfFontsForTextsAsync(textsToScan);
+  }
   try{
     if(doZ){
       const zip=new JSZip();
@@ -5747,11 +5927,233 @@ function stampFooterAllPages(doc,confidentialLabel){
     doc.textWithLink("Student Insight",10,H-4,{url:"https://studin.in/"});
     const linkW=doc.getTextWidth("Student Insight");
     doc.text(" — Free & Open Source  |  Privacy-First  |  Built by Sandeep Hakki",10+linkW,H-4);
-    doc.text(confidentialLabel,W-10,H-4,{align:"right"});
+    pdfFitLineText(doc,confidentialLabel,W-10,H-4,90,{fontSize:7,color:[180,190,220],align:"right"});
     if(pageCount>1){doc.setFontSize(6.5);doc.setTextColor(150,162,200);doc.text("Page "+p+" of "+pageCount,W/2,H-4,{align:"center"});}
   }
   doc.setPage(pageCount); // leave cursor state sane for any caller code after
 }
+
+/* ════ PDF REGIONAL-SCRIPT TEXT RENDERING ════
+   jsPDF's built-in fonts (Helvetica etc.) are Latin-only — they have no
+   Devanagari or Kannada glyphs, and jsPDF has no complex-script shaping
+   engine (no conjunct-consonant combining, no matra repositioning) even
+   if a Unicode font were embedded as vector text. The reliable fix: for
+   any text containing Devanagari/Kannada characters, render it on an
+   offscreen <canvas> using a real embedded font (the browser's own text
+   engine shapes Indic scripts correctly) and drop the result into the
+   PDF as a PNG image instead of vector text. Detection runs on the
+   *actual text content* — not on APP_LANG — so this also correctly
+   handles a teacher typing or pasting Hindi/Kannada into an editable
+   field (e.g. the Report Card Comment) even when the rest of the UI is
+   in English. Pure-Latin text keeps using jsPDF's normal fast vector
+   path (smaller file size, selectable/searchable text) — this only
+   kicks in for text that actually needs it. */
+const _PDF_FONT_LOAD_STATE={}; // script -> "loading"|"ready"|"failed"
+const _PDF_FONT_LOAD_CALLBACKS={};
+function scriptOf(text){
+  if(!text)return "latin";
+  if(/[\u0900-\u097F]/.test(text))return "hi"; // Devanagari block
+  if(/[\u0C80-\u0CFF]/.test(text))return "kn"; // Kannada block
+  return "latin";
+}
+/* loadPdfFont(script,cb) — fetches (once) and registers the font needed
+   for `script` via the FontFace API so canvas fillText() can use it.
+   Cached for the session exactly like loadLanguage(); safe to call
+   repeatedly/concurrently for the same script. cb(true|false). */
+function loadPdfFont(script,cb){
+  const cfg=PDF_FONT_CONFIG[script];
+  if(!cfg){cb(false);return;} // "latin" or unknown script — nothing to load
+  if(_PDF_FONT_LOAD_STATE[script]==="ready"){cb(true);return;}
+  if(_PDF_FONT_LOAD_STATE[script]==="failed"){cb(false);return;}
+  if(_PDF_FONT_LOAD_STATE[script]==="loading"){_PDF_FONT_LOAD_CALLBACKS[script].push(cb);return;}
+  _PDF_FONT_LOAD_STATE[script]="loading";
+  _PDF_FONT_LOAD_CALLBACKS[script]=[cb];
+  const done=ok=>{
+    _PDF_FONT_LOAD_STATE[script]=ok?"ready":"failed";
+    _PDF_FONT_LOAD_CALLBACKS[script].forEach(f=>f(ok));
+    delete _PDF_FONT_LOAD_CALLBACKS[script];
+  };
+  const scriptEl=document.createElement("script");
+  scriptEl.src=cfg.file;
+  scriptEl.onload=function(){
+    const b64=window[cfg.global];
+    if(!b64){done(false);return;}
+    const face=new FontFace(cfg.family,"url(data:font/truetype;base64,"+b64+")");
+    face.load().then(loaded=>{document.fonts.add(loaded);done(true);}).catch(()=>done(false));
+  };
+  scriptEl.onerror=function(){done(false);};
+  document.body.appendChild(scriptEl);
+}
+/* ensurePdfFontsForTexts(texts,cb) — scans an array of strings up front
+   and preloads whichever script fonts (hi/kn) are actually present,
+   before any synchronous jsPDF drawing starts (font loading is async;
+   jsPDF page-building below is not, so this must fully resolve first).
+   Safe to call with a mix of English/Hindi/Kannada/empty strings. */
+function ensurePdfFontsForTexts(texts,cb){
+  const scripts=new Set();
+  texts.forEach(txt=>{const s=scriptOf(txt);if(s!=="latin")scripts.add(s);});
+  if(!scripts.size){cb();return;}
+  let remaining=scripts.size;
+  scripts.forEach(s=>loadPdfFont(s,()=>{remaining--;if(remaining<=0)cb();}));
+}
+/* Promise-wrapped counterpart, for use inside the async export flow
+   (generateAllPDFs) where fonts must finish loading — an async operation
+   — before the synchronous jsPDF page-building calls begin. */
+function ensurePdfFontsForTextsAsync(texts){return new Promise(resolve=>ensurePdfFontsForTexts(texts,resolve));}
+/* renderTextBlockToImage(text,opts) — word-wraps `text` to fit maxWidthMM
+   and rasterizes it to a PNG data URL at 200dpi (crisp on a printed A4
+   report card without bloating file size). Returns pixel + mm dimensions
+   so callers can doc.addImage() at the right size and know how much
+   vertical space (in mm) to advance by — mirroring what doc.
+   splitTextToSize()+doc.text() gives callers for the plain-Latin path. */
+function renderTextBlockToImage(text,opts){
+  const dpi=200,pxPerMM=dpi/25.4,pxPerPt=dpi/72;
+  const fontSizePt=opts.fontSize||8.5,bold=!!opts.bold,color=opts.color||[40,40,40];
+  const maxWidthPx=Math.round((opts.maxWidthMM||180)*pxPerMM);
+  const fontPx=Math.round(fontSizePt*pxPerPt);
+  const lineHeightPx=Math.round(fontPx*1.45);
+  const family=opts.family||"sans-serif";
+  const measureCanvas=document.createElement("canvas");
+  const mctx=measureCanvas.getContext("2d");
+  mctx.font=(bold?"bold ":"")+fontPx+"px "+family+", sans-serif";
+  // word-wrap (splits on spaces; falls back to hard-breaking a single
+  // over-long "word" so it can't silently overflow the box)
+  const paragraphs=String(text).split("\n");
+  const lines=[];
+  paragraphs.forEach(para=>{
+    const words=para.split(" ");
+    let cur="";
+    words.forEach(w=>{
+      const test=cur?cur+" "+w:w;
+      if(mctx.measureText(test).width>maxWidthPx&&cur){lines.push(cur);cur=w;}
+      else cur=test;
+    });
+    lines.push(cur);
+  });
+  const canvas=document.createElement("canvas");
+  canvas.width=maxWidthPx;
+  canvas.height=lines.length*lineHeightPx+Math.round(4*pxPerMM/4);
+  const ctx=canvas.getContext("2d");
+  ctx.font=(bold?"bold ":"")+fontPx+"px "+family+", sans-serif"; // reset — sizing the canvas clears context state
+  ctx.fillStyle="rgb("+color[0]+","+color[1]+","+color[2]+")";
+  ctx.textBaseline="top";
+  lines.forEach((ln,i)=>{ctx.fillText(ln,0,i*lineHeightPx);});
+  return {
+    dataUrl:canvas.toDataURL("image/png"),
+    widthMM:canvas.width/pxPerMM,
+    heightMM:canvas.height/pxPerMM,
+    lineCount:lines.length
+  };
+}
+/* pdfPrepareMultiline(doc,text,maxWidthMM,opts) — MEASURES (and for the
+   image path, fully renders) a text block without drawing it into the
+   PDF yet. Needed because the boxed narrative sections (Report Card
+   Comment, For Parents, Study Plan, etc.) must know the text's height
+   BEFORE drawing the background box behind it — same two-step shape the
+   old doc.splitTextToSize()+doc.text() pattern always used, just now
+   script-aware. Returns {type:"vector",lines,heightMM,fontSize} or
+   {type:"image",dataUrl,widthMM,heightMM}. */
+function pdfPrepareMultiline(doc,text,maxWidthMM,opts){
+  opts=opts||{};
+  const fontSize=opts.fontSize||8.5,bold=!!opts.bold;
+  const script=scriptOf(text);
+  if(script==="latin"){
+    doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(fontSize);
+    const lines=doc.splitTextToSize(String(text),maxWidthMM);
+    return {type:"vector",lines,heightMM:lines.length*fontSize*0.42,fontSize,bold};
+  }
+  const cfg=PDF_FONT_CONFIG[script];
+  const family=(cfg&&_PDF_FONT_LOAD_STATE[script]==="ready")?cfg.family:"sans-serif";
+  const img=renderTextBlockToImage(text,{fontSize,maxWidthMM,color:opts.color,bold,family});
+  return {type:"image",dataUrl:img.dataUrl,widthMM:img.widthMM,heightMM:img.heightMM};
+}
+/* pdfDrawPrepared(doc,prep,x,y,opts) — draws a block previously measured
+   by pdfPrepareMultiline() at (x,y). Split from the prepare step purely
+   so the background box can be sized first (see above). */
+function pdfDrawPrepared(doc,prep,x,y,opts){
+  opts=opts||{};
+  const color=opts.color||[40,40,40];
+  if(prep.type==="vector"){
+    doc.setFont("helvetica",prep.bold?"bold":"normal");doc.setFontSize(prep.fontSize);doc.setTextColor(...color);
+    doc.text(prep.lines,x,y);
+  }else{
+    doc.addImage(prep.dataUrl,"PNG",x,y-(opts.fontSize||8.5)*0.30,prep.widthMM,prep.heightMM);
+  }
+}
+/* pdfMultilineText(doc,text,x,y,opts) — convenience one-shot wrapper
+   (prepare+draw together) for call sites that don't need to pre-size a
+   box around the text — e.g. free-standing paragraphs. Returns the
+   vertical space (mm) consumed, so callers can still advance `y`
+   afterward the same way regardless of which rendering path was used. */
+function pdfMultilineText(doc,text,x,y,opts){
+  opts=opts||{};
+  const maxWidthMM=opts.maxWidthMM||180;
+  const prep=pdfPrepareMultiline(doc,text,maxWidthMM,opts);
+  pdfDrawPrepared(doc,prep,x,y,opts);
+  return prep.heightMM;
+}
+
+/* pdfFitLineText(doc,text,x,y,maxWidthMM,opts) — single-line counterpart
+   to pdfMultilineText(): truncates-with-ellipsis instead of wrapping.
+   Used for student names, section titles, flag badges — anything that
+   must stay on one line and might be Devanagari/Kannada (a translated
+   label, or a teacher-entered student name in a regional script). */
+function pdfFitLineText(doc,text,x,y,maxWidthMM,opts){
+  opts=opts||{};
+  const fontSize=opts.fontSize||8.5,color=opts.color||[40,40,40],bold=!!opts.bold,align=opts.align||"left";
+  const script=scriptOf(text);
+  if(script==="latin"){
+    doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(fontSize);doc.setTextColor(...color);
+    doc.text(fitText(doc,String(text),maxWidthMM),x,y,{align});
+    return;
+  }
+  const cfg=PDF_FONT_CONFIG[script];
+  const family=(cfg&&_PDF_FONT_LOAD_STATE[script]==="ready")?cfg.family:"sans-serif";
+  const dpi=200,pxPerMM=dpi/25.4,pxPerPt=dpi/72;
+  const fontPx=Math.round(fontSize*pxPerPt);
+  const measureCanvas=document.createElement("canvas");const mctx=measureCanvas.getContext("2d");
+  mctx.font=(bold?"bold ":"")+fontPx+"px "+family+", sans-serif";
+  let display=String(text);
+  const maxPx=maxWidthMM*pxPerMM;
+  if(mctx.measureText(display).width>maxPx){
+    while(display.length>1&&mctx.measureText(display+"…").width>maxPx)display=display.slice(0,-1);
+    display=display+"…";
+  }
+  const w=mctx.measureText(display).width;
+  const canvas=document.createElement("canvas");
+  canvas.width=Math.ceil(w)+2;canvas.height=Math.ceil(fontPx*1.3);
+  const ctx=canvas.getContext("2d");
+  ctx.font=(bold?"bold ":"")+fontPx+"px "+family+", sans-serif";
+  ctx.fillStyle="rgb("+color[0]+","+color[1]+","+color[2]+")";ctx.textBaseline="top";
+  ctx.fillText(display,0,Math.round(fontPx*0.12));
+  const widthMM=canvas.width/pxPerMM,heightMM=canvas.height/pxPerMM;
+  let drawX=x;
+  if(align==="center")drawX=x-widthMM/2;else if(align==="right")drawX=x-widthMM;
+  doc.addImage(canvas.toDataURL("image/png"),"PNG",drawX,y-fontSize*0.30,widthMM,heightMM);
+}
+
+/* pdfMeasureLineWidthMM(doc,text,opts) — exact single-line width in mm,
+   using the same measurement path (jsPDF metrics for Latin, canvas
+   metrics at the same 200dpi/font-size for Devanagari/Kannada) that will
+   actually be used to draw it — so badge/box sizing matches the real
+   rendered width instead of an approximation. */
+function pdfMeasureLineWidthMM(doc,text,opts){
+  opts=opts||{};
+  const fontSize=opts.fontSize||8.5,bold=!!opts.bold;
+  const script=scriptOf(text);
+  if(script==="latin"){
+    doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(fontSize);
+    return doc.getTextWidth(String(text));
+  }
+  const cfg=PDF_FONT_CONFIG[script];
+  const family=(cfg&&_PDF_FONT_LOAD_STATE[script]==="ready")?cfg.family:"sans-serif";
+  const dpi=200,pxPerMM=dpi/25.4,pxPerPt=dpi/72;
+  const fontPx=Math.round(fontSize*pxPerPt);
+  const c=document.createElement("canvas");const ctx=c.getContext("2d");
+  ctx.font=(bold?"bold ":"")+fontPx+"px "+family+", sans-serif";
+  return ctx.measureText(String(text)).width/pxPerMM;
+}
+
 function buildStudentPDF(doc,st){
   const a=st.analysis,s=APP.setup;
   const isIndividual=s.mode==="individual";
@@ -5773,7 +6175,7 @@ function buildStudentPDF(doc,st){
   const avgColor=a.overallAvg>=80?[46,196,182]:a.overallAvg>=s.passThreshold?[67,97,238]:[242,92,84];
   doc.setFillColor(248,249,255);doc.roundedRect(8,y,W-16,26,2,2,"F");
   doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(26,29,46);
-  doc.text(fitText(doc,st.name,(W-37-4)-13),13,y+10);
+  pdfFitLineText(doc,st.name,13,y+10,(W-37-4)-13,{fontSize:14,bold:true,color:[26,29,46]});
   doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(90,96,122);
   doc.text(fitText(doc,isIndividual?"ID: "+st.id:"Student ID: "+st.id,(W-37-4)-13),13,y+18);
   // Grade badge (right side)
@@ -5938,15 +6340,14 @@ function buildStudentPDF(doc,st){
     st.flags.forEach(f=>{
       const fc=f.type==="at-risk"?[242,92,84]:f.type==="improving"?[46,196,182]:f.type==="declining"?[249,168,38]:f.type==="burnout"?[230,126,34]:[123,94,167];
       const lbl=f.label||"";
-      const tw=doc.getTextWidth(lbl)+12;
+      const tw=pdfMeasureLineWidthMM(doc,lbl,{fontSize:7,bold:true})+12;
       doc.setFillColor(...fc.map(v=>Math.min(255,v+160)));
       doc.setDrawColor(...fc);
       doc.roundedRect(fx,y,tw,6,1,1,"FD");
       // Coloured dot
       doc.setFillColor(...fc);
       doc.circle(fx+3.5,y+3,1.5,"F");
-      doc.setFontSize(7);doc.setFont("helvetica","bold");doc.setTextColor(...fc);
-      doc.text(lbl,fx+6,y+4);
+      pdfFitLineText(doc,lbl,fx+6,y+4,tw-6,{fontSize:7,bold:true,color:fc});
       fx+=tw+4;
       if(fx>W-20){fx=10;y+=8;}
     });
@@ -5954,50 +6355,52 @@ function buildStudentPDF(doc,st){
   }
   // ── NARRATIVE SECTIONS (visually boxed) ──
   const sections=[
-    {title:"Report Card Comment",text:a.reportCardComment,bg:[253,246,230],border:[230,161,58]},
-    {title:"For Parents",text:a.parentSummary,bg:[238,240,253],border:[67,97,238]},
-    {title:"Strengths",text:a.strengthsLetter,bg:[230,249,247],border:[46,196,182]},
-    {title:"Motivation",text:a.motivation,bg:[240,235,248],border:[123,94,167]},
+    {title:t("pdf.section.reportCardComment"),text:a.reportCardComment,bg:[253,246,230],border:[230,161,58]},
+    {title:t("pdf.section.forParents"),text:a.parentSummary,bg:[238,240,253],border:[67,97,238]},
+    {title:t("pdf.section.strengths"),text:a.strengthsLetter,bg:[230,249,247],border:[46,196,182]},
+    {title:t("pdf.section.motivation"),text:a.motivation,bg:[240,235,248],border:[123,94,167]},
   ];
   sections.filter(s=>s.text).forEach((sec,idx)=>{
     if(y>255){doc.addPage();y=20;}
     if(idx===0)nav.messages=doc.internal.getCurrentPageInfo().pageNumber;
-    // Measuring wrap width must use the exact font/size the body text will
-    // actually render at — otherwise splitTextToSize() borrows whatever
-    // font was left active by the previous drawing call (e.g. the smaller
-    // bold flag-badge font just above), under-wraps, and the rendered
-    // text spills past the right edge of the box.
-    doc.setFont("helvetica","normal");doc.setFontSize(8.5);
-    const lines=doc.splitTextToSize(sec.text,W-28);const bh=lines.length*4.5+11;
+    // Measure first (script-aware — Latin uses jsPDF's own metrics, Hindi/
+    // Kannada renders to an offscreen canvas) so the background box can be
+    // sized correctly before the text is drawn into it.
+    const prep=pdfPrepareMultiline(doc,sec.text,W-28,{fontSize:8.5,color:[40,40,40]});
+    const bh=prep.heightMM+11;
     doc.setFillColor(...sec.bg);doc.setDrawColor(...sec.border);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
     doc.setFillColor(...sec.border);doc.rect(8,y,3,bh,"F");
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...sec.border);doc.text(sec.title,14,y+7);
-    doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(40,40,40);
-    doc.text(lines,14,y+13);y+=bh+5;
+    pdfFitLineText(doc,sec.title,14,y+7,W-30,{fontSize:9,bold:true,color:sec.border});
+    pdfDrawPrepared(doc,prep,14,y+13,{fontSize:8.5,color:[40,40,40]});
+    y+=bh+5;
   });
   // ── STUDY PLAN (always on its own visual block) ──
   if(a.studyPlan){
     if(y>240){doc.addPage();y=20;}
     nav.studyPlan=doc.internal.getCurrentPageInfo().pageNumber;
-    doc.setFont("helvetica","normal");doc.setFontSize(8.5);
-    const lines=doc.splitTextToSize(a.studyPlan,W-28);const bh=lines.length*4.5+18;
+    const weakS=Object.entries(a.subjectAvgs||{}).filter(([,v])=>v<60).map(([s])=>s);
+    const focusLine=weakS.length?t("pdf.section.focusSubjects",{subjects:weakS.join(" · ")}):null;
+    const prep=pdfPrepareMultiline(doc,a.studyPlan,W-28,{fontSize:8.5,color:[40,40,40]});
+    const focusPrep=focusLine?pdfPrepareMultiline(doc,focusLine,W-28,{fontSize:8,color:[154,98,0],bold:true}):null;
+    const bh=prep.heightMM+(focusPrep?focusPrep.heightMM+6:0)+18;
     doc.setFillColor(255,244,224);doc.setDrawColor(249,168,38);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
     doc.setFillColor(249,168,38);doc.rect(8,y,3,bh,"F");
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(154,98,0);doc.text("Personalised Study Plan",14,y+7);
-    const weakS=Object.entries(a.subjectAvgs||{}).filter(([,v])=>v<60).map(([s])=>s);
-    if(weakS.length){doc.setFontSize(8);doc.setTextColor(154,98,0);doc.text("Focus subjects: "+weakS.join(" · "),14,y+13);doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(40,40,40);doc.text(lines,14,y+19);}
-    else{doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(40,40,40);doc.text(lines,14,y+13);}
+    pdfFitLineText(doc,t("pdf.section.studyPlan"),14,y+7,W-30,{fontSize:9,bold:true,color:[154,98,0]});
+    let bodyY=y+13;
+    if(focusPrep){pdfDrawPrepared(doc,focusPrep,14,bodyY,{fontSize:8,color:[154,98,0]});bodyY+=focusPrep.heightMM+6;}
+    pdfDrawPrepared(doc,prep,14,bodyY,{fontSize:8.5,color:[40,40,40]});
     y+=bh+5;
   }
   // ── INTERVENTION (if flagged) ──
   if(a.intervention&&st.flags&&st.flags.length){
     if(y>252){doc.addPage();y=20;}
-    doc.setFont("helvetica","normal");doc.setFontSize(8.5);
-    const lines=doc.splitTextToSize(a.intervention,W-28);const bh=lines.length*4.5+12;
+    const prep=pdfPrepareMultiline(doc,a.intervention,W-28,{fontSize:8.5,color:[40,40,40]});
+    const bh=prep.heightMM+12;
     doc.setFillColor(253,236,234);doc.setDrawColor(242,92,84);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
     doc.setFillColor(242,92,84);doc.rect(8,y,3,bh,"F");
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(192,57,43);doc.text(isIndividual?"Coaching Note":"Teacher Intervention Note",14,y+7);
-    doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(40,40,40);doc.text(lines,14,y+13);y+=bh+5;
+    pdfFitLineText(doc,isIndividual?t("pdf.section.coachingNote"):t("pdf.section.interventionNote"),14,y+7,W-30,{fontSize:9,bold:true,color:[192,57,43]});
+    pdfDrawPrepared(doc,prep,14,y+13,{fontSize:8.5,color:[40,40,40]});
+    y+=bh+5;
   }
   // ── WIRE UP QUICK NAVIGATION LINKS ──
   // The nav chips were drawn on page 1; now that every section has been
@@ -6010,7 +6413,7 @@ function buildStudentPDF(doc,st){
     if(target)doc.link(c.x,c.y,c.w,c.h,{pageNumber:target});
   });
   // ── FOOTER (stamped on every page) ──
-  stampFooterAllPages(doc,isIndividual?"Personal record — not for redistribution":"CONFIDENTIAL — For parent/guardian only");
+  stampFooterAllPages(doc,isIndividual?t("pdf.footer.personalRecord"):t("pdf.footer.parentConfidential"));
 }
 function buildTeacherPDF(doc){
   const s=APP.setup,W=210,H=297;
@@ -6027,36 +6430,35 @@ function buildTeacherPDF(doc){
   doc.text("Student Insight",10,9);
   doc.setFont("helvetica","normal");doc.setFontSize(8);
   doc.text([s.instName,s.className+(s.section?" "+s.section:""),s.year].filter(Boolean).join(" · "),W/2,12,{align:"center"});
-  doc.text("Teacher Report  |  "+new Date().toLocaleDateString(),W-10,12,{align:"right"});
+  doc.text(t("pdf.teacher.title")+"  |  "+new Date().toLocaleDateString(),W-10,12,{align:"right"});
   doc.setTextColor(40,40,40);let y=26;
 
   // ── KPI ROW (compact) ──
   const kpis=[
-    {l:"Students",v:total,c:[67,97,238]},{l:"Class Avg",v:classAvg+"%",c:classAvg>=60?[46,196,182]:[242,92,84]},
-    {l:"Pass Rate",v:passRate+"%",c:passRate>=60?[46,196,182]:[242,92,84]},{l:"At Risk",v:atRisk,c:atRisk>0?[242,92,84]:[46,196,182]},
-    {l:"Improving",v:improving,c:[46,196,182]},{l:"Declining",v:declining,c:declining>0?[249,168,38]:[46,196,182]},
+    {l:t("pdf.kpi.students"),v:total,c:[67,97,238]},{l:t("pdf.kpi.classAvg"),v:classAvg+"%",c:classAvg>=60?[46,196,182]:[242,92,84]},
+    {l:t("pdf.kpi.passRate"),v:passRate+"%",c:passRate>=60?[46,196,182]:[242,92,84]},{l:t("pdf.kpi.atRisk"),v:atRisk,c:atRisk>0?[242,92,84]:[46,196,182]},
+    {l:t("pdf.kpi.improving"),v:improving,c:[46,196,182]},{l:t("pdf.kpi.declining"),v:declining,c:declining>0?[249,168,38]:[46,196,182]},
   ];
   const tW=(W-16)/6;
   kpis.forEach((k,i)=>{
     const tx=8+i*tW;
     doc.setFillColor(248,249,255);doc.setDrawColor(226,229,241);doc.roundedRect(tx,y,tW-1,14,1,1,"FD");
     doc.setFillColor(...k.c);doc.rect(tx,y,tW-1,2,"F");
-    doc.setFont("helvetica","normal");doc.setFontSize(6);doc.setTextColor(155,164,192);doc.text(k.l,tx+(tW-1)/2,y+7,{align:"center"});
+    pdfFitLineText(doc,k.l,tx+(tW-1)/2,y+7,tW-3,{fontSize:6,color:[155,164,192],align:"center"});
     doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(...k.c);doc.text(String(k.v),tx+(tW-1)/2,y+13,{align:"center"});
   });
   y+=18;
 
   // ── SUBJECT BAR CHART (compact, horizontal) ──
   if(s.subjects&&s.subjects.length){
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text("Subject Averages",10,y);y+=4;
+    pdfFitLineText(doc,t("pdf.teacher.subjectAverages"),10,y,W-20,{fontSize:9,bold:true,color:[26,29,46]});y+=4;
     const subData=s.subjects.map(sub=>{
       const vals=APP.students.map(st=>st.analysis&&st.analysis.subjectAvgs&&st.analysis.subjectAvgs[sub]).filter(v=>v!=null&&!isNaN(v));
       return{sub,avg:vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0};
     });
     const bW=W-70,bH=5,lW=46;
     subData.forEach(({sub,avg})=>{
-      doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(26,29,46);
-      doc.text(fitText(doc,sub,lW-4),10,y+4);
+      pdfFitLineText(doc,sub,10,y+4,lW-4,{fontSize:7.5,color:[26,29,46]});
       doc.setFillColor(226,229,241);doc.roundedRect(lW,y,bW,bH,1,1,"F");
       const bc=avg>=75?[46,196,182]:avg>=(s.passThreshold||35)?[67,97,238]:[242,92,84];
       doc.setFillColor(...bc);doc.roundedRect(lW,y,bW*(avg/100),bH,1,1,"F");
@@ -6067,20 +6469,20 @@ function buildTeacherPDF(doc){
   }
 
   // ── RANK TABLE (compact, fits more rows) ──
-  doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text("Student Rankings",10,y);y+=4;
+  pdfFitLineText(doc,t("pdf.teacher.studentRankings"),10,y,W-20,{fontSize:9,bold:true,color:[26,29,46]});y+=4;
   const cols=[12,50,16,14,18,18,60];
-  const heads=["#","Name","Avg","Grade","Trend","EW","Flags"];
+  const heads=[t("pdf.table.rank"),t("pdf.table.name"),t("pdf.table.avg"),t("pdf.table.grade"),t("pdf.table.trend"),t("pdf.table.ew"),t("pdf.table.flags")];
   // Table header
   doc.setFillColor(67,97,238);doc.rect(8,y,W-16,6,"F");
   let cx=10;
-  heads.forEach((h,i)=>{doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setTextColor(255,255,255);doc.text(h,cx,y+4.2);cx+=cols[i];});
+  heads.forEach((h,i)=>{pdfFitLineText(doc,h,cx,y+4.2,cols[i]-2,{fontSize:6.5,bold:true,color:[255,255,255]});cx+=cols[i];});
   y+=7;
 
   APP.students.forEach((st,idx)=>{
     if(y>283){doc.addPage();y=10;
       // Re-draw header on new page
       doc.setFillColor(67,97,238);doc.rect(8,y,W-16,6,"F");cx=10;
-      heads.forEach((h,i)=>{doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setTextColor(255,255,255);doc.text(h,cx,y+4.2);cx+=cols[i];});
+      heads.forEach((h,i)=>{pdfFitLineText(doc,h,cx,y+4.2,cols[i]-2,{fontSize:6.5,bold:true,color:[255,255,255]});cx+=cols[i];});
       y+=7;
     }
     const a=st.analysis||{};
@@ -6089,16 +6491,15 @@ function buildTeacherPDF(doc){
     const ac=a.overallAvg>=80?[46,196,182]:a.overallAvg>=(s.passThreshold||35)?[67,97,238]:[242,92,84];
     const ewc=(a.earlyWarningScore||0)>=50?[242,92,84]:(a.earlyWarningScore||0)>=25?[249,168,38]:[46,196,182];
     const fStr=st.flags&&st.flags.length?st.flags.map(f=>f.label).join(", "):"";
+    const trendWord=a.trend==="improving"?t("pdf.trend.up"):a.trend==="declining"?t("pdf.trend.down"):t("pdf.trend.stable");
     cx=10;
-    doc.setFont("helvetica","bold");doc.setFontSize(7);const fitName=fitText(doc,st.name,cols[1]-3);
-    doc.setFont("helvetica","normal");doc.setFontSize(7);const fitFlags=fitText(doc,fStr,cols[6]-3);
-    [[String(a.rank||""),ac],[fitName,[26,29,46]],[a.overallAvg+"%",ac],[a.grade||"",ac],
-     [a.trend==="improving"?"Up":a.trend==="declining"?"Down":"Stable",tc],[String(a.earlyWarningScore||0),ewc],
-     [fitFlags,[150,150,150]]
-    ].forEach(([v,color],i)=>{
-      doc.setFont("helvetica",i===1?"bold":"normal");doc.setFontSize(7);doc.setTextColor(...color);
-      doc.text(String(v||"—"),cx,y+4);cx+=cols[i];
-    });
+    doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(...ac);doc.text(String(a.rank||"—"),cx,y+4);cx+=cols[0];
+    pdfFitLineText(doc,st.name||"—",cx,y+4,cols[1]-3,{fontSize:7,bold:true,color:[26,29,46]});cx+=cols[1];
+    doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(...ac);doc.text(a.overallAvg+"%",cx,y+4);cx+=cols[2];
+    doc.setTextColor(...ac);doc.text(String(a.grade||"—"),cx,y+4);cx+=cols[3];
+    pdfFitLineText(doc,trendWord,cx,y+4,cols[4]-3,{fontSize:7,color:tc});cx+=cols[4];
+    doc.setTextColor(...ewc);doc.text(String(a.earlyWarningScore||0),cx,y+4);cx+=cols[5];
+    pdfFitLineText(doc,fStr||"—",cx,y+4,cols[6]-3,{fontSize:7,color:[150,150,150]});
     doc.setDrawColor(235,237,245);doc.setLineWidth(0.2);doc.line(8,y+5.5,W-8,y+5.5);
     y+=6.5;
   });
@@ -6108,23 +6509,22 @@ function buildTeacherPDF(doc){
   if(flagged.length){
     if(y>270){doc.addPage();y=10;}
     y+=4;
-    // Wrap each student's flag list to the box width up front so the box
-    // height (bh) can grow to fit however many lines a long flag list
-    // actually needs, instead of a fixed 6mm-per-student guess that a
-    // student with several flags could overflow past the box edge.
-    doc.setFont("helvetica","normal");doc.setFontSize(7.5);
-    const flaggedLines=flagged.map(st=>doc.splitTextToSize(st.name+" — "+st.flags.map(f=>f.label).join(", "),W-30));
-    const totalLines=flaggedLines.reduce((sum,lines)=>sum+lines.length,0);
-    const bh=8+totalLines*4.5;
+    // Each student's "name — flags" line is measured (script-aware) up
+    // front so the box height (bh) can grow to fit however many lines a
+    // long flag list actually needs, instead of a fixed 6mm-per-student
+    // guess that a student with several flags could overflow past the
+    // box edge.
+    const flaggedPreps=flagged.map(st=>pdfPrepareMultiline(doc,st.name+" — "+st.flags.map(f=>f.label).join(", "),W-30,{fontSize:7.5,color:[40,40,40]}));
+    const totalH=flaggedPreps.reduce((sum,p)=>sum+p.heightMM,0);
+    const bh=8+totalH;
     doc.setFillColor(253,236,234);doc.setDrawColor(242,92,84);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
     doc.setFillColor(242,92,84);doc.rect(8,y,3,bh,"F");
-    doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(192,57,43);doc.text("Students Requiring Attention",14,y+5);y+=8;
-    doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(40,40,40);
-    flaggedLines.forEach(lines=>{doc.text(lines,16,y);y+=lines.length*4.5;});
+    pdfFitLineText(doc,t("pdf.teacher.attentionNeeded"),14,y+5,W-30,{fontSize:8,bold:true,color:[192,57,43]});y+=8;
+    flaggedPreps.forEach(prep=>{pdfDrawPrepared(doc,prep,16,y,{fontSize:7.5,color:[40,40,40]});y+=prep.heightMM;});
   }
 
   // ── FOOTER (stamped on every page) ──
-  stampFooterAllPages(doc,"TEACHER CONFIDENTIAL");
+  stampFooterAllPages(doc,t("pdf.footer.teacherConfidential"));
 }
 function buildMgmtPDF(doc){
   const s=APP.setup,sts=APP.students,W=210,H=297;
@@ -6143,17 +6543,17 @@ function buildMgmtPDF(doc){
   doc.text("Student Insight",10,10);
   doc.setFont("helvetica","normal");doc.setFontSize(8);
   doc.text([s.instName,s.className+(s.section?" "+s.section:""),s.year].filter(Boolean).join("   |   "),10,17);
-  doc.text("Management Report   |   "+new Date().toLocaleDateString(),W-10,17,{align:"right"});
+  doc.text(t("pdf.mgmt.title")+"   |   "+new Date().toLocaleDateString(),W-10,17,{align:"right"});
   doc.setTextColor(40,40,40);let y=30;
 
   // ── EXECUTIVE KPI TILES (2 rows of 3) ──
   const kpis=[
-    {l:"Total Students",v:n,sub:"",c:[15,32,65]},
-    {l:"Class Average",v:classAvg+"%",sub:"",c:classAvg>=60?[46,196,182]:[242,92,84]},
-    {l:"Pass Rate",v:passRate+"%",sub:sts.filter(st=>st.analysis&&st.analysis.overallAvg>=(s.passThreshold||35)).length+" students",c:passRate>=60?[46,196,182]:[242,92,84]},
-    {l:"At Risk",v:atRisk,sub:atRisk>0?"Needs attention":"All clear",c:atRisk>0?[242,92,84]:[46,196,182]},
-    {l:"Improving",v:improving,sub:Math.round(improving/n*100)+"% of class",c:[46,196,182]},
-    {l:"Class Topper",v:topper?topper.name.split(" ")[0]:"—",sub:topper?topper.analysis.overallAvg+"%":"",c:[249,168,38]},
+    {l:t("pdf.kpi.totalStudents"),v:n,sub:"",c:[15,32,65]},
+    {l:t("pdf.kpi.classAverage"),v:classAvg+"%",sub:"",c:classAvg>=60?[46,196,182]:[242,92,84]},
+    {l:t("pdf.kpi.passRate"),v:passRate+"%",sub:t("pdf.mgmt.studentsSuffix",{count:sts.filter(st=>st.analysis&&st.analysis.overallAvg>=(s.passThreshold||35)).length}),c:passRate>=60?[46,196,182]:[242,92,84]},
+    {l:t("pdf.kpi.atRisk"),v:atRisk,sub:atRisk>0?t("pdf.mgmt.needsAttention"):t("pdf.mgmt.allClear"),c:atRisk>0?[242,92,84]:[46,196,182]},
+    {l:t("pdf.kpi.improving"),v:improving,sub:t("pdf.mgmt.pctOfClass",{pct:Math.round(improving/n*100)}),c:[46,196,182]},
+    {l:t("pdf.kpi.classTopper"),v:topper?topper.name.split(" ")[0]:"—",sub:topper?topper.analysis.overallAvg+"%":"",c:[249,168,38]},
   ];
   const tW=(W-20)/3;
   [[0,1,2],[3,4,5]].forEach((row,ri)=>{
@@ -6161,18 +6561,17 @@ function buildMgmtPDF(doc){
       const k=kpis[ki],tx=10+ci*tW,ty=y+ri*22;
       doc.setFillColor(255,255,255);doc.setDrawColor(226,229,241);doc.roundedRect(tx,ty,tW-4,19,2,2,"FD");
       doc.setFillColor(...k.c);doc.rect(tx,ty,tW-4,2.5,"F");
-      doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(155,164,192);
-      doc.text(k.l,tx+(tW-4)/2,ty+7,{align:"center"});
+      pdfFitLineText(doc,k.l,tx+(tW-4)/2,ty+7,tW-6,{fontSize:6.5,color:[155,164,192],align:"center"});
       doc.setFont("helvetica","bold");doc.setFontSize(12);doc.setTextColor(...k.c);
       doc.text(String(k.v),tx+(tW-4)/2,ty+14,{align:"center"});
-      if(k.sub){doc.setFont("helvetica","normal");doc.setFontSize(6);doc.setTextColor(155,164,192);doc.text(fitText(doc,k.sub,tW-6),tx+(tW-4)/2,ty+17,{align:"center"});}
+      if(k.sub)pdfFitLineText(doc,k.sub,tx+(tW-4)/2,ty+17,tW-6,{fontSize:6,color:[155,164,192],align:"center"});
     });
   });
   y+=48;
 
   // ── SUBJECT PERFORMANCE (visual bars, side by side) ──
   if(s.subjects&&s.subjects.length){
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text("Subject Performance Overview",10,y);y+=5;
+    pdfFitLineText(doc,t("pdf.mgmt.subjectPerformance"),10,y,W-20,{fontSize:9,bold:true,color:[26,29,46]});y+=5;
     const subData=s.subjects.map(sub=>{
       const vals=sts.map(st=>st.analysis&&st.analysis.subjectAvgs&&st.analysis.subjectAvgs[sub]).filter(v=>v!=null&&!isNaN(v));
       const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
@@ -6191,25 +6590,24 @@ function buildMgmtPDF(doc){
       // Label
       doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(255,255,255);
       if(fillH>8)doc.text(avg+"%",bx+(bW-3)/2,y+bH-fillH+6,{align:"center"});
-      doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(26,29,46);
-      doc.text(fitText(doc,sub,bW-1),bx+(bW-3)/2,y+bH+5,{align:"center"});
+      pdfFitLineText(doc,sub,bx+(bW-3)/2,y+bH+5,bW-1,{fontSize:6.5,color:[26,29,46],align:"center"});
     });
     y+=bH+10;
   }
 
   // ── TREND SUMMARY BOXES ──
   const trendData=[
-    {label:"Consistently Improving",count:improving,color:[46,196,182],bg:[230,249,247]},
-    {label:"Consistently Declining",count:declining,color:[242,92,84],bg:[253,236,234]},
-    {label:"At-Risk Students",count:atRisk,color:[242,92,84],bg:[253,236,234]},
-    {label:"Stable Performance",count:n-improving-declining,color:[67,97,238],bg:[238,240,253]},
+    {label:t("pdf.trendBox.improving"),count:improving,color:[46,196,182],bg:[230,249,247]},
+    {label:t("pdf.trendBox.declining"),count:declining,color:[242,92,84],bg:[253,236,234]},
+    {label:t("pdf.trendBox.atRisk"),count:atRisk,color:[242,92,84],bg:[253,236,234]},
+    {label:t("pdf.trendBox.stable"),count:n-improving-declining,color:[67,97,238],bg:[238,240,253]},
   ];
   const tbW=(W-20)/4;
   trendData.forEach(({label,count,color,bg},i)=>{
     const tx=10+i*tbW;
     doc.setFillColor(...bg);doc.setDrawColor(...color);doc.roundedRect(tx,y,tbW-3,18,2,2,"FD");
     doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(...color);doc.text(String(count),tx+(tbW-3)/2,y+12,{align:"center"});
-    doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(80,80,80);doc.text(label,tx+(tbW-3)/2,y+17,{align:"center"});
+    pdfFitLineText(doc,label,tx+(tbW-3)/2,y+17,tbW-5,{fontSize:6.5,color:[80,80,80],align:"center"});
   });
   y+=24;
 
@@ -6219,8 +6617,8 @@ function buildMgmtPDF(doc){
   const halfW=(W-24)/2;
 
   // Top performers (left)
-  doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(46,196,182);doc.text("Top Performers",10,y);
-  doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(242,92,84);doc.text("Needs Support",14+halfW,y);
+  pdfFitLineText(doc,t("pdf.mgmt.topPerformers"),10,y,halfW-4,{fontSize:8,bold:true,color:[46,196,182]});
+  pdfFitLineText(doc,t("pdf.mgmt.needsSupport"),14+halfW,y,halfW-4,{fontSize:8,bold:true,color:[242,92,84]});
   y+=4;
 
   const maxRows=Math.max(top5.length,bottom3.length);
@@ -6231,8 +6629,7 @@ function buildMgmtPDF(doc){
     if(ts){
       const a=ts.analysis||{};
       doc.setFillColor(230,249,247);doc.roundedRect(10,y,halfW,7,1,1,"F");
-      doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(26,29,46);
-      doc.text(fitText(doc,"#"+a.rank+" "+ts.name,halfW-22),13,y+5);
+      pdfFitLineText(doc,"#"+a.rank+" "+ts.name,13,y+5,halfW-22,{fontSize:8,bold:true,color:[26,29,46]});
       doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(46,196,182);
       doc.text(a.overallAvg+"%",10+halfW-6,y+5,{align:"right"});
     }
@@ -6240,8 +6637,7 @@ function buildMgmtPDF(doc){
     if(bs){
       const a=bs.analysis||{};
       doc.setFillColor(253,236,234);doc.roundedRect(14+halfW,y,halfW,7,1,1,"F");
-      doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(26,29,46);
-      doc.text(fitText(doc,bs.name,halfW-22),17+halfW,y+5);
+      pdfFitLineText(doc,bs.name,17+halfW,y+5,halfW-22,{fontSize:8,bold:true,color:[26,29,46]});
       doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(242,92,84);
       doc.text(a.overallAvg+"%",14+halfW+halfW-6,y+5,{align:"right"});
     }
@@ -6265,7 +6661,7 @@ function buildMgmtPDF(doc){
       const bh=10+panelH+lines.length*4.2+6;
       doc.setFillColor(245,240,251);doc.setDrawColor(123,94,167);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
       doc.setFillColor(123,94,167);doc.rect(8,y,3,bh,"F");
-      doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(123,94,167);doc.text("Gender Performance Analysis",14,y+6);
+      pdfFitLineText(doc,t("pdf.mgmt.genderAnalysis"),14,y+6,W-30,{fontSize:8.5,bold:true,color:[123,94,167]});
       const panelW=(W-32)/2;
       labels.forEach((label,i)=>{
         const g=ga.groups[label];
@@ -6274,7 +6670,7 @@ function buildMgmtPDF(doc){
         doc.setFillColor(255,255,255);doc.setDrawColor(...pc);doc.roundedRect(px,py,panelW,panelH,1,1,"FD");
         doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...pc);doc.text(label+" ("+g.count+")",px+4,py+6);
         doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(40,40,40);doc.text(g.avg+"%",px+4,py+13.5);
-        doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(120,120,120);doc.text("Pass rate: "+g.passRate+"%",px+4,py+18);
+        pdfFitLineText(doc,t("pdf.mgmt.passRateLabel",{pct:g.passRate}),px+4,py+18,panelW-8,{fontSize:6.5,color:[120,120,120]});
       });
       doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(60,60,60);doc.text(lines,14,y+10+panelH+5);
       y+=bh+5;
@@ -6300,7 +6696,7 @@ function buildMgmtPDF(doc){
   }
 
   // ── FOOTER (stamped on every page) ──
-  stampFooterAllPages(doc,"MANAGEMENT CONFIDENTIAL");
+  stampFooterAllPages(doc,t("pdf.footer.mgmtConfidential"));
 }
 
 /* ════ SAVE (stateless app — no persistence by design) ════
