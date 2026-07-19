@@ -153,7 +153,6 @@ function populateCountryDropdown(){
     `<option value="${code}" selected>${esc(c.label)}</option>`
   ).join(""));
   $("#i18n-more-countries-note").remove();
-  sel.after(`<span id="i18n-more-countries-note" style="font-size:11px;color:var(--c-text2);align-self:center">more countries coming soon</span>`);
   populateLanguageDropdown(DEFAULT_COUNTRY);
 }
 function populateLanguageDropdown(countryCode){
