@@ -57,7 +57,7 @@ function generateTemplate(){
      Name/Gender (columns A-C) and the header row are frozen so they stay
      in view while scrolling through the test columns to the right. */
   const markHdr=["Student ID","Full Name","Gender"];
-  tests.forEach(t=>{subjects.forEach(s=>markHdr.push(t.name+" - "+s+" Marks"));markHdr.push(t.name+" - Absent Days");markHdr.push(t.name+" - Remark");});
+  tests.forEach(t=>{subjects.forEach(s=>markHdr.push(t.name+" - "+s+" Marks"));markHdr.push(t.name+" - Absent Days");markHdr.push(t.name+" - Chapter");markHdr.push(t.name+" - Remark");});
   const markRows=[markHdr];for(let i=1;i<=5;i++)markRows.push(["STU00"+i,"","",...Array(markHdr.length-3).fill("")]);
   const wsMarks=XLSX.utils.aoa_to_sheet(markRows);
   wsMarks["!cols"]=markHdr.map((_,i)=>({wch:i<3?16:19}));
@@ -140,6 +140,8 @@ function loadMergeSourceFromArrayBuffer(arrayBuffer,fileName){
   $("#btn-download-template").html("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M17 1l4 4-4 4'/><path d='M3 11V9a4 4 0 0 1 4-4h14'/><path d='M7 23l-4-4 4-4'/><path d='M21 13v2a4 4 0 0 1-4 4H3'/></svg> Update & Download").prop("disabled",false).css({opacity:1,cursor:"pointer"}).addClass("btn-glow");
   $("#btn-load-existing").html("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 21V9'/><polyline points='7 14 12 9 17 14'/><path d='M4 21h16'/></svg> Load a Different Sheet");
   toast("Existing sheet loaded — add your new test, then click Update & Download.","success");
+  APP.setupCard1Choice='update';
+  if(typeof swGoto==="function") swGoto(2); // pre-filled by autoInferSetup(), advance
   return true;
 }
 function cancelMergeMode(){
@@ -186,7 +188,7 @@ function generateMergedTemplate(){
     return a.length!==b.length||a.some((v,i)=>v!==b[i]);
   })();
   const appendHeader=[];
-  newTests.forEach(t=>{subjects.forEach(s=>appendHeader.push(t.name+" - "+s+" Marks"));appendHeader.push(t.name+" - Absent Days");appendHeader.push(t.name+" - Remark");});
+  newTests.forEach(t=>{subjects.forEach(s=>appendHeader.push(t.name+" - "+s+" Marks"));appendHeader.push(t.name+" - Absent Days");appendHeader.push(t.name+" - Chapter");appendHeader.push(t.name+" - Remark");});
   const fullHeader=src.header.concat(appendHeader);
   const blankTail=Array(appendHeader.length).fill("");
   const mergedDataRows=src.rows.map(row=>row.concat(blankTail));

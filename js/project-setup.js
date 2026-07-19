@@ -11,6 +11,7 @@ function startNewSession(){
   APP.students=[];APP.rawData=null;APP.classStats=null;APP.genderAnalysis=null;subjectCount=0;testCount=0;
   APP.mergeMode=false;APP.mergeSource=null;$("#merge-banner").hide();
   APP.compareMode=false;APP.sections=[];APP.sectionComparison=[];
+  APP.setupWizardStep=1;APP.setupCard1Choice=null;
   $("#btn-download-template").html("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 3v12'/><polyline points='7 10 12 15 17 10'/><path d='M4 21h16'/></svg> Download Template");$("#btn-load-existing").html("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 21V9'/><polyline points='7 14 12 9 17 14'/><path d='M4 21h16'/></svg> Load Existing Filled Sheet");
   $("#subjects-list").empty();$("#tests-list").empty();
   $("#session-name-badge").hide().text("");
@@ -34,6 +35,7 @@ function startCompareMode(){
   APP.students=[];APP.rawData=null;APP.classStats=null;APP.genderAnalysis=null;subjectCount=0;testCount=0;
   APP.mergeMode=false;APP.mergeSource=null;$("#merge-banner").hide();
   APP.compareMode=true;APP.sections=[];APP.sectionComparison=[];APP._compareAutoRan=false;APP.homeSingleFile=null;
+  APP.setupWizardStep=1;APP.setupCard1Choice=null;
   $("#home-file-list").hide().empty();
   $("#btn-download-template").html("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 3v12'/><polyline points='7 10 12 15 17 10'/><path d='M4 21h16'/></svg> Download Template");$("#btn-load-existing").html("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 21V9'/><polyline points='7 14 12 9 17 14'/><path d='M4 21h16'/></svg> Load Existing Filled Sheet");
   $("#subjects-list").empty();$("#tests-list").empty();

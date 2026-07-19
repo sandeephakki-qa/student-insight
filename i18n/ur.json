@@ -1,6 +1,11 @@
 {
-  "_comment": "DRAFT — AI-generated, NOT reviewed by a native speaker. Needs review before shipping. RTL script — this app has not been verified to render RTL layouts correctly (dir=\"rtl\" is not currently wired anywhere); text will likely display but overall page layout/alignment may look wrong until that's addressed. Smart Search / Individual-bucket keys added Phase 2/3 are English placeholders (genuinely untranslated).",
-  "_meta": { "lang": "ur", "label": "اردو (Urdu)", "reviewed": false, "rtl": true },
+  "_comment": "DRAFT — AI-generated, NOT reviewed by a native speaker. Needs review before shipping. RTL script — this app has not been verified to render RTL layouts correctly (dir=\"rtl\" is not currently wired anywhere); text will likely display but overall page layout/alignment may look wrong until that's addressed. Smart Search / Individual-bucket keys added Phase 2/3 are English placeholders (genuinely untranslated). [Bug 1, studin-ui-bugs-prompt v1.0] home_*/about_*/faq_audience_* keys added — TODO translate, currently English placeholders, not invented translations.",
+  "_meta": {
+    "lang": "ur",
+    "label": "اردو (Urdu)",
+    "reviewed": false,
+    "rtl": true
+  },
   "bucket_class_label": "میری پوری کلاس",
   "bucket_class_desc": "مجموعی اوسط، رجحان اور کلاس بھر کے پیٹرن",
   "bucket_student_label": "ایک طالب علم",
@@ -17,6 +22,7 @@
   "bucket_count_badge_other": "({{count}} ملے)",
   "bucket_all_good": "سب کچھ ٹھیک ہے — ابھی کوئی فکر کی بات نہیں۔",
   "back": "→ واپس",
+  "bucket_back_to_dashboard": "← Dashboard",
   "finding_top_rank": "{{student}} کلاس میں #{{rank}} نمبر پر ہیں۔",
   "student_picker_prompt": "مکمل رپورٹ دیکھنے کے لیے طالب علم کا نام ٹائپ کریں۔",
   "subject_picker_prompt": "کلاس کی کارکردگی دیکھنے کے لیے ایک مضمون منتخب کریں۔",
@@ -38,5 +44,20 @@
   "individual_bucket_plan_label": "Recommendations",
   "individual_bucket_plan_desc": "What to focus on at home this week",
   "individual_bucket_wellbeing_label": "Wellbeing",
-  "individual_bucket_wellbeing_desc": "Stress and engagement signals"
+  "individual_bucket_wellbeing_desc": "Stress and engagement signals",
+  "home_hero_title": "Turn your students' marks into actionable insight",
+  "home_hero_sub": "Upload a filled Excel workbook and Student Insight identifies learning gaps, flags at-risk students, tracks progress over time, and generates ready-to-share reports — computed instantly, entirely in your browser, with your data never uploaded anywhere.",
+  "home_upload_title": "Upload Your Filled Sheet",
+  "home_upload_sub": "Drop your class's filled Excel file below. Managing more than one section or batch? Drop 2 or more files at once — matching ones are compared automatically, and any that don't match still get their own individual analysis.",
+  "about_hero_title": "You have students' marks. <span style=\"color:#2ec4b6\">Let's build meaningful insight from them.</span>",
+  "about_hero_sub": "Student Insight is the StudIn analytic tool that turns a spreadsheet of marks into ranks, trends, at-risk flags, and plain-language findings — without ever asking you to hand your data to a server first. Unlike traditional web applications that require user accounts, cloud storage, or centralized databases, Student Insight is designed as a completely stateless, privacy-first analytics platform. The application itself never becomes the owner of your data. Instead, it serves as an intelligent processing engine that transforms your spreadsheets into meaningful educational insights while keeping complete control in your hands.",
+  "faq_audience_principal": "From the Principal",
+  "faq_audience_vp": "From the VP / Academic Coordinator",
+  "faq_audience_it": "From the IT-in-charge",
+  "faq_audience_teacher": "From a Regular Teacher",
+  "faq_audience_parent": "Parent-Facing Concerns",
+  "faq_audience_finance": "For the Admin / Office",
+  "faq_audience_nitpicky": "The Nitpicky (But Real) Ones",
+  "faq_audience_formulas": "Exact Formulas & Calculation Logic",
+  "faq_audience_terms": "Terms & Abbreviations Used in the App"
 }

@@ -37,16 +37,15 @@ function closeSmartSearchScreen(){
 function renderSmartSearchScreen(){
   const shell = $("#smart-search-screen");
   shell.html(`
-    <button class="bucket-back-btn" onclick="closeSmartSearchScreen()" aria-label="Back to Dashboard">
+    <button class="bucket-back-btn" onclick="closeSmartSearchScreen()" aria-label="${esc(srT('smart_search_back'))}">
       <svg class="ic" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="margin-right:6px"><path d="m15 18-6-6 6-6"/></svg>
-      Back to Dashboard
+      ${esc(srT('smart_search_back'))}
     </button>
-    <div class="bucket-list-title">Smart Search</div>
-    <div style="font-size:12.5px;color:var(--c-text2);margin-bottom:16px;line-height:1.5">Tap a question for a plain-language answer, computed from this class's data. Nothing here is sent anywhere — calculated on your device, same as the rest of the app.</div>
+    <div class="bucket-list-title">${esc(srT('smart_search_title'))}</div>
+    <div style="font-size:12.5px;color:var(--c-text2);margin-bottom:16px;line-height:1.5">${esc(srT('smart_search_subtitle'))}</div>
     <div id="smart-category-switch" style="display:flex;gap:8px;margin-bottom:14px"></div>
     <div id="smart-student-picker" style="margin-bottom:14px"></div>
     <div id="smart-question-chips" style="display:flex;flex-direction:column;gap:10px"></div>
-    <div id="smart-answer-wrap" style="margin-top:18px"></div>
     <div id="smart-loading" style="display:none;font-size:13px;color:var(--c-text2)">Loading Smart Search…</div>
     <div id="smart-error" style="display:none;font-size:13px;color:var(--c-danger,#e03131)"></div>
   `);
@@ -61,7 +60,7 @@ function renderSmartSearchScreen(){
     renderSmartChips();
   }).catch(()=>{
     $("#smart-loading").hide();
-    $("#smart-error").text("Couldn't load Smart Search. Check your connection and try again.").show();
+    $("#smart-error").text(srT('smart_search_load_error')).show();
   });
 }
 
@@ -72,7 +71,7 @@ function renderSmartCategorySwitch(){
   wrap.show();
   cats.forEach(cat=>{
     const btn = $(`<button class="btn btn-sm ${cat.id===_smartCategory?'btn-primary':'btn-secondary'}">${esc(cat.label)}</button>`);
-    btn.on("click", ()=>{ _smartCategory = cat.id; renderSmartCategorySwitch(); renderSmartChips(); $("#smart-answer-wrap").empty(); });
+    btn.on("click", ()=>{ _smartCategory = cat.id; renderSmartCategorySwitch(); renderSmartChips(); });
     wrap.append(btn);
   });
 }
@@ -87,11 +86,11 @@ function renderSmartStudentPicker(){
     picker.hide();
     return;
   }
-  const select = $('<select class="input" style="max-width:280px"><option value="">Select a student…</option></select>');
+  const select = $(`<select class="input" style="max-width:280px"><option value="">${esc(srT('smart_search_select_student'))}</option></select>`);
   students.forEach(st=> select.append(`<option value="${esc(st.id)}">${esc(st.name)}</option>`));
   select.val(APP._smartSelectedStudentId||"");
-  select.on("change", function(){ APP._smartSelectedStudentId = $(this).val(); renderSmartChips(); $("#smart-answer-wrap").empty(); });
-  picker.append('<label style="font-size:12.5px;color:var(--c-text2);display:block;margin-bottom:4px">Student</label>').append(select);
+  select.on("change", function(){ APP._smartSelectedStudentId = $(this).val(); renderSmartChips(); });
+  picker.append(`<label style="font-size:12.5px;color:var(--c-text2);display:block;margin-bottom:4px">${esc(srT('smart_search_student_label'))}</label>`).append(select);
 }
 
 function currentSmartStudent(){
@@ -117,29 +116,42 @@ function renderSmartChips(){
     if(q.minStudents && APP.students.length < q.minStudents) return;
     rendered++;
     const disabled = isQuestionDisabled(q);
-    const row = $(`<div class="bucket-row" role="button" tabindex="${disabled?-1:0}" aria-disabled="${disabled}" title="${disabled?'AI feature — development in progress':''}" style="${disabled?'opacity:.5;cursor:not-allowed':''}">
+    const row = $(`<div id="smart-chip-${esc(q.id)}" class="bucket-row smart-chip-row" role="button" tabindex="${disabled?-1:0}" aria-disabled="${disabled}" title="${disabled?esc(srT('smart_search_ai_tooltip')):''}" style="${disabled?'opacity:.5;cursor:not-allowed':''}">
       <span class="bucket-text"><span class="bucket-label">${esc(q.label)}</span></span>
-      ${disabled?'<span class="bucket-badge" style="background:var(--c-surface2);color:var(--c-text2)">Coming soon</span>':''}
+      ${disabled?`<span class="bucket-badge" style="background:var(--c-surface2);color:var(--c-text2)">${esc(srT('smart_search_coming_soon'))}</span>`:''}
     </div>`);
+    const body = $(`<div id="smart-ans-${esc(q.id)}" class="smart-ans-body" style="display:none"></div>`);
     if(!disabled){
       row.on("click", ()=>{
-        if(_smartCategory==="per_student" && !student){ toast("Select a student first.","warn"); return; }
+        if(_smartCategory==="per_student" && !student){ toast(srT('smart_search_select_first'),"warn"); return; }
         const result = SmartEngine.ask(q.id, {student});
-        showSmartAnswer(q.label, result);
+        toggleSmartAnswer(q.id, q.label, result);
       });
       row.on("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); row.click(); } });
     }
-    chipsWrap.append(row);
+    chipsWrap.append(row).append(body);
   });
   if(!rendered){
-    chipsWrap.html(emptyStateHtml("Nothing to ask yet", "This section needs a bit more data before questions become available here."));
+    chipsWrap.html(emptyStateHtml(srT('smart_search_empty_title'), srT('smart_search_empty_sub')));
   }
 }
 
-function showSmartAnswer(questionLabel, result){
-  const wrap = $("#smart-answer-wrap").empty();
-  wrap.append(`
-    <div class="bucket-answer-title">${esc(questionLabel)}</div>
-    <div style="font-size:14.5px;line-height:1.6;color:var(--c-text);background:var(--c-surface2);border-radius:var(--r-md);padding:16px">${esc(result.text)}</div>
-  `);
+// BUG 5 FIX (studin-ui-bugs-prompt v1.0): answers now expand inline directly
+// below the clicked chip instead of appending to a bottom wrap the user had
+// to scroll to find. Only one answer open at a time, matching the FAQ
+// <details> UX. Reuses the same open/close toggle pattern used elsewhere
+// for accordions (close all, then open the clicked one if it wasn't already
+// open).
+function toggleSmartAnswer(qId, questionLabel, result){
+  const allBodies = document.querySelectorAll(".smart-ans-body");
+  const allChips  = document.querySelectorAll(".smart-chip-row");
+  const thisBody  = document.getElementById("smart-ans-" + qId);
+  const isOpen    = thisBody && thisBody.style.display !== "none";
+  allBodies.forEach(b => b.style.display = "none");
+  allChips.forEach(c => c.classList.remove("smart-chip-open"));
+  if(!isOpen && thisBody){
+    thisBody.innerHTML = `<div class="smart-ans-content">${esc(result.text)}</div>`;
+    thisBody.style.display = "block";
+    document.getElementById("smart-chip-" + qId)?.classList.add("smart-chip-open");
+  }
 }

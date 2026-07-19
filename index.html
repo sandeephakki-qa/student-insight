@@ -880,8 +880,8 @@
       <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border-radius:99px;padding:3px 12px;margin-bottom:10px">
         <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.5px;text-transform:uppercase">Privacy First • Browser Based • No Student Data Uploaded</span>
       </div>
-      <h1 style="font-family:var(--font-display);font-size:clamp(19px,4vw + 6px,24px);font-weight:800;color:#fff;margin-bottom:8px;line-height:1.25">Turn your students' marks into actionable insight</h1>
-      <p style="font-size:12.5px;color:rgba(255,255,255,.82);line-height:1.65;margin-bottom:0">Upload a filled Excel workbook and Student Insight identifies learning gaps, flags at-risk students, tracks progress over time, and generates ready-to-share reports — computed instantly, entirely in your browser, with your data never uploaded anywhere.</p>
+      <h1 style="font-family:var(--font-display);font-size:clamp(19px,4vw + 6px,24px);font-weight:800;color:#fff;margin-bottom:8px;line-height:1.25" data-i18n="home_hero_title">Turn your students' marks into actionable insight</h1>
+      <p style="font-size:12.5px;color:rgba(255,255,255,.82);line-height:1.65;margin-bottom:0" data-i18n="home_hero_sub">Upload a filled Excel workbook and Student Insight identifies learning gaps, flags at-risk students, tracks progress over time, and generates ready-to-share reports — computed instantly, entirely in your browser, with your data never uploaded anywhere.</p>
     </div>
   </div>
 
@@ -896,8 +896,8 @@
   <div id="home-paths-grid" style="margin-bottom:20px">
 
     <div class="card">
-      <div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z'/></svg></span> Upload Your Filled Sheet</div>
-      <div style="font-size:12.5px;color:var(--c-text2);line-height:1.6;margin-bottom:12px">
+      <div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z'/></svg></span> <span data-i18n="home_upload_title">Upload Your Filled Sheet</span></div>
+      <div style="font-size:12.5px;color:var(--c-text2);line-height:1.6;margin-bottom:12px" data-i18n="home_upload_sub">
         Drop your class's filled Excel file below. Managing more than one section or batch? Drop 2 or more files at once — matching ones are compared automatically, and any that don't match still get their own individual analysis.
       </div>
       <div id="home-drop-zone" class="drop-zone"
@@ -947,72 +947,78 @@
 <div id="panel-setup" class="panel">
   <div class="phase-actionbar">
     <div><div class="phase-actionbar-title"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z'/></svg> Step 1 · Setup</div><div class="phase-actionbar-sub">Configure your institution, academic year, class, subjects and assessment details before importing student data.</div></div>
-    <div class="phase-actionbar-btns">
-      <button class="btn btn-primary btn-sm" id="btn-download-template" onclick="generateTemplate()" disabled style="opacity:.45;cursor:not-allowed" title="Fill mandatory fields first"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 3v12'/><polyline points='7 10 12 15 17 10'/><path d='M4 21h16'/></svg> Download Template</button>
-      <button class="btn btn-secondary btn-sm" id="btn-setup-next" onclick="goStep('home')">Done — Upload on Home →</button>
+  </div>
+
+  <div id="sw-progress"><!-- 4 dots rendered by swRefresh() --></div>
+
+  <!-- STEP 1: Purpose -->
+  <div id="sw-step-1" class="sw-step">
+    <!-- COMPARE MODE: replaces the mode-select card entirely — this project is Institution mode by definition -->
+    <div class="card" id="compare-setup-banner" style="display:none;border-color:var(--c-primary);background:var(--c-primary-soft)">
+      <div class="card-title" style="margin-bottom:6px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></span> Compare Sections / Batches — Institution mode</div>
+      <div style="font-size:12.5px;color:var(--c-text2)">Optional — if every section's teacher already has a filled sheet, skip straight to <button class="btn btn-secondary btn-sm" onclick="goStep('home')" style="display:inline-flex;padding:3px 8px;font-size:12px;vertical-align:middle">Home · Upload</button> and the Subjects/Tests/Max Marks from the first file you upload become the shared schema automatically. Only fill this in if you need to <b>generate a blank template</b> to hand out first — in that case, Subjects, Tests &amp; Max Marks entered below will be shared across every section you compare.</div>
     </div>
-  </div>
 
-  <!-- USAGE MODE (Institution vs Individual) -->
-  <!-- COMPARE MODE: replaces the mode-select card entirely — this project is Institution mode by definition -->
-  <div class="card" id="compare-setup-banner" style="display:none;border-color:var(--c-primary);background:var(--c-primary-soft)">
-    <div class="card-title" style="margin-bottom:6px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></span> Compare Sections / Batches — Institution mode</div>
-    <div style="font-size:12.5px;color:var(--c-text2)">Optional — if every section's teacher already has a filled sheet, skip straight to <button class="btn btn-secondary btn-sm" onclick="goStep('home')" style="display:inline-flex;padding:3px 8px;font-size:12px;vertical-align:middle">Home · Upload</button> and the Subjects/Tests/Max Marks from the first file you upload become the shared schema automatically. Only fill this in if you need to <b>generate a blank template</b> to hand out first — in that case, Subjects, Tests &amp; Max Marks entered below will be shared across every section you compare.</div>
-  </div>
-
-  <div class="card" id="mode-select-card" style="border-color:var(--c-primary);background:var(--c-primary-soft)">
-    <div class="card-title" style="margin-bottom:10px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='5'/><circle cx='12' cy='12' r='1.3'/></svg></span> Who is this for?</div>
+    <div class="card-title" style="margin-bottom:10px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='5'/><circle cx='12' cy='12' r='1.3'/></svg></span> How would you like to start?</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <label class="mode-option-card" id="mode-card-institution" role="button" tabindex="0" aria-pressed="true" onclick="setUsageMode('institution')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setUsageMode('institution');}" style="cursor:pointer;padding:12px 14px;border-radius:var(--r-sm);border:2px solid var(--c-primary);background:var(--c-surface);display:flex;gap:10px;align-items:flex-start">
-        <div style="font-size:22px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></div>
-        <div>
-          <div style="font-weight:700;font-size:13px">Institution / Coaching Batch</div>
-          <div style="font-size:11.5px;color:var(--c-text2);margin-top:2px">A teacher or coaching centre tracking a whole class or batch of students — with rank, class average, and at-risk flags.</div>
+      <div class="card sw-choice-card" id="sw-card-new" role="button" tabindex="0" onclick="APP.setupCard1Choice='new';if(typeof swRefresh==='function')swRefresh();" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="cursor:pointer;padding:14px 16px;border-color:var(--c-primary)">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="font-size:22px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 5v14'/><path d='M5 12h14'/></svg></div>
+          <div>
+            <div style="font-weight:700;font-size:13.5px">Create New Template</div>
+            <div style="font-size:11.5px;color:var(--c-text2);margin-top:2px">Start fresh — set up institution, class, subjects and tests, then download a blank workbook to fill offline.</div>
+          </div>
         </div>
-      </label>
-      <label class="mode-option-card" id="mode-card-individual" role="button" tabindex="0" aria-pressed="false" onclick="setUsageMode('individual')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setUsageMode('individual');}" style="cursor:pointer;padding:12px 14px;border-radius:var(--r-sm);border:2px solid var(--c-border);background:var(--c-surface);display:flex;gap:10px;align-items:flex-start">
-        <div style="font-size:22px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='8' r='4'/></svg></div>
-        <div>
-          <div style="font-weight:700;font-size:13px">Individual (Parent / Self-Prep)</div>
-          <div style="font-size:11.5px;color:var(--c-text2);margin-top:2px">A parent tracking one or more children, or an aspirant tracking their own prep — no class comparison, just personal progress over time.</div>
+      </div>
+      <div class="card sw-choice-card" id="sw-card-update" style="padding:14px 16px;border-color:var(--c-success)">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="font-size:22px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M17 1l4 4-4 4'/><path d='M3 11V9a4 4 0 0 1 4-4h14'/><path d='M7 23l-4-4 4-4'/><path d='M21 13v2a4 4 0 0 1-4 4H3'/></svg></div>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:13.5px">Update Existing Template</div>
+            <div style="font-size:11.5px;color:var(--c-text2);margin:2px 0 8px">Already filled Test 1? Load your workbook, add Test 2 / Test 3, then re-download — existing marks are kept, only new blank columns are added.</div>
+            <input type="file" id="update-sheet-input" accept=".xlsx,.xls" style="display:none" onchange="handleUpdateUpload(this)"/>
+            <button class="btn btn-success btn-sm" id="btn-load-existing" onclick="APP.setupCard1Choice='update';document.getElementById('update-sheet-input').click()"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 21V9'/><polyline points='7 14 12 9 17 14'/><path d='M4 21h16'/></svg> Load Existing Filled Sheet</button>
+            <div id="merge-banner" style="display:none;margin-top:12px;padding:10px 14px;background:#e6f7ee;border-radius:var(--r-sm);font-size:12px;color:#1a7a4c">
+              <div id="merge-banner-text"></div>
+              <div style="margin-top:6px"><button type="button" onclick="cancelMergeMode()" style="background:none;border:none;padding:0;font:inherit;cursor:pointer;color:#1a7a4c;text-decoration:underline">Cancel — start a fresh template instead</button></div>
+            </div>
+          </div>
         </div>
-      </label>
+      </div>
     </div>
-    <div id="individual-multi-child-hint" style="display:none;margin-top:10px;font-size:11.5px;color:var(--c-text2);background:var(--c-surface);border:1px dashed var(--c-primary);border-radius:var(--r-sm);padding:8px 10px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M9 18h6'/><path d='M10 22h4'/><path d='M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2.3h6c0-1.1.4-1.8 1-2.3A7 7 0 0 0 12 2z'/></svg> Tracking more than one child? Just add another row in the downloaded template's MARKS+CONTEXT sheet with a different Student ID — each child gets their own switcher entry on the Dashboard, never compared to each other.</div>
-    <div id="mode-lock-note" role="status" style="display:none;margin-top:10px;font-size:11.5px;font-weight:600;color:#8a5a00;background:#fff7e6;border:1px solid #f0c36d;border-radius:var(--r-sm);padding:8px 10px"></div>
+    <div id="sw-err-1" class="sw-err" style="display:none"></div>
+    <div class="sw-nav"><button class="btn btn-primary btn-sm" onclick="swNext()">Next →</button></div>
   </div>
 
-  <!-- UPDATE-EXISTING-SHEET (add a new test without losing prior marks).
-       BUILD spec §5 removes Setup's *analysis*-upload entry points, but
-       this one is template-editing (add a test column, re-download —
-       never triggers analysis) and was explicitly confirmed as out of
-       scope for that removal. Kept as-is. -->
-  <div class="card" id="update-sheet-card" style="border-color:var(--c-success);background:#f4fbf7">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="font-size:20px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M17 1l4 4-4 4'/><path d='M3 11V9a4 4 0 0 1 4-4h14'/><path d='M7 23l-4-4 4-4'/><path d='M21 13v2a4 4 0 0 1-4 4H3'/></svg></div>
-        <div>
-          <div style="font-weight:700;font-size:13.5px">Already filled Test 1? Add Test 2 / Test 3 to it here</div>
-          <div style="font-size:11.5px;color:var(--c-text2)">Load your existing filled workbook, add the new test below, then re-download — your existing marks are kept, only new blank columns are added.</div>
-        </div>
+  <!-- STEP 2: About (Institution/Individual) -->
+  <div id="sw-step-2" class="sw-step" style="display:none">
+    <div class="card" id="mode-select-card" style="border-color:var(--c-primary);background:var(--c-primary-soft)">
+      <div class="card-title" style="margin-bottom:10px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='5'/><circle cx='12' cy='12' r='1.3'/></svg></span> Who is this for?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <label class="mode-option-card" id="mode-card-institution" role="button" tabindex="0" aria-pressed="true" onclick="setUsageMode('institution')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setUsageMode('institution');}" style="cursor:pointer;padding:12px 14px;border-radius:var(--r-sm);border:2px solid var(--c-primary);background:var(--c-surface);display:flex;gap:10px;align-items:flex-start">
+          <div style="font-size:22px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></div>
+          <div>
+            <div style="font-weight:700;font-size:13px">Institution / Coaching Batch</div>
+            <div style="font-size:11.5px;color:var(--c-text2);margin-top:2px">A teacher or coaching centre tracking a whole class or batch of students — with rank, class average, and at-risk flags.</div>
+          </div>
+        </label>
+        <label class="mode-option-card" id="mode-card-individual" role="button" tabindex="0" aria-pressed="false" onclick="setUsageMode('individual')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setUsageMode('individual');}" style="cursor:pointer;padding:12px 14px;border-radius:var(--r-sm);border:2px solid var(--c-border);background:var(--c-surface);display:flex;gap:10px;align-items:flex-start">
+          <div style="font-size:22px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='8' r='4'/></svg></div>
+          <div>
+            <div style="font-weight:700;font-size:13px">Individual (Parent / Self-Prep)</div>
+            <div style="font-size:11.5px;color:var(--c-text2);margin-top:2px">A parent tracking one or more children, or an aspirant tracking their own prep — no class comparison, just personal progress over time.</div>
+          </div>
+        </label>
       </div>
-      <div>
-        <input type="file" id="update-sheet-input" accept=".xlsx,.xls" style="display:none" onchange="handleUpdateUpload(this)"/>
-        <button class="btn btn-success btn-sm" id="btn-load-existing" onclick="document.getElementById('update-sheet-input').click()"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 21V9'/><polyline points='7 14 12 9 17 14'/><path d='M4 21h16'/></svg> Load Existing Filled Sheet</button>
-      </div>
+      <div id="individual-multi-child-hint" style="display:none;margin-top:10px;font-size:11.5px;color:var(--c-text2);background:var(--c-surface);border:1px dashed var(--c-primary);border-radius:var(--r-sm);padding:8px 10px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M9 18h6'/><path d='M10 22h4'/><path d='M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2.3h6c0-1.1.4-1.8 1-2.3A7 7 0 0 0 12 2z'/></svg> Tracking more than one child? Just add another row in the downloaded template's MARKS+CONTEXT sheet with a different Student ID — each child gets their own switcher entry on the Dashboard, never compared to each other.</div>
+      <div id="mode-lock-note" role="status" style="display:none;margin-top:10px;font-size:11.5px;font-weight:600;color:#8a5a00;background:#fff7e6;border:1px solid #f0c36d;border-radius:var(--r-sm);padding:8px 10px"></div>
     </div>
-    <div id="merge-banner" style="display:none;margin-top:12px;padding:10px 14px;background:#e6f7ee;border-radius:var(--r-sm);font-size:12px;color:#1a7a4c">
-      <div id="merge-banner-text"></div>
-      <div style="margin-top:6px"><button type="button" onclick="cancelMergeMode()" style="background:none;border:none;padding:0;font:inherit;cursor:pointer;color:#1a7a4c;text-decoration:underline">Cancel — start a fresh template instead</button></div>
-    </div>
-  </div>
-  <div class="grid-2" style="margin-bottom:14px">
-    <div class="card" style="padding:14px 16px">
+    <div class="card" style="padding:14px 16px;margin-top:14px">
       <div class="card-title"><span class="icon" id="inst-card-icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></span> <span id="inst-card-title">Institution</span></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px">
         <div class="form-group" style="margin-bottom:0;grid-column:1/-1">
           <label id="inst-name-label">Institution Name <span style="color:var(--c-danger)">*</span></label>
-          <input id="inst-name" type="text" placeholder="e.g. Springfield International School" oninput="markDirty();validateSetup()"/>
+          <input id="inst-name" type="text" data-voice="true" placeholder="e.g. Springfield International School" oninput="markDirty();validateSetup()"/>
           <div id="inst-name-hint" style="font-size:11px;color:var(--c-text3);margin-top:3px;display:none"></div>
           <div id="err-inst-name" style="display:none;font-size:11px;color:var(--c-danger);margin-top:3px">⚠ Institution name is required</div>
         </div>
@@ -1023,12 +1029,21 @@
         <div class="form-group" style="margin-bottom:0" id="inst-contact-group"><label>Contact</label><input id="inst-contact" type="text" placeholder="phone / email" oninput="markDirty()"/></div>
       </div>
     </div>
+    <div id="sw-err-2" class="sw-err" style="display:none"></div>
+    <div class="sw-nav">
+      <button class="btn btn-secondary btn-sm" onclick="swBack()">← Back</button>
+      <button class="btn btn-primary btn-sm" onclick="swNext()">Next →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Class / Batch -->
+  <div id="sw-step-3" class="sw-step" style="display:none">
     <div class="card" style="padding:14px 16px">
       <div class="card-title"><span class="icon" id="class-card-icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z'/><path d='M20 17v3H6.5A2.5 2.5 0 0 1 4 17.5'/></svg></span> <span id="class-card-title">Class / Batch</span></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px">
         <div class="form-group" style="margin-bottom:0" id="class-name-group">
           <label id="class-name-label">Class / Batch <span style="color:var(--c-danger)">*</span></label>
-          <input id="class-name" type="text" placeholder="e.g. Class 9" oninput="markDirty();validateSetup()"/>
+          <input id="class-name" type="text" data-voice="true" placeholder="e.g. Class 9" oninput="markDirty();validateSetup()"/>
           <div id="err-class-name" style="display:none;font-size:11px;color:var(--c-danger);margin-top:3px">⚠ Class / Batch is required</div>
         </div>
         <div class="form-group" style="margin-bottom:0" id="class-section-group"><label>Section</label><input id="class-section" type="text" placeholder="e.g. B" oninput="markDirty()"/></div>
@@ -1054,32 +1069,34 @@
         </div>
       </div>
     </div>
-  </div>
-  <div class="grid-2">
-    <div class="card" style="padding:14px 16px">
-      <div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z'/><path d='M20 17v3H6.5A2.5 2.5 0 0 1 4 17.5'/></svg></span> Subjects</div>
-      <div id="subjects-list" style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px"></div>
-      <button class="btn btn-secondary btn-sm" onclick="addSubject();validateSetup()">✚ Add Subject</button>
-    </div>
-    <div class="card" style="padding:14px 16px">
-      <div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'/></svg></span> Tests / Exams</div>
-      <div id="tests-list" style="display:flex;flex-direction:column;gap:12px;margin-bottom:8px"></div>
-      <button class="btn btn-secondary btn-sm" onclick="addTest();validateSetup()">✚ Add Test</button>
+    <div id="sw-err-3" class="sw-err" style="display:none"></div>
+    <div class="sw-nav">
+      <button class="btn btn-secondary btn-sm" onclick="swBack()">← Back</button>
+      <button class="btn btn-primary btn-sm" onclick="swNext()">Next →</button>
     </div>
   </div>
-  <div id="setup-cta-card" class="card" style="background:var(--c-primary-soft);border-color:var(--c-primary);display:none">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <div style="font-size:22px">👆</div>
-      <div>
-        <div style="font-weight:700;font-size:14px;margin-bottom:3px">Ready! Use <b><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 3v12'/><polyline points='7 10 12 15 17 10'/><path d='M4 21h16'/></svg> Download Template</b> at the top of this page</div>
-        <div style="font-size:12.5px;color:var(--c-text2)">2 tabs: SETUP (auto-filled) · MARKS+CONTEXT (add roster + marks, teacher fills offline)</div>
+
+  <!-- STEP 4: Curriculum + Download -->
+  <div id="sw-step-4" class="sw-step" style="display:none">
+    <div class="grid-2">
+      <div class="card" style="padding:14px 16px">
+        <div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z'/><path d='M20 17v3H6.5A2.5 2.5 0 0 1 4 17.5'/></svg></span> Subjects</div>
+        <div id="subjects-list" style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px"></div>
+        <button class="btn btn-secondary btn-sm" onclick="addSubject();validateSetup()">✚ Add Subject</button>
+      </div>
+      <div class="card" style="padding:14px 16px">
+        <div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'/></svg></span> Tests / Exams</div>
+        <div id="tests-list" style="display:flex;flex-direction:column;gap:12px;margin-bottom:8px"></div>
+        <button class="btn btn-secondary btn-sm" onclick="addTest();validateSetup()">✚ Add Test</button>
       </div>
     </div>
-  </div>
-  <div id="setup-incomplete-card" class="card" style="border-color:var(--c-warn);background:#fffbf0">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <div style="font-size:24px">⚠</div>
-      <div><div style="font-weight:700;font-size:13.5px;margin-bottom:3px">Complete required fields to download template</div><div id="setup-missing-list" style="font-size:12px;color:var(--c-text2)">Fill Institution Name, Class, Year, at least one subject and one test.</div></div>
+    <div id="sw-err-4" class="sw-err" style="display:none"></div>
+    <div class="sw-nav" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <button class="btn btn-secondary btn-sm" onclick="swBack()">← Back</button>
+      <div style="display:flex;align-items:center;gap:14px">
+        <a href="javascript:void(0)" id="btn-setup-next" onclick="goStep('home')" style="font-size:12.5px;color:var(--c-text2);text-decoration:underline">Done — Upload on Home →</a>
+        <button class="btn btn-primary btn-sm" id="btn-download-template" onclick="generateTemplate()" disabled style="opacity:.45;cursor:not-allowed" title="Fill mandatory fields first"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 3v12'/><polyline points='7 10 12 15 17 10'/><path d='M4 21h16'/></svg> Download Template</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1342,8 +1359,8 @@
       <span style="position:absolute;top:20px;right:26px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.34);z-index:1">Built by Sandeep Hakki</span>
       <div style="position:relative;z-index:1">
         <div class="about-hero-eyebrow"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><line x1='6' y1='20' x2='6' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='18' y1='20' x2='18' y2='14'/></svg> Student Insight — About</div>
-        <h1 style="font-family:var(--font-display);font-size:30px;font-weight:800;line-height:1.25;margin-bottom:14px">You have students' marks. <span style="color:#2ec4b6">Let's build meaningful insight from them.</span></h1>
-        <p style="font-size:13.5px;color:rgba(255,255,255,.75);line-height:1.85;max-width:620px">Student Insight is the Studin analytic tool that turns a spreadsheet of marks into ranks, trends, at-risk flags, and plain-language findings — without ever asking you to hand your data to a server first. Unlike traditional web applications that require user accounts, cloud storage, or centralized databases, Student Insight is designed as a completely stateless, privacy-first analytics platform. The application itself never becomes the owner of your data. Instead, it serves as an intelligent processing engine that transforms your spreadsheets into meaningful educational insights while keeping complete control in your hands.</p>
+        <h1 style="font-family:var(--font-display);font-size:30px;font-weight:800;line-height:1.25;margin-bottom:14px" data-i18n="about_hero_title">You have students' marks. <span style="color:#2ec4b6">Let's build meaningful insight from them.</span></h1>
+        <p style="font-size:13.5px;color:rgba(255,255,255,.75);line-height:1.85;max-width:620px" data-i18n="about_hero_sub">Student Insight is the StudIn analytic tool that turns a spreadsheet of marks into ranks, trends, at-risk flags, and plain-language findings — without ever asking you to hand your data to a server first. Unlike traditional web applications that require user accounts, cloud storage, or centralized databases, Student Insight is designed as a completely stateless, privacy-first analytics platform. The application itself never becomes the owner of your data. Instead, it serves as an intelligent processing engine that transforms your spreadsheets into meaningful educational insights while keeping complete control in your hands.</p>
       </div>
     </div>
 
@@ -1506,7 +1523,7 @@
       <span style="position:absolute;top:20px;right:26px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.34);z-index:1">Built by Sandeep Hakki</span>
       <div style="position:relative;z-index:1">
         <div class="about-hero-eyebrow"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10'/><path d='M9.5 9a2.5 2.5 0 0 1 4.8 1c0 1.5-2.3 2-2.3 3.5'/><line x1='12' y1='17.5' x2='12' y2='17.5'/></svg> Frequently Asked Questions</div>
-        <h1 style="font-family:var(--font-display);font-size:26px;font-weight:800;line-height:1.3;margin-bottom:10px">You have students' marks. Here's exactly how the Studin analytic tool <span style="color:#2ec4b6">turns them into insight —</span> answered honestly, not persuasively.</h1>
+        <h1 style="font-family:var(--font-display);font-size:26px;font-weight:800;line-height:1.3;margin-bottom:10px">You have students' marks. Here's exactly how the StudIn analytic tool <span style="color:#2ec4b6">turns them into insight —</span> answered honestly, not persuasively.</h1>
         <p style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.8;max-width:640px">These are the actual questions principals, coordinators, IT staff and teachers ask when this tool is proposed to them — from serious procurement concerns down to the nitpicky ones. Every answer below reflects exactly what the app does today. Where something isn't built yet, that's stated plainly rather than glossed over.</p>
       </div>
     </div>
@@ -1518,7 +1535,7 @@
     <div id="faq-root">
 
     <!-- PRINCIPAL -->
-    <details class="faq-section" open><summary class="faq-audience"><div class="icon-badge">🎓</div><div class="txt">From the Principal</div><div class="cnt">Money, liability, reputation</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
+    <details class="faq-section" open><summary class="faq-audience"><div class="icon-badge">🎓</div><div class="txt" data-i18n="faq_audience_principal">From the Principal</div><div class="cnt">Money, liability, reputation</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Is this free forever, or a trial that starts charging later?<span class="faq-tag serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">It's free. There's no backend, no server cost, no subscription infrastructure — it's a single HTML file hosted on GitHub Pages, which is free hosting. There's nothing for me to "start charging" for later because there's no ongoing cost on my end to recover.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>What's the catch — what are you getting out of this?<span class="faq-tag serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">No catch in the commercial sense. I built it because I wanted a tool like this to exist and be genuinely private. There's no data collection, no ads, no lead-gen — it's a personal project, not a funded product.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Who else is using this? Can you name another school?<span class="faq-tag serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">Right now, honestly — I can't point you to another school using it yet. You'd be among the first. I won't pretend otherwise.</div></details>
@@ -1530,7 +1547,7 @@
     </div></details>
 
     <!-- VP / COORDINATOR -->
-    <details class="faq-section"><summary class="faq-audience"><div class="icon-badge">🧭</div><div class="txt">From the VP / Academic Coordinator</div><div class="cnt">Process & control</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
+    <details class="faq-section"><summary class="faq-audience"><div class="icon-badge">🧭</div><div class="txt" data-i18n="faq_audience_vp">From the VP / Academic Coordinator</div><div class="cnt">Process & control</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Does this integrate with our existing student database?<span class="faq-tag serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">No integration — you upload an Excel file each time. If your ERP can export marks to Excel, that export can be fed into this. There's no live sync.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Our teachers struggle with Excel — will they manage?<span class="faq-tag practical">Practical</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">The app generates a ready-made Excel template based on your subjects and tests, so teachers fill a structured sheet rather than building one from scratch. That said, a teacher uncomfortable with Excel entirely will still need to do that filling-in step — this doesn't remove Excel from the workflow.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Who trains the teachers on this?<span class="faq-tag practical">Practical</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">There's no training program or support team — it's a single developer and the app itself. The Sample Files section has downloadable examples to reduce guesswork, but there's no live onboarding available at scale today.</div></details>
@@ -1546,7 +1563,7 @@
     </div></details>
 
     <!-- IT -->
-    <details class="faq-section"><summary class="faq-audience"><div class="icon-badge"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='2' y='4' width='20' height='13' rx='2'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='12' y1='17' x2='12' y2='21'/></svg></div><div class="txt">From the IT-in-charge</div><div class="cnt">Hosting & data location</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
+    <details class="faq-section"><summary class="faq-audience"><div class="icon-badge"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='2' y='4' width='20' height='13' rx='2'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='12' y1='17' x2='12' y2='21'/></svg></div><div class="txt" data-i18n="faq_audience_it">From the IT-in-charge</div><div class="cnt">Hosting & data location</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Where exactly is our data stored?<span class="faq-tag serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">Nowhere, by design. The app doesn't save student data to any server, database, or even the browser's local storage — it exists only in the browser tab's memory while in use, and disappears when the tab closes. The uploaded Excel file is the only persistent copy, and it stays wherever it already was.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Is this hosted on a government-approved server?<span class="faq-tag serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">It's hosted on GitHub Pages, a standard public web-hosting service — not on any government-empanelled cloud.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>You said no login — so how do you stop misuse?<span class="faq-tag serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">There's no authentication layer. Access control is entirely on the school's side (who has the link, who has the Excel file). This tool doesn't provide role-based access.</div></details>
@@ -1557,7 +1574,7 @@
     </div></details>
 
     <!-- TEACHER -->
-    <details class="faq-section"><summary class="faq-audience"><div class="icon-badge"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='8' r='4'/></svg>‍<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></div><div class="txt">From a Regular Teacher</div><div class="cnt">The actual daily user</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
+    <details class="faq-section"><summary class="faq-audience"><div class="icon-badge"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='8' r='4'/></svg>‍<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></div><div class="txt" data-i18n="faq_audience_teacher">From a Regular Teacher</div><div class="cnt">The actual daily user</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>How much time will this actually save me?<span class="faq-tag practical">Practical</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">There's no validated number from a formal time-and-motion study against manual report-card creation. What's concrete: it removes the manual calculation and PDF-formatting steps once marks are in the template — the real time saved depends on the current process being replaced.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Can I edit the AI-generated remarks, or are they locked?<span class="faq-tag practical">Practical</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">Yes — every narrative field (The Bottom Line, Strengths, At Home This Week, At School) has an editable box right in the student modal, with its own Save button. Whatever you type there is what goes into the exported PDF. The one exception is "What's Changed," which is a computed summary of the marks table, not a wording template — it isn't meant to be edited.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Does the report show total marks, not just percentages?<span class="faq-tag practical">Practical</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">Yes — each test row shows a Total column (e.g. "231/450") alongside how many subjects were actually attempted (e.g. "4/5 opted"), so a partially-attempted test doesn't get silently folded into an average without showing the real numbers. In Institution mode, a Class Avg row sits directly under each test for comparison.</div></details>
@@ -1576,21 +1593,21 @@
     </div></details>
 
     <!-- PARENT -->
-    <details class="faq-section"><summary class="faq-audience"><div class="icon-badge">👨‍<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='8' r='4'/></svg>‍👧</div><div class="txt">Parent-Facing Concerns</div><div class="cnt">What the principal anticipates</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
+    <details class="faq-section"><summary class="faq-audience"><div class="icon-badge">👨‍<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='8' r='4'/></svg>‍👧</div><div class="txt" data-i18n="faq_audience_parent">Parent-Facing Concerns</div><div class="cnt">What the principal anticipates</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Why does it say my child is at "burnout risk"?<span class="faq-tag serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">Every flag includes a specific, factual explanation — like a defined score drop between two named tests — rather than a vague label. That reasoning can be shown to a parent directly, not just an unexplained flag.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Is this leaking data to an ad company?<span class="faq-tag serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">No — there are no ads, no analytics tracking of student data, and nothing is transmitted off the device during use. This isn't a promise on faith — it's a direct consequence of there being no server for data to go to in the first place.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Is this like a "free VPN" that secretly sells your data?<span class="faq-tag silly">Silly</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">No — those business models make money by collecting and selling data. This app has no mechanism to collect data in the first place, so there's nothing to sell.</div></details>
     </div></details>
 
     <!-- FINANCE -->
-    <details class="faq-section"><summary class="faq-audience"><div class="icon-badge">💰</div><div class="txt">From the Finance / Admin Office</div><div class="cnt">Budget & paperwork</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
+    <details class="faq-section"><summary class="faq-audience"><div class="icon-badge"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='2' y='7' width='20' height='14' rx='2'/><path d='M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16'/><line x1='2' y1='13' x2='22' y2='13'/></svg></div><div class="txt" data-i18n="faq_audience_finance">For the Admin / Office</div><div class="cnt">Budget & paperwork</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Will there be a per-student or per-teacher fee later?<span class="faq-tag serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">Not planned — there's no infrastructure cost driving a future need to charge. "Never" isn't a guarantee that can be made absolutely, but there's no roadmap toward monetization today.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Do we need to sign an MOU or agreement?<span class="faq-tag serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">No formal agreement exists today — this isn't an enterprise product with a sales/legal process behind it.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Is there a paid version with more features?<span class="faq-tag practical">Practical</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">No — there is one version.</div></details>
     </div></details>
 
     <!-- NITPICKY -->
-    <details class="faq-section"><summary class="faq-audience"><div class="icon-badge">🔎</div><div class="txt">The Nitpicky (But Real) Ones</div><div class="cnt">You'll actually hear these</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
+    <details class="faq-section"><summary class="faq-audience"><div class="icon-badge">🔎</div><div class="txt" data-i18n="faq_audience_nitpicky">The Nitpicky (But Real) Ones</div><div class="cnt">You'll actually hear these</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Does it work on Internet Explorer?<span class="faq-tag silly">Silly</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">Almost certainly not reliably — it depends on modern browser features and is built and tested against browsers like Chrome, Edge, and Firefox, not legacy IE.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Can it detect if a teacher marked a student unfairly?<span class="faq-tag silly">Silly</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">No — it only analyzes the numbers it's given. It has no way to know whether those numbers were assigned fairly in the first place.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Why "Insight" — does it predict the future?<span class="faq-tag silly">Silly</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">There is a "predicted next score" metric based on simple trend extrapolation from past scores — closer to "if this trend continues" than any real forecasting model.</div></details>
@@ -1601,7 +1618,7 @@
     </div></details>
 
     <!-- METHODOLOGY -->
-    <details id="faq-methodology" class="faq-section"><summary class="faq-audience"><div class="icon-badge">📐</div><div class="txt">Exact Formulas & Calculation Logic</div><div class="cnt">For maths/statistics/analytics reviewers — every number, in writing</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
+    <details id="faq-methodology" class="faq-section"><summary class="faq-audience"><div class="icon-badge">📐</div><div class="txt" data-i18n="faq_audience_formulas">Exact Formulas & Calculation Logic</div><div class="cnt">For maths/statistics/analytics reviewers — every number, in writing</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
       <details class="faq-item" open><summary><span class="faq-q-mark">Σ</span><span>How is a test percentage calculated?<span class="faq-tag practical">Core</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">For each test: <code style="background:#f1f3f5;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:12.5px">Test % = ( Σ min(marks scored, subject max) ) ÷ ( Σ subject max ) × 100</code>, summed across every subject the student attempted in that test, then rounded to the nearest whole number. A subject with no mark entered is excluded from both the numerator and denominator for that test (it doesn't count as zero). If an entered mark exceeds the subject's max, it's clamped down to the max for this calculation and separately flagged as a data-entry issue.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Σ</span><span>How is the Overall Average calculated?<span class="faq-tag practical">Core</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a"><code style="background:#f1f3f5;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:12.5px">Overall Avg = ( Σ marks scored across ALL tests ) ÷ ( Σ max marks across ALL tests ) × 100</code>, rounded once at the end. This is deliberately <strong>not</strong> a simple average of the already-rounded per-test percentages — averaging pre-rounded numbers compounds rounding error test over test. Working from raw cumulative totals and rounding only once keeps the final figure accurate to the source marksheet.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Σ</span><span>What are the grade bands?<span class="faq-tag practical">Core</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">Applied to the Overall Average: <code style="background:#f1f3f5;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:12.5px">A+ ≥90 · A ≥80 · B ≥70 · C ≥60 · D ≥ Pass Threshold · F below Pass Threshold</code>. The Pass Threshold itself is set per-institute in Setup (default 35%), so D/F cut-offs move with whatever threshold was configured — the A+/A/B/C bands are fixed.</div></details>
@@ -1625,7 +1642,7 @@
     </div></details>
 
     <!-- GLOSSARY -->
-    <details class="faq-section"><summary class="faq-audience"><div class="icon-badge"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z'/><path d='M20 17v3H6.5A2.5 2.5 0 0 1 4 17.5'/></svg></div><div class="txt">Terms & Abbreviations Used in the App</div><div class="cnt">What every label actually means</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
+    <details class="faq-section"><summary class="faq-audience"><div class="icon-badge"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z'/><path d='M20 17v3H6.5A2.5 2.5 0 0 1 4 17.5'/></svg></div><div class="txt" data-i18n="faq_audience_terms">Terms & Abbreviations Used in the App</div><div class="cnt">What every label actually means</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
       <details class="faq-item"><summary><span class="faq-q-mark">Aa</span><span>Median<span class="faq-tag practical">Statistics</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">The <strong>middle score</strong> if every student were lined up from lowest to highest — half the class scored above it, half below. Unlike a plain average, one or two extreme scores can't pull the median up or down.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Aa</span><span>SD <span style="font-weight:400;color:var(--c-text3)">(Standard Deviation)</span><span class="faq-tag practical">Statistics</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a"><strong>Full form: Standard Deviation.</strong> A measure of how spread out the scores are around the average. A small SD means most students scored close together; a large SD (e.g. ±22) means there's a big gap between the strongest and weakest students in the class.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Aa</span><span>Q1 <span style="font-weight:400;color:var(--c-text3)">(First Quartile)</span><span class="faq-tag practical">Statistics</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a"><strong>Full form: First Quartile.</strong> The score below which the bottom 25% of the class falls. If Q1 is 48%, a quarter of the class scored 48% or less.</div></details>
@@ -1684,5 +1701,6 @@
 <script src="js/app-utils-init.js"></script>
 <script src="js/smart-engine.js"></script>
 <script src="js/smart-engine-ui.js"></script>
+<script src="js/setup-wizard.js"></script>
 </body>
 </html>

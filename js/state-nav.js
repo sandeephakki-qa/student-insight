@@ -22,7 +22,9 @@ const APP={currentStep:"home",setup:{mode:"institution",modeLocked:false,instNam
   // sections[] above: set once a lone Home upload passes validation, so
   // renderHomeFileList() can show the same "here's what's uploaded, ✕ to
   // remove it before running" card whether it's 1 file or several.
-  homeSingleFile:null};
+  homeSingleFile:null
+  ,setupWizardStep:1  // 1–4, session-only
+};
 let _charts={},subjectCount=0,testCount=0,_unsaved=false,_compareSectionSeq=0;
 
 /* ════ THEME TOGGLE ════ */
@@ -64,7 +66,7 @@ function goStep(step){
   // jump and explain why instead of silently navigating; the nav items
   // themselves also get a "disabled" look + tooltip via
   // updateNavHomeOnlyState() below so this rarely even gets clicked.
-  if(APP.currentStep!=="home"&&(step==="setup"||step==="about"||step==="faq")){
+  if((APP.currentStep==="dashboard"||APP.currentStep==="export")&&(step==="setup"||step==="about"||step==="faq")){
     toast("Available only from the Home screen.","warn");
     return;
   }
@@ -92,14 +94,15 @@ function goStep(step){
     else $("#exp-count").text(APP.students.length);
   }
   if(step==="home")renderHomePage();
+  if(step==="setup"){ if(typeof swGoto==="function") swGoto(APP.setupWizardStep||1); }
 }
 // v3.7: Setup/Sample Files/About/FAQ nav items only make sense from Home
 // — visually flags them as unavailable elsewhere (dim + not-allowed
 // cursor) and swaps in an explanatory tooltip, so the disabled state is
 // discoverable on hover instead of only showing up as a toast on click.
 function updateNavHomeOnlyState(){
-  const isHome=APP.currentStep==="home";
-  $(".nav-home-only").toggleClass("disabled",!isHome).attr("aria-disabled",isHome?"false":"true").attr("title",isHome?"":"Available only from the Home screen");
+  const lockAux=(APP.currentStep==="dashboard"||APP.currentStep==="export");
+  $(".nav-home-only").toggleClass("disabled",lockAux).attr("aria-disabled",lockAux?"true":"false").attr("tabindex",lockAux?"-1":"0").attr("title",lockAux?"Available only from the Home screen":"");
 }
 
 // PHASE 3 — Only India is active right now; other countries are listed
@@ -128,15 +131,20 @@ const DEFAULT_COUNTRY = "IN";
 function populateCountryDropdown(){
   const sel = $("#country-select");
   if(!sel.length) return;
-  // Only India is active for now — every other country is shown but
-  // disabled (greyed out, unselectable), per explicit direction: "keep
-  // India country only active remaining disabled." Kept in the list
-  // (rather than removed) so the dropdown's future shape is visible and
-  // re-enabling one later is a one-line change (drop the `disabled`
-  // attribute), not rebuilding the list from scratch.
-  sel.html(Object.entries(COUNTRY_LANGUAGES).map(([code,c])=>
-    `<option value="${code}" ${code===DEFAULT_COUNTRY?"selected":"disabled"}>${esc(c.label)}${code===DEFAULT_COUNTRY?"":" (coming soon)"}</option>`
+  // Only India is offered as a selectable option — the other countries in
+  // COUNTRY_LANGUAGES are NOT rendered into the <select> at all. An
+  // earlier version tried native <option disabled> instead, but that
+  // styling is too subtle in some browsers/OS combos to read as
+  // "disabled" at a glance — this is the unambiguous fix: if it's not in
+  // the list, it can't be picked, full stop. The other countries stay
+  // defined in COUNTRY_LANGUAGES (unused for now) so re-enabling one
+  // later is just adding it back into this .filter().
+  const active = Object.entries(COUNTRY_LANGUAGES).filter(([code])=>code===DEFAULT_COUNTRY);
+  sel.html(active.map(([code,c])=>
+    `<option value="${code}" selected>${esc(c.label)}</option>`
   ).join(""));
+  $("#i18n-more-countries-note").remove();
+  sel.after(`<span id="i18n-more-countries-note" style="font-size:11px;color:var(--c-text2);align-self:center">more countries coming soon</span>`);
   populateLanguageDropdown(DEFAULT_COUNTRY);
 }
 function populateLanguageDropdown(countryCode){

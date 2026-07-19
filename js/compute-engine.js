@@ -136,6 +136,7 @@ function parseStudents(){
       subjects.forEach(s=>{const pos=ko[s.trim()]||[];if(pos[ti]!==undefined)posMap[t.name][s]=pos[ti];});
       const abPos=ko["Absent Days"]||ko["AbsentDays"]||[];if(abPos[ti]!==undefined)posMap[t.name]["__absent"]=abPos[ti];
       const rmPos=ko["Teacher Remark"]||ko["Remark"]||[];if(rmPos[0]!==undefined)posMap[t.name]["__remark"]=rmPos[0];
+      const chPos=ko["Chapter"]||[];if(chPos[0]!==undefined)posMap[t.name]["__chapter"]=chPos[0];
     });
   }
 
@@ -233,7 +234,7 @@ function parseStudents(){
       address:row["Address"]||(legacy&&legacy.address)||"",
       testData:{}};
     tests.forEach(t=>{
-      if(!studentData[key].testData[t.name])studentData[key].testData[t.name]={marks:{},absents:0,remark:""};
+      if(!studentData[key].testData[t.name])studentData[key].testData[t.name]={marks:{},absents:0,remark:"",chapter:""};
       subjects.forEach(s=>{
         const raw=getRawVal(row,t.name,s);
         if(raw===null||raw===undefined)return;// genuinely blank cell — nothing to flag
@@ -270,6 +271,9 @@ function parseStudents(){
       const rmKey=posMap&&posMap[t.name]?posMap[t.name]["__remark"]:undefined;
       const rm=rmKey!==undefined?(row.__raw?row.__raw[rmKey]:undefined):getVal(row,t.name,"Remark");
       if(rm!==null&&rm!=="")studentData[key].testData[t.name].remark=String(rm);
+      const chKey=posMap&&posMap[t.name]?posMap[t.name]["__chapter"]:undefined;
+      const ch=chKey!==undefined?(row.__raw?row.__raw[chKey]:undefined):getVal(row,t.name,"Chapter");
+      if(ch!==null&&ch!=="")studentData[key].testData[t.name].chapter=String(ch).trim();
     });
   });
   APP.students=Object.values(studentData);
@@ -286,7 +290,7 @@ function computeAnalysis(){
   APP.students.forEach(st=>{
     st.analysis={};const testAvgs=[];const cumAvgByTest=[];let cumMarks=0,cumMax=0;
     tests.forEach((t)=>{
-      const td=st.testData[t.name]||{marks:{},absents:0,remark:""};
+      const td=st.testData[t.name]||{marks:{},absents:0,remark:"",chapter:""};
       let total=0,maxTotal=0,scored=0;
       subjects.forEach(s=>{const m=td.marks[s];const mx=(t.maxMarks&&t.maxMarks[s])||100;if(m!==null&&m!==undefined&&m!==""){const mv=parseFloat(m)||0;if(mv>mx)APP.dataIssues.push({studentId:st.id,studentName:st.name,test:t.name,subject:s,message:`entered ${mv}, exceeds max of ${mx} — will inflate this test's percentage`});total+=Math.min(mv,mx);maxTotal+=mx;scored++;}else maxTotal+=mx;});
       testAvgs.push(scored?Math.round((total/maxTotal)*100):null);
