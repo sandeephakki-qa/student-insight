@@ -22,9 +22,7 @@ const APP={currentStep:"home",setup:{mode:"institution",modeLocked:false,instNam
   // sections[] above: set once a lone Home upload passes validation, so
   // renderHomeFileList() can show the same "here's what's uploaded, ✕ to
   // remove it before running" card whether it's 1 file or several.
-  homeSingleFile:null
-  ,setupWizardStep:1  // 1–4, session-only
-};
+  homeSingleFile:null};
 let _charts={},subjectCount=0,testCount=0,_unsaved=false,_compareSectionSeq=0;
 
 /* ════ THEME TOGGLE ════ */
@@ -66,7 +64,14 @@ function goStep(step){
   // jump and explain why instead of silently navigating; the nav items
   // themselves also get a "disabled" look + tooltip via
   // updateNavHomeOnlyState() below so this rarely even gets clicked.
-  if((APP.currentStep==="dashboard"||APP.currentStep==="export")&&(step==="setup"||step==="about"||step==="faq")){
+  // BUG 2 FIX (studin-ui-bugs-prompt v1.0): originally only "home" itself
+  // allowed the jump — extended to also allow it FROM "setup", since the
+  // requested rule is "enabled on home OR setup, disabled on dashboard OR
+  // export" (not "enabled on home only"). Without this, updateNavHomeOnlyState()
+  // below could show these tabs as visually enabled while on Setup, but
+  // clicking one would still hit this toast-and-block — a real
+  // enabled-looking-but-broken state, not just a cosmetic gap.
+  if(APP.currentStep!=="home"&&APP.currentStep!=="setup"&&(step==="setup"||step==="about"||step==="faq")){
     toast("Available only from the Home screen.","warn");
     return;
   }
@@ -94,15 +99,19 @@ function goStep(step){
     else $("#exp-count").text(APP.students.length);
   }
   if(step==="home")renderHomePage();
-  if(step==="setup"){ if(typeof swGoto==="function") swGoto(APP.setupWizardStep||1); }
 }
 // v3.7: Setup/Sample Files/About/FAQ nav items only make sense from Home
 // — visually flags them as unavailable elsewhere (dim + not-allowed
 // cursor) and swaps in an explanatory tooltip, so the disabled state is
 // discoverable on hover instead of only showing up as a toast on click.
 function updateNavHomeOnlyState(){
-  const lockAux=(APP.currentStep==="dashboard"||APP.currentStep==="export");
-  $(".nav-home-only").toggleClass("disabled",lockAux).attr("aria-disabled",lockAux?"true":"false").attr("tabindex",lockAux?"-1":"0").attr("title",lockAux?"Available only from the Home screen":"");
+  // BUG 2 FIX (studin-ui-bugs-prompt v1.0): was `home` only — extended to
+  // `home` OR `setup` per the requested rule (enabled on home/setup,
+  // disabled on dashboard/export). Other steps (e.g. "ai") aren't
+  // mentioned in the spec and keep the prior default (disabled), since
+  // the spec explicitly says "no other steps need a rule change."
+  const isHome=APP.currentStep==="home"||APP.currentStep==="setup";
+  $(".nav-home-only").toggleClass("disabled",!isHome).attr("aria-disabled",isHome?"false":"true").attr("title",isHome?"":"Available only from the Home screen");
 }
 
 // PHASE 3 — Only India is active right now; other countries are listed

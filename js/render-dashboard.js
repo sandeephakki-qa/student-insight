@@ -123,7 +123,6 @@ const SR_STRINGS_EN={
   bucket_count_badge_other:"({{count}} found)",
   bucket_all_good:"All good — no concerns here right now.",
   back:"← Back",
-  bucket_back_to_dashboard:"← Dashboard",
   finding_top_rank:"{{student}} is ranked #{{rank}} in the class.",
   student_picker_prompt:"Type a student's name to see their full report.",
   subject_picker_prompt:"Pick a subject to see how the class did.",
@@ -132,7 +131,7 @@ const SR_STRINGS_EN={
   home_upload_title:"Upload Your Filled Sheet",
   home_upload_sub:"Drop your class's filled Excel file below. Managing more than one section or batch? Drop 2 or more files at once — matching ones are compared automatically, and any that don't match still get their own individual analysis.",
   about_hero_title:"You have students' marks. <span style=\"color:#2ec4b6\">Let's build meaningful insight from them.</span>",
-  about_hero_sub:"Student Insight is the StudIn analytic tool that turns a spreadsheet of marks into ranks, trends, at-risk flags, and plain-language findings — without ever asking you to hand your data to a server first. Unlike traditional web applications that require user accounts, cloud storage, or centralized databases, Student Insight is designed as a completely stateless, privacy-first analytics platform. The application itself never becomes the owner of your data. Instead, it serves as an intelligent processing engine that transforms your spreadsheets into meaningful educational insights while keeping complete control in your hands.",
+  about_hero_sub:"Student Insight is the Studin analytic tool that turns a spreadsheet of marks into ranks, trends, at-risk flags, and plain-language findings — without ever asking you to hand your data to a server first. Unlike traditional web applications that require user accounts, cloud storage, or centralized databases, Student Insight is designed as a completely stateless, privacy-first analytics platform. The application itself never becomes the owner of your data. Instead, it serves as an intelligent processing engine that transforms your spreadsheets into meaningful educational insights while keeping complete control in your hands.",
   faq_audience_principal:"From the Principal",
   faq_audience_vp:"From the VP / Academic Coordinator",
   faq_audience_it:"From the IT-in-charge",
@@ -424,7 +423,6 @@ function renderIndividualWellbeingAnswer(st){
 
 function openBucket(id){
   window._bucketCurrent=id;
-  APP._currentBucketId=id;
   if(id==="class")return renderClassAnswer();
   if(id==="student")return renderStudentPicker();
   if(id==="subject")return renderSubjectPicker();
@@ -436,34 +434,40 @@ function backToBuckets(){
   $("#bucket-list-screen,#bucket-answer-screen").hide();
   $("#bucket-screen").show();
 }
+// BUG 6a FIX (studin-ui-bugs-prompt v1.0): universal one-click "back to
+// Dashboard" for the 4 screens that sit 2 levels deep (Screen C, reached
+// via Screen B — see the 4 call sites below). Institution mode already
+// has backToBuckets() for this; Individual mode has its own
+// backToIndividualBuckets(). This wrapper picks the right one so the new
+// breadcrumb button works correctly regardless of mode, without needing
+// to duplicate mode-detection at each of the 4 call sites.
+function goBackToBuckets(){
+  if(APP.setup.mode==="individual") backToIndividualBuckets();
+  else backToBuckets();
+}
+// BUG 6a FIX (studin-ui-bugs-prompt v1.0): "x" reset button next to the
+// student/subject picker inputs. Clears the typed text and hides any
+// answer already showing (from a previous pick), so the user can search
+// again without manually deleting text or navigating away and back.
+// Reuses window._bucketCurrent (already set by openBucket() — see there)
+// instead of introducing a second, duplicate tracking variable.
+function clearBucketPicker(kind){
+  const inputId = kind==="student" ? "bucket-student-input" : "bucket-subject-input";
+  const input = document.getElementById(inputId);
+  if(input){ input.value=""; input.focus(); }
+  $("#bucket-answer-screen").hide();
+}
 // Screen C → Screen B, same bucket, per spec (never back to A from here).
 function backToBucketList(){
   $("#bucket-answer-screen").hide();
   showScreen("#bucket-list-screen");
 }
 
-// TASK 1c (studin-features-prompt v1.0): flags in this app are trend/class
-// level, not tied to one specific test, so there's no direct flag→test
-// link to key off. The Chapter field is only meaningful as "what was being
-// taught", so when a flag's reason plausibly relates to a particular
-// test's content, the most recent test that has a Chapter filled in is
-// used. Purely additive — blank Chapter means zero change to the string.
-const CHAPTER_RELEVANT_FLAG_TYPES=["at-risk","first-below-pass","sharp-drop","declining","burnout","plateau","volatile"];
-function flagChapterSuffix(st,flagType){
-  if(!CHAPTER_RELEVANT_FLAG_TYPES.includes(flagType))return "";
-  const tests=(APP.setup&&APP.setup.tests)||[];
-  for(let i=tests.length-1;i>=0;i--){
-    const ch=(st.testData[tests[i].name]||{}).chapter;
-    if(ch)return " · Chapter: "+ch;
-  }
-  return "";
-}
-
 function bucketFindingReason(kind,st){
   const ew=(st.analysis&&st.analysis.explainedWarnings)||[];
   const types=kind==="help"?BUCKET_HELP_FLAG_TYPES:BUCKET_TOP_FLAG_TYPES;
   const hit=ew.find(f=>types.includes(f.type));
-  if(hit)return hit.reason+flagChapterSuffix(st,hit.type);
+  if(hit)return hit.reason;
   const first=(st.name||"").split(" ")[0]||st.name;
   if(kind==="help"){
     if(st.analysis&&st.analysis.wellbeingFlag&&st.analysis.wellbeingFlag!=="low")return `${first}'s stress/wellbeing indicators are ${st.analysis.wellbeingFlag} right now — worth a check-in.`;
@@ -476,45 +480,11 @@ function bucketFindingReason(kind,st){
   return null;
 }
 
-// Same reason-collection logic openFinding() already used inline — factored
-// out so the new "Who Needs Help" inline accordion (Bug 6b) can show the
-// identical full detail without recomputing/duplicating the derivation.
-function collectFindingReasons(kind,st){
-  const a=st.analysis||{};
-  const ew=(a.explainedWarnings||[]);
-  const types=kind==="help"?BUCKET_HELP_FLAG_TYPES:BUCKET_TOP_FLAG_TYPES;
-  const reasons=ew.filter(f=>types.includes(f.type)).map(f=>f.reason+flagChapterSuffix(st,f.type));
-  if(kind==="top"&&a.rank<=3)reasons.push(`Ranked #${a.rank} in the class.`);
-  if(kind==="top"&&a.competitiveReadiness==="High")reasons.push("Competitive readiness: High.");
-  if(kind==="help"&&a.wellbeingFlag&&a.wellbeingFlag!=="low")reasons.push(`Wellbeing check: ${a.wellbeingFlag} stress indicators.`);
-  return reasons.length?reasons:[srT("bucket_all_good")];
-}
-
-// BUG 6b FIX (studin-ui-bugs-prompt v1.0): "Who Needs Help" module-level
-// expand state — session-only, one row open at a time, matching the
-// Smart Search / FAQ accordion pattern used elsewhere.
-let _helpOpenId=null;
-function toggleHelpRow(studentId){
-  const allBodies=document.querySelectorAll(".help-row-body");
-  const allRows=document.querySelectorAll(".help-row");
-  const thisBody=document.getElementById("help-body-"+studentId);
-  const wasOpen=_helpOpenId===studentId;
-  allBodies.forEach(b=>b.style.display="none");
-  allRows.forEach(r=>r.classList.remove("bucket-row-open"));
-  if(wasOpen){ _helpOpenId=null; return; }
-  _helpOpenId=studentId;
-  if(thisBody){
-    if(thisBody.getAttribute("data-rendered")!=="true"){
-      const st=(APP.students||[]).find(s=>s.id===studentId);
-      const reasons=st?collectFindingReasons("help",st):[];
-      thisBody.innerHTML=reasons.map(r=>`<p>${esc(r)}</p>`).join("")+
-        `<button class="bucket-back-btn" style="padding:6px 0;min-height:auto" onclick="openFinding('help','${esc(studentId)}')">Open full profile →</button>`;
-      thisBody.setAttribute("data-rendered","true");
-    }
-    thisBody.style.display="block";
-    document.getElementById("help-row-"+studentId)?.classList.add("bucket-row-open");
-  }
-}
+// BUG 6b (studin-ui-bugs-prompt v1.0): module-level, session-only state
+// for which "Who Needs Help" row is currently expanded — only one open at
+// a time, same accordion principle as Smart Search's toggleSmartAnswer().
+// Not persisted (matches NO_PERSISTENCE elsewhere in the app).
+let _helpOpenId = null;
 
 function renderFilteredList(kind){
   $("#bucket-screen,#bucket-answer-screen").hide();
@@ -525,38 +495,46 @@ function renderFilteredList(kind){
   let body;
   if(!items.length){
     body=`<div class="bucket-empty">${esc(srT("bucket_all_good"))}</div>`;
-  }else if(kind==="help"){
-    // Bug 6b: name made visually prominent, rows collapse into an inline
-    // accordion (only one open at a time) instead of always-expanded flat
-    // rows — needed once a class has 40-50+ flagged students.
-    _helpOpenId=null;
-    body=`<div class="finding-list">${items.map(x=>`
-      <div id="help-row-${esc(x.st.id)}" class="finding-row help-row" role="button" tabindex="0" onclick="toggleHelpRow('${esc(x.st.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleHelpRow('${esc(x.st.id)}');}">
-        <span class="bucket-student-name">${esc(x.st.name)}</span><span> · ${esc(x.reason)}</span>
-      </div>
-      <div id="help-body-${esc(x.st.id)}" class="help-row-body" data-rendered="false" style="display:none"></div>
-    `).join("")}</div>`;
-  }else{
-    // Bug 6c: richer, consistent card for Top Performers — rank badge +
-    // avg + best subject + trend, using only values already computed in
-    // st.analysis (overallAvg, subjectAvgs, trend, rank) — no new
-    // calculation, just a friendlier display of existing numbers. Same
-    // .finding-row base class/height/padding as "Who Needs Help" rows.
-    const trendLabel={improving:"↑ Improving",declining:"↓ Declining",stable:"→ Stable"};
+  } else if(kind==="help"){
+    // BUG 6b: name-prominent, collapsible rows — designed for classes up
+    // to 50+ students without becoming an unreadable wall of text. Detail
+    // content is NOT built here (data-rendered="false") — only rendered
+    // on first expand, in toggleHelpRow() below, so 50 students doesn't
+    // mean 50 detail blocks worth of HTML built upfront for nothing.
     body=`<div class="finding-list">${items.map(x=>{
+      const flagCount=((x.st.analysis&&x.st.analysis.explainedWarnings)||[]).filter(f=>BUCKET_HELP_FLAG_TYPES.includes(f.type)).length||1;
+      return `<div class="bucket-row smart-chip-row" id="help-row-${esc(x.st.id)}" role="button" tabindex="0" onclick="toggleHelpRow('${esc(x.st.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleHelpRow('${esc(x.st.id)}');}" style="border-radius:var(--r-sm) var(--r-sm) 0 0;margin-bottom:0">
+        <span class="bucket-text"><span class="bucket-student-name">${esc(x.st.name)}</span> <span style="color:var(--c-text2)">· ${esc(flagCount)} flag${flagCount===1?"":"s"}</span></span>
+      </div>
+      <div class="smart-ans-body" id="help-body-${esc(x.st.id)}" data-rendered="false" style="display:none;margin-bottom:10px"></div>`;
+    }).join("")}</div>`;
+  } else {
+    // BUG 6c (studin-ui-bugs-prompt v1.0): richer per-row info — rank
+    // badge (gold/silver/bronze for top 3), avg, best subject (derived
+    // from subjectAvgs' max value — no "bestSubject" field exists on
+    // analysis, verified by grep before assuming one), and trend. Same
+    // .bucket-row base class/height/padding as "Who Needs Help" above,
+    // per explicit consistency requirement — only the inner content
+    // differs. Click still opens the existing openFinding() detail view
+    // (unchanged behavior, already reachable in one click via Bug 6a's
+    // breadcrumb fix), this task only enriches what the row itself shows.
+    body=`<div class="finding-list">${items.map((x,i)=>{
       const a=x.st.analysis||{};
+      const rankNum=a.rank;
+      const rankClass=rankNum===1?"rank-gold":rankNum===2?"rank-silver":rankNum===3?"rank-bronze":"rank-other";
       const subjectAvgs=a.subjectAvgs||{};
-      const bestSubjectEntry=Object.entries(subjectAvgs).sort((p,q)=>q[1]-p[1])[0];
-      const rankClass=a.rank===1?"rank-gold":a.rank===2?"rank-silver":a.rank===3?"rank-bronze":"rank-other";
-      return `<div class="finding-row" role="button" tabindex="0" onclick="openFinding('top','${esc(x.st.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFinding('top','${esc(x.st.id)}');}">
-        <span class="rank-badge ${rankClass}" aria-hidden="true">#${esc(String(a.rank||"-"))}</span>
+      const subjectEntries=Object.entries(subjectAvgs);
+      const bestSubject=subjectEntries.length?subjectEntries.reduce((best,cur)=>cur[1]>best[1]?cur:best)[0]:null;
+      const trendLabel=a.trend==="improving"?"↑ Improving":a.trend==="declining"?"↓ Declining":a.trend?"→ Steady":null;
+      return `<div class="bucket-row" role="button" tabindex="0" onclick="openFinding('top','${esc(x.st.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFinding('top','${esc(x.st.id)}');}">
+        <span class="rank-badge ${rankClass}">${rankNum!=null?esc(String(rankNum)):"–"}</span>
         <span class="bucket-text">
           <span class="bucket-student-name">${esc(x.st.name)}</span>
-          <span class="bucket-meta-row">
-            <span>Avg: ${esc(String(a.overallAvg))}%</span>
-            ${bestSubjectEntry?`<span>Top subject: ${esc(bestSubjectEntry[0])}</span>`:""}
-            <span>Trend: ${esc(trendLabel[a.trend]||a.trend||"-")}</span>
-          </span>
+          <div class="bucket-meta-row">
+            ${a.overallAvg!=null?`<span>Avg: ${esc(String(a.overallAvg))}%</span>`:""}
+            ${bestSubject?`<span>Top subject: ${esc(bestSubject)}</span>`:""}
+            ${trendLabel?`<span>Trend: ${esc(trendLabel)}</span>`:""}
+          </div>
         </span>
       </div>`;
     }).join("")}</div>`;
@@ -566,6 +544,42 @@ function renderFilteredList(kind){
     <div class="bucket-list-title">${esc(title)}</div>
     ${body}
   `).addClass("screen-fade-in").show();
+  _helpOpenId=null;
+}
+
+// BUG 6b: accordion toggle for "Who Needs Help" rows. Lazy-renders detail
+// content on first expand (data-rendered guard), reuses the SAME
+// explainedWarnings data already computed elsewhere — no recomputation.
+function toggleHelpRow(studentId){
+  const st=(APP.students||[]).find(s=>s.id===studentId);
+  if(!st) return;
+  const wasOpen=_helpOpenId===studentId;
+  // Close whichever row was open (if any)
+  if(_helpOpenId){
+    const prevBody=document.getElementById("help-body-"+_helpOpenId);
+    if(prevBody) prevBody.style.display="none";
+    const prevRow=document.getElementById("help-row-"+_helpOpenId);
+    if(prevRow) prevRow.classList.remove("smart-chip-open");
+  }
+  _helpOpenId = wasOpen ? null : studentId;
+  if(wasOpen) return; // toggled closed — nothing more to do
+  const body=document.getElementById("help-body-"+studentId);
+  const row=document.getElementById("help-row-"+studentId);
+  if(!body||!row) return;
+  if(body.getAttribute("data-rendered")!=="true"){
+    const a=st.analysis||{};
+    const ew=(a.explainedWarnings||[]).filter(f=>BUCKET_HELP_FLAG_TYPES.includes(f.type));
+    const detailsHtml=ew.length
+      ? ew.map(f=>`<p>${esc(f.reason)}</p>`).join("")
+      : `<p>${esc(srT("bucket_all_good"))}</p>`;
+    body.innerHTML=`
+      <div class="smart-ans-content">${detailsHtml}</div>
+      <button class="btn btn-sm btn-secondary" style="margin-top:8px" onclick="event.stopPropagation();openStudentModal('${esc(studentId)}')">Open full profile →</button>
+    `;
+    body.setAttribute("data-rendered","true");
+  }
+  body.style.display="block";
+  row.classList.add("smart-chip-open");
 }
 
 function openFinding(kind,studentId){
@@ -574,14 +588,14 @@ function openFinding(kind,studentId){
   const a=st.analysis||{};
   const ew=(a.explainedWarnings||[]);
   const types=kind==="help"?BUCKET_HELP_FLAG_TYPES:BUCKET_TOP_FLAG_TYPES;
-  const reasons=ew.filter(f=>types.includes(f.type)).map(f=>f.reason+flagChapterSuffix(st,f.type));
+  const reasons=ew.filter(f=>types.includes(f.type)).map(f=>f.reason);
   if(kind==="top"&&a.rank<=3)reasons.push(`Ranked #${a.rank} in the class.`);
   if(kind==="top"&&a.competitiveReadiness==="High")reasons.push("Competitive readiness: High.");
   if(kind==="help"&&a.wellbeingFlag&&a.wellbeingFlag!=="low")reasons.push(`Wellbeing check: ${a.wellbeingFlag} stress indicators.`);
   const body=(reasons.length?reasons:[srT("bucket_all_good")]).map(r=>`<p>${esc(r)}</p>`).join("");
   $("#bucket-list-screen").hide();
   $("#bucket-answer-screen").html(`
-    <button class="bucket-back-btn" onclick="backToBuckets()" style="margin-bottom:4px;opacity:.6;font-size:11.5px">${esc(srT("bucket_back_to_dashboard"))}</button>
+    <button class="bucket-back-btn" onclick="goBackToBuckets()" style="margin-bottom:4px;opacity:.6;font-size:11.5px">← Dashboard</button>
     <button class="bucket-back-btn" onclick="backToBucketList()">${esc(srT("back"))}</button>
     <div class="bucket-answer-title">${esc(st.name)}</div>
     <div class="bucket-answer-sub">Overall: ${esc(String(a.overallAvg))}% · Rank #${esc(String(a.rank))} · Trend: ${esc(a.trend||"-")}</div>
@@ -624,7 +638,7 @@ function openClusterGroup(clusterIndex){
   const summary=`<p>${esc(g.label)} — ${g.students.length} of ${(APP.students||[]).length} students. Group averages: ${c.overallAvg}% overall, consistency score ${c.consistency}, trend ${c.slope>=0?"+":""}${c.slope} pts/test, ${c.absenceRate.toFixed(2)} absence days per test.</p>`;
   $("#bucket-list-screen").hide();
   $("#bucket-answer-screen").html(`
-    <button class="bucket-back-btn" onclick="backToBuckets()" style="margin-bottom:4px;opacity:.6;font-size:11.5px">${esc(srT("bucket_back_to_dashboard"))}</button>
+    <button class="bucket-back-btn" onclick="goBackToBuckets()" style="margin-bottom:4px;opacity:.6;font-size:11.5px">← Dashboard</button>
     <button class="bucket-back-btn" onclick="backToBucketList()">${esc(srT("back"))}</button>
     <div class="bucket-answer-title">${esc(g.label)}</div>
     <div class="bucket-answer-body">${summary}
@@ -642,8 +656,8 @@ function renderStudentPicker(){
     <div class="bucket-list-title">${esc(srT("bucket_student_label"))}</div>
     <div class="bucket-picker-hint">${esc(srT("student_picker_prompt"))}</div>
     <div style="display:flex;gap:8px;align-items:center">
-      <input type="text" class="bucket-picker-input" list="bucket-student-list" placeholder="Start typing a name…" oninput="onBucketStudentPick(this.value)" autocomplete="off" id="bucket-student-input" style="flex:1">
-      <button type="button" onclick="document.getElementById('bucket-student-input').value='';" aria-label="Clear" title="Clear" style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:16px;line-height:1">×</button>
+      <input type="text" id="bucket-student-input" class="bucket-picker-input" list="bucket-student-list" placeholder="Start typing a name…" oninput="onBucketStudentPick(this.value)" autocomplete="off" style="flex:1">
+      <button type="button" class="bucket-picker-clear" title="Clear" aria-label="Clear search" onclick="clearBucketPicker('student')">&times;</button>
     </div>
     <datalist id="bucket-student-list">${options}</datalist>
   `).addClass("screen-fade-in").show();
@@ -653,9 +667,9 @@ function onBucketStudentPick(name){
   if(!st)return;
   const a=st.analysis||{};
   const ew=(a.explainedWarnings||[]);
-  const body=ew.length?ew.map(f=>`<p>${esc(f.reason+flagChapterSuffix(st,f.type))}</p>`).join(""):`<p>${esc(srT("bucket_all_good"))}</p>`;
+  const body=ew.length?ew.map(f=>`<p>${esc(f.reason)}</p>`).join(""):`<p>${esc(srT("bucket_all_good"))}</p>`;
   $("#bucket-answer-screen").html(`
-    <button class="bucket-back-btn" onclick="backToBuckets()" style="margin-bottom:4px;opacity:.6;font-size:11.5px">${esc(srT("bucket_back_to_dashboard"))}</button>
+    <button class="bucket-back-btn" onclick="goBackToBuckets()" style="margin-bottom:4px;opacity:.6;font-size:11.5px">← Dashboard</button>
     <button class="bucket-back-btn" onclick="backToBucketList()">${esc(srT("back"))}</button>
     <div class="bucket-answer-title">${esc(st.name)}</div>
     <div class="bucket-answer-sub">Overall: ${esc(String(a.overallAvg))}% · Rank #${esc(String(a.rank))} · Grade ${esc(a.grade||"-")} · Trend: ${esc(a.trend||"-")}</div>
@@ -675,8 +689,8 @@ function renderSubjectPicker(){
     <div class="bucket-list-title">${esc(srT("bucket_subject_label"))}</div>
     <div class="bucket-picker-hint">${esc(srT("subject_picker_prompt"))}</div>
     <div style="display:flex;gap:8px;align-items:center">
-      <input type="text" class="bucket-picker-input" list="bucket-subject-list" placeholder="Start typing a subject…" oninput="onBucketSubjectPick(this.value)" autocomplete="off" id="bucket-subject-input" style="flex:1">
-      <button type="button" onclick="document.getElementById('bucket-subject-input').value='';" aria-label="Clear" title="Clear" style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:16px;line-height:1">×</button>
+      <input type="text" id="bucket-subject-input" class="bucket-picker-input" list="bucket-subject-list" placeholder="Start typing a subject…" oninput="onBucketSubjectPick(this.value)" autocomplete="off" style="flex:1">
+      <button type="button" class="bucket-picker-clear" title="Clear" aria-label="Clear search" onclick="clearBucketPicker('subject')">&times;</button>
     </div>
     <datalist id="bucket-subject-list">${options}</datalist>
   `).addClass("screen-fade-in").show();
@@ -692,7 +706,7 @@ function onBucketSubjectPick(name){
   const rows=students.map(st=>({name:st.name,avg:(st.analysis&&st.analysis.subjectAvgs&&st.analysis.subjectAvgs[subject])||0})).sort((a,b)=>a.avg-b.avg);
   const rowsHtml=rows.map(r=>`<div class="subject-row"><span>${esc(r.name)}</span><span>${esc(String(r.avg))}%</span></div>`).join("");
   $("#bucket-answer-screen").html(`
-    <button class="bucket-back-btn" onclick="backToBuckets()" style="margin-bottom:4px;opacity:.6;font-size:11.5px">${esc(srT("bucket_back_to_dashboard"))}</button>
+    <button class="bucket-back-btn" onclick="goBackToBuckets()" style="margin-bottom:4px;opacity:.6;font-size:11.5px">← Dashboard</button>
     <button class="bucket-back-btn" onclick="backToBucketList()">${esc(srT("back"))}</button>
     <div class="bucket-answer-title">${esc(subject)}</div>
     <div class="bucket-answer-body">${summary}
@@ -1094,7 +1108,7 @@ function openStudentModal(id){
     :` · Rank #${a.rank} of ${APP.students.length}${classAvgAll!==null?` · ${Math.abs(a.overallAvg-classAvgAll)} points ${a.overallAvg>=classAvgAll?"above":"below"} the class average of ${classAvgAll}%`:""}`);
   const idLine=isIndividual?`ID: ${esc(st.id)} · Grade: ${a.grade}`:`ID: ${esc(st.id)}${standingBit} · Grade: ${a.grade}`;
   $("#modal-content").html(`<h3 style="font-family:var(--font-display);font-size:18px;margin-bottom:4px">${esc(st.name)}</h3><div style="font-size:12px;color:var(--c-text3);margin-bottom:16px">${idLine}</div><div class="grid-4" style="margin-bottom:16px"><div class="kpi-card"><div class="kpi-label">Overall Avg</div><div class="kpi-val">${a.overallAvg}%</div></div><div class="kpi-card"><div class="kpi-label">Trend</div><div class="kpi-val" style="font-size:16px">${a.trend==="improving"?"<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polyline points='3 17 9 11 13 15 21 6'/><polyline points='15 6 21 6 21 12'/></svg>":a.trend==="declining"?"<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polyline points='3 7 9 13 13 9 21 18'/><polyline points='15 18 21 18 21 12'/></svg>":"➡"} ${a.trend}</div></div><div class="kpi-card"><div class="kpi-label">Absences</div><div class="kpi-val">${a.totalAbsent}</div></div><div class="kpi-card" title="Estimated from absences + score trend only — not a certified wellbeing or psychological assessment"><div class="kpi-label">Stress ⓘ</div><div class="kpi-val" style="font-size:16px">${a.wellbeingFlag}</div></div></div><div class="tbl-wrap" style="margin-bottom:4px"><table class="data-table"><thead><tr><th>Test</th>${subjects.map(s=>`<th>${esc(s)}</th>`).join("")}<th>Total</th><th>Avg</th><th>Absent</th><th>Remark</th></tr></thead><tbody>${testRows}${classAvgRow}</tbody></table></div><div style="font-size:10.5px;color:var(--c-text3);margin-bottom:16px">Total = scored/max marks across subjects opted for that test.</div>${a.healthScore!=null?`<div style="margin-bottom:10px;padding:8px 12px;border-radius:var(--r-sm);display:flex;align-items:center;gap:10px;background:${a.healthScore>=80?'#e6f9f7':a.healthScore>=65?'#eef0fd':a.healthScore>=50?'#fff4e0':'#fdecea'}"><div style="font-size:22px;font-weight:700;font-family:var(--font-display);color:${a.healthScore>=80?'#1a5c50':a.healthScore>=65?'#2d3ab1':a.healthScore>=50?'#9a6200':'#8b1a1a'}">♥ ${a.healthScore}</div><div><div style="font-weight:700;font-size:12px">Health Score — ${a.healthBand||''}</div><div style="font-size:11px;color:var(--c-text2)">Academics 40% · Consistency 20% · Trend 20% · Engagement 20%</div></div></div>`:""}
-${a.explainedWarnings&&a.explainedWarnings.length?`<div style="margin-bottom:12px"><div style="font-weight:600;font-size:11px;margin-bottom:6px">⚠ Alerts &amp; Explanations</div>${a.explainedWarnings.map(f=>`<div style="margin-bottom:5px;padding:6px 10px;border-radius:var(--r-sm);background:${f.color}18;border-left:3px solid ${f.color}"><div style="font-weight:700;font-size:11px;color:${f.color}">${f.label}</div><div style="font-size:11px;color:var(--c-text2);margin-top:2px">${(f.reason||'')+flagChapterSuffix(st,f.type)}</div></div>`).join('')}</div>`:st.flags.length?`<div style="margin-bottom:14px"><div style="font-weight:600;margin-bottom:6px">Flags</div>${st.flags.map(f=>`<span class="badge" style="background:${f.color}22;color:${f.color};margin-right:6px">${f.label}</span>`).join("")}</div>`:""}
+${a.explainedWarnings&&a.explainedWarnings.length?`<div style="margin-bottom:12px"><div style="font-weight:600;font-size:11px;margin-bottom:6px">⚠ Alerts &amp; Explanations</div>${a.explainedWarnings.map(f=>`<div style="margin-bottom:5px;padding:6px 10px;border-radius:var(--r-sm);background:${f.color}18;border-left:3px solid ${f.color}"><div style="font-weight:700;font-size:11px;color:${f.color}">${f.label}</div><div style="font-size:11px;color:var(--c-text2);margin-top:2px">${f.reason||''}</div></div>`).join('')}</div>`:st.flags.length?`<div style="margin-bottom:14px"><div style="font-weight:600;margin-bottom:6px">Flags</div>${st.flags.map(f=>`<span class="badge" style="background:${f.color}22;color:${f.color};margin-right:6px">${f.label}</span>`).join("")}</div>`:""}
 <div class="grid-4" style="margin-bottom:14px">
   <div class="kpi-card"><div class="kpi-label">Consistency</div><div class="kpi-val" style="font-size:18px">${a.consistencyScore||"—"}%</div></div>
   <div class="kpi-card"><div class="kpi-label">Growth Rate</div><div class="kpi-val" style="font-size:18px;color:${(a.growthRate||0)>=0?"var(--c-success)":"var(--c-danger)"}">${(a.growthRate||0)>=0?"+":""}${a.growthRate||0}%</div></div>
@@ -1107,11 +1121,10 @@ ${a.explainedWarnings&&a.explainedWarnings.length?`<div style="margin-bottom:12p
   <div class="kpi-card"><div class="kpi-label">Best Test</div><div class="kpi-val" style="font-size:14px">${a.bestTest?esc(a.bestTest.name)+" ("+a.bestTest.pct+"%)":"—"}</div></div>
   <div class="kpi-card"><div class="kpi-label">Weakest Test</div><div class="kpi-val" style="font-size:14px">${a.worstTest?esc(a.worstTest.name)+" ("+a.worstTest.pct+"%)":"—"}</div></div>
 </div>
-${!isIndividual&&a.subjectDeltas&&Object.keys(a.subjectDeltas).length?`<div class="card" style="padding:12px;margin-bottom:14px"><div class="card-title" style="margin-bottom:6px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><line x1='6' y1='20' x2='6' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='18' y1='20' x2='18' y2='14'/></svg> vs. Class Average, by Subject</div><div style="display:flex;flex-wrap:wrap;gap:6px">${Object.entries(a.subjectDeltas).map(([s,d])=>`<span class="badge" style="background:${d>=0?'var(--c-success)':'var(--c-danger)'}18;color:${d>=0?'var(--c-success)':'var(--c-danger)'}" title="${esc(s)}: ${d>=0?'above':'below'} the class average by ${Math.abs(d)} points">${esc(s)} ${d>=0?"+":""}${d}</span>`).join("")}</div></div>`:""}</div><div style="display:flex;flex-direction:column;gap:10px">${narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l1.8-3.7A8.5 8.5 0 1 1 21 11.5z'/></svg>","The Bottom Line","parentMessage",a.parentMessage,st.id)}<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polyline points='3 17 9 11 13 15 21 6'/><polyline points='15 6 21 6 21 12'/></svg> What's Changed <span style="font-weight:400;color:var(--c-text3);font-size:11px">(computed from the marks table — not editable)</span></div><div style="font-size:13px">${esc(a.trendFacts||"")}</div></div>${a.strengthsLetter?narrativeCard("⭐","Strengths","strengthsLetter",a.strengthsLetter,st.id):""}${narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z'/><path d='M9 22V12h6v10'/></svg>","At Home This Week","homePlan",a.homePlan,st.id)}${!isIndividual&&a.schoolPlan?narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg>","At School","schoolPlan",a.schoolPlan,st.id):""}${remarkCardsHtml(st)}</div>`);
+${!isIndividual&&a.subjectDeltas&&Object.keys(a.subjectDeltas).length?`<div class="card" style="padding:12px;margin-bottom:14px"><div class="card-title" style="margin-bottom:6px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><line x1='6' y1='20' x2='6' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='18' y1='20' x2='18' y2='14'/></svg> vs. Class Average, by Subject</div><div style="display:flex;flex-wrap:wrap;gap:6px">${Object.entries(a.subjectDeltas).map(([s,d])=>`<span class="badge" style="background:${d>=0?'var(--c-success)':'var(--c-danger)'}18;color:${d>=0?'var(--c-success)':'var(--c-danger)'}" title="${esc(s)}: ${d>=0?'above':'below'} the class average by ${Math.abs(d)} points">${esc(s)} ${d>=0?"+":""}${d}</span>`).join("")}</div></div>`:""}</div><div style="display:flex;flex-direction:column;gap:10px">${narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l1.8-3.7A8.5 8.5 0 1 1 21 11.5z'/></svg>","The Bottom Line","parentMessage",a.parentMessage,st.id)}<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polyline points='3 17 9 11 13 15 21 6'/><polyline points='15 6 21 6 21 12'/></svg> What's Changed <span style="font-weight:400;color:var(--c-text3);font-size:11px">(computed from the marks table — not editable)</span></div><div style="font-size:13px">${esc(a.trendFacts||"")}</div></div>${a.strengthsLetter?narrativeCard("⭐","Strengths","strengthsLetter",a.strengthsLetter,st.id):""}${narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z'/><path d='M9 22V12h6v10'/></svg>","At Home This Week","homePlan",a.homePlan,st.id)}${!isIndividual&&a.schoolPlan?narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg>","At School","schoolPlan",a.schoolPlan,st.id):""}</div>`);
   $("#modal-overlay").addClass("open");
   _modalLastFocus=document.activeElement;
   setTimeout(()=>{const f=document.querySelector('#modal-overlay.open .modal-close');if(f)f.focus();},0);
-  if(typeof initVoiceInput==="function")initVoiceInput(); // wire mic buttons on the freshly-rendered remark textareas
 }
 let _modalLastFocus=null;
 // One shared builder for every editable narrative box (Report Card Comment,
@@ -1130,81 +1143,15 @@ function saveNarrativeField(id,field,btnEl){
   const labels={parentMessage:"The Bottom Line",strengthsLetter:"Strengths note",homePlan:"Home plan",schoolPlan:"School plan"};
   toast((labels[field]||"Field")+" saved for "+st.name.split(" ")[0]+".","success");
 }
-// TASK 3a (studin-features-prompt v1.0): editable per-test remark cards,
-// reusing the narrativeCard() textarea+Save markup pattern — remarks live
-// at st.testData[testName].remark (nested per test), not a flat
-// st.analysis field, so they get their own small save handler rather than
-// forcing that shape through saveNarrativeField().
-function remarkCardsHtml(st){
-  const tests=(APP.setup&&APP.setup.tests)||[];
-  if(!tests.length)return "";
-  return `<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:8px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z'/></svg> Teacher Remarks <span style="font-weight:400;color:var(--c-text3);font-size:11px">(editable — download the updated sheet to keep changes)</span></div><div style="display:flex;flex-direction:column;gap:10px">${tests.map(t=>{
-    const remark=(st.testData[t.name]||{}).remark||"";
-    return `<div><div style="font-size:11.5px;font-weight:700;color:var(--c-text2);margin-bottom:4px">${esc(t.name)}</div><textarea class="narrative-edit remark-edit" data-voice="true" data-test="${esc(t.name)}" style="width:100%;min-height:44px;font-size:13px;font-family:inherit;padding:8px;border:1px solid var(--c-border);border-radius:var(--r-sm);resize:vertical" oninput="$(this).next('.narrative-save-row').find('button').prop('disabled',false)">${esc(remark)}</textarea><div class="narrative-save-row" style="display:flex;justify-content:flex-end;margin-top:4px"><button class="btn btn-secondary" style="padding:5px 14px;font-size:12px" disabled onclick="saveRemarkField('${esc(st.id)}','${esc(t.name)}',this)">Save</button></div></div>`;
-  }).join("")}</div></div>`;
-}
-function saveRemarkField(id,testName,btnEl){
-  const st=APP.students.find(s=>s.id===id);if(!st)return;
-  const $ta=$(btnEl).closest("div").find("textarea.remark-edit");
-  if(!st.testData[testName])st.testData[testName]={marks:{},absents:0,remark:"",chapter:""};
-  st.testData[testName].remark=$ta.val();
-  $(btnEl).prop("disabled",true);
-  APP._remarksDirty=true;
-  showRemarksDirtyBanner();
-  toast("Remark saved for "+st.name.split(" ")[0]+" — "+testName+".","success");
-}
-// TASK 3a: persistent banner (reusing #merge-banner's visual style) telling
-// the teacher a NEW file needs to be downloaded to keep their edits —
-// nothing is written back to the originally-uploaded file.
-function showRemarksDirtyBanner(){
-  if($("#remarks-dirty-banner").length)return; // already showing
-  const banner=$(`<div id="remarks-dirty-banner" style="position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:1200;padding:10px 16px;background:#e6f7ee;border:1px solid #1a7a4c33;border-radius:var(--r-sm);font-size:12.5px;color:#1a7a4c;box-shadow:0 4px 18px rgba(0,0,0,.15);display:flex;align-items:center;gap:10px">
-    <span>Remarks updated — download a fresh copy to keep them.</span>
-    <button class="btn btn-success btn-sm" style="padding:4px 12px;font-size:12px" onclick="downloadUpdatedSheet()">Download Updated Sheet</button>
-  </div>`);
-  $("body").append(banner);
-}
-// TASK 3b: writes a brand-new .xlsx from the raw rows already in memory —
-// the originally uploaded file is never touched or re-read from disk.
-function downloadUpdatedSheet(){
-  if(!APP.rawData||!APP.students.length){toast("No data loaded.","warn");return;}
-  const markKey=Object.keys(APP.rawData).find(k=>k.includes("MARK")&&k.includes("CONTEXT"))
-                 ||Object.keys(APP.rawData).find(k=>k.includes("MARK"));
-  if(!markKey){toast("Cannot find marks sheet in loaded data.","error");return;}
-  const rows=APP.rawData["_arr_"+markKey]; // raw 2D array already in memory
-  if(!rows){toast("Raw data not available.","error");return;}
-  const header=rows[0].map(h=>h==null?"":String(h).trim());
-  const studentMap={};
-  APP.students.forEach(st=>{ studentMap[String(st.id).trim().toUpperCase()]=st; });
-  const idIdx=header.indexOf("Student ID");
-  const updatedRows=rows.map((row,ri)=>{
-    if(ri===0)return row; // keep header unchanged
-    const id=String(row[idIdx]||"").trim().toUpperCase();
-    const st=studentMap[id];
-    if(!st)return row;
-    const newRow=[...row];
-    (APP.setup.tests||[]).forEach(t=>{
-      const rmIdx=header.indexOf(t.name+" - Remark");
-      if(rmIdx!==-1){ newRow[rmIdx]=st.testData[t.name]?.remark||""; }
-    });
-    return newRow;
-  });
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.aoa_to_sheet(updatedRows);
-  XLSX.utils.book_append_sheet(wb,ws,"MARKS+CONTEXT");
-  const ts=new Date();
-  const tag=ts.getFullYear()+String(ts.getMonth()+1).padStart(2,"0")+String(ts.getDate()).padStart(2,"0")
-            +"_"+String(ts.getHours()).padStart(2,"0")+String(ts.getMinutes()).padStart(2,"0");
-  const fname=(APP.setup.instName||"sheet")+"_remarks_"+tag+".xlsx";
-  XLSX.writeFile(wb,fname);
-  toast("Updated sheet downloaded: "+fname,"success");
-  APP._remarksDirty=false;
-  $("#remarks-dirty-banner").remove();
-}
 function showSampleFiles(){
   // v3.7: Home-only side-path, same rule as Setup/About/FAQ in goStep() —
   // see updateNavHomeOnlyState() for the matching visual/tooltip state.
-  if(APP.currentStep==="dashboard"||APP.currentStep==="export"){toast("Available only from the Home screen.","warn");return;}
+  // BUG 2 FIX (studin-ui-bugs-prompt v1.0): extended to allow from "setup"
+  // too, matching the same fix applied to goStep()'s equivalent check —
+  // these two guards must stay in sync since Sample Files bypasses
+  // goStep() entirely (it's wired directly to showSampleFiles(), not
+  // goStep('samplefiles')).
+  if(APP.currentStep!=="home"&&APP.currentStep!=="setup"){toast("Available only from the Home screen.","warn");return;}
   const base="https://studin.in/";
   const files=[
     {name:"Sample 1 — UPSC/IAS Coaching.xlsx",file:"Sample_1_For_UPSC_IAS_Coaching.xlsx",desc:"Coaching centre example — multiple tests for a competitive-exam batch.",mode:"Institution"},

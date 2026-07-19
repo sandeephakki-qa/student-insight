@@ -76,20 +76,6 @@ function stampFooterAllPages(doc,confidentialLabel){
   }
   doc.setPage(pageCount); // leave cursor state sane for any caller code after
 }
-// TASK 1d (studin-features-prompt v1.0): same rule as the dashboard's
-// flagChapterSuffix() in render-dashboard.js — flags aren't tied to one
-// specific test, so the most recent test with a filled Chapter is used.
-// Purely additive: blank Chapter means zero change to the flag label.
-const PDF_CHAPTER_RELEVANT_FLAG_TYPES=["at-risk","first-below-pass","sharp-drop","declining","burnout","plateau","volatile"];
-function chapterSuffixForFlag(st,flagType){
-  if(!PDF_CHAPTER_RELEVANT_FLAG_TYPES.includes(flagType))return "";
-  const tests=(APP.setup&&APP.setup.tests)||[];
-  for(let i=tests.length-1;i>=0;i--){
-    const ch=(st.testData[tests[i].name]||{}).chapter;
-    if(ch)return " · Ch: "+ch;
-  }
-  return "";
-}
 function buildStudentPDF(doc,st){
   const a=st.analysis,s=APP.setup;
   const isIndividual=s.mode==="individual";
@@ -126,7 +112,6 @@ function buildStudentPDF(doc,st){
     {key:"marks",label:"Marks Table",exists:!!(s.tests&&s.tests.length&&s.subjects&&s.subjects.length)},
     {key:"trend",label:"Trend",exists:a.testAvgs.filter(v=>v!==null).length>=2&&s.tests&&s.tests.length>=2},
     {key:"flags",label:"Alerts",exists:!!(st.flags&&st.flags.length)},
-    {key:"remark",label:"Remarks",exists:(s.tests||[]).some(t=>(st.testData[t.name]||{}).remark)},
     {key:"messages",label:"Messages",exists:[a.parentMessage,a.strengthsLetter,a.trendFacts].some(Boolean)},
     {key:"studyPlan",label:"Plan",exists:!!(a.homePlan||a.schoolPlan)},
   ].filter(c=>c.exists);
@@ -330,7 +315,7 @@ function buildStudentPDF(doc,st){
     let fx=10;
     st.flags.forEach(f=>{
       const fc=f.type==="at-risk"?[242,92,84]:f.type==="improving"?[46,196,182]:f.type==="declining"?[249,168,38]:f.type==="burnout"?[230,126,34]:[123,94,167];
-      const lbl=(f.label||"")+chapterSuffixForFlag(st,f.type);
+      const lbl=f.label||"";
       const tw=doc.getTextWidth(lbl)+12;
       doc.setFillColor(...fc.map(v=>Math.min(255,v+160)));
       doc.setDrawColor(...fc);
@@ -344,33 +329,6 @@ function buildStudentPDF(doc,st){
       if(fx>W-20){fx=10;y+=8;}
     });
     y+=10;
-  }
-  // ── TEACHER REMARKS (Task 2a: only if at least one test has a remark) ──
-  const remarkEntries=(s.tests||[]).map(t=>({test:t.name,remark:(st.testData[t.name]||{}).remark})).filter(r=>r.remark);
-  if(remarkEntries.length){
-    if(y>250){doc.addPage();y=20;}
-    nav.remark=doc.internal.getCurrentPageInfo().pageNumber;
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text("Teacher Remarks",10,y);y+=5;
-    remarkEntries.forEach(r=>{
-      if(y>265){doc.addPage();y=20;}
-      doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(90,96,122);doc.text(r.test,10,y);
-      doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(26,29,46);
-      const wrapped=doc.splitTextToSize(r.remark,W-24);
-      doc.text(wrapped,10,y+4);
-      y+=4+wrapped.length*4+3;
-    });
-    y+=4;
-  }
-  // ── CHAPTERS COVERED (Task 1/2a: only if at least one test has one) ──
-  const chapterEntries=(s.tests||[]).map(t=>({test:t.name,chapter:(st.testData[t.name]||{}).chapter})).filter(c=>c.chapter);
-  if(chapterEntries.length){
-    if(y>258){doc.addPage();y=20;}
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text("Chapters Covered",10,y);y+=5;
-    doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(90,96,122);
-    const chLine=chapterEntries.map(c=>c.test+": "+c.chapter).join("  ·  ");
-    const chWrapped=doc.splitTextToSize(chLine,W-20);
-    doc.text(chWrapped,10,y);
-    y+=chWrapped.length*4+6;
   }
   // ── NARRATIVE SECTIONS (visually boxed) ──
   // Redesigned: one merged "The Bottom Line" message (was three overlapping
@@ -541,103 +499,9 @@ function buildTeacherPDF(doc){
     const bh=8+totalLines*4.5;
     doc.setFillColor(253,236,234);doc.setDrawColor(242,92,84);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
     doc.setFillColor(242,92,84);doc.rect(8,y,3,bh,"F");
-    doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(139,26,26);doc.text("Students Needing Support",14,y+5);y+=8;
+    doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(139,26,26);doc.text("Students Requiring Attention",14,y+5);y+=8;
     doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(26,29,46);
     flaggedLines.forEach(lines=>{doc.text(lines,16,y);y+=lines.length*4.5;});
-    y+=4;
-  }
-
-  // ── SUBJECT GAPS (Task 2b: only if the class has a computed weakness list) ──
-  const subjectWeakness=(APP.classStats&&APP.classStats.subjectWeakness)||[];
-  if(subjectWeakness.length){
-    if(y>255){doc.addPage();y=20;}
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text("Subject Gaps",10,y);y+=5;
-    doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(90,96,122);
-    doc.text("Sorted by % of class below the pass threshold in that subject.",10,y);y+=5;
-    subjectWeakness.slice(0,6).forEach(sw=>{
-      if(y>272){doc.addPage();y=20;}
-      const wc=sw.pctBelow>=40?[242,92,84]:sw.pctBelow>=20?[249,168,38]:[46,196,182];
-      doc.setFillColor(...wc.map(v=>Math.min(255,v+165)));doc.roundedRect(10,y,W-20,7,1,1,"F");
-      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...wc.map(v=>Math.max(0,v-70)));
-      doc.text(sw.subject,13,y+4.8);
-      doc.text(sw.pctBelow+"% below pass  ·  class avg "+sw.avgClass+"%",W-13,y+4.8,{align:"right"});
-      y+=9;
-    });
-    y+=3;
-  }
-
-  // ── TOP PERFORMERS (Task 2b: top 5 only) ──
-  const teacherTop5=[...APP.students]
-    .sort((x,y2)=>(x.analysis&&x.analysis.rank||999)-(y2.analysis&&y2.analysis.rank||999)).slice(0,5);
-  if(teacherTop5.some(st=>st.analysis&&st.analysis.rank<=3)){
-    if(y>260){doc.addPage();y=20;}
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text("Top Performers",10,y);y+=5;
-    teacherTop5.forEach(st=>{
-      if(y>278){doc.addPage();y=20;}
-      const a=st.analysis||{};
-      doc.setFillColor(230,249,247);doc.roundedRect(10,y,W-20,6,1,1,"F");
-      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(26,29,46);
-      doc.text(fitText(doc,"#"+a.rank+" "+st.name,W-45),13,y+4.2);
-      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(46,196,182);
-      doc.text(a.overallAvg+"%",W-13,y+4.2,{align:"right"});
-      y+=7.5;
-    });
-    y+=3;
-  }
-
-  // ── TEST COMPARISON (Task 2b: only if ≥2 tests exist) ──
-  if(s.tests&&s.tests.length>=2){
-    if(y>250){doc.addPage();y=20;}
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text("Test Comparison — Class Average",10,y);y+=5;
-    const tcBarW=W-70,tcBarH=5,tcLabelW=46;
-    s.tests.forEach(t=>{
-      if(y>278){doc.addPage();y=20;}
-      const vals=APP.students.map(st=>{const idx=s.tests.indexOf(t);return st.analysis&&st.analysis.testAvgs&&st.analysis.testAvgs[idx];}).filter(v=>v!==null&&v!==undefined);
-      const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
-      doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(26,29,46);
-      doc.text(fitText(doc,t.name,tcLabelW-4),10,y+4);
-      doc.setFillColor(226,229,241);doc.roundedRect(tcLabelW,y,tcBarW,tcBarH,1,1,"F");
-      if(avg!==null){
-        const tc2=avg>=75?[46,196,182]:avg>=(s.passThreshold||35)?[67,97,238]:[242,92,84];
-        doc.setFillColor(...tc2);doc.roundedRect(tcLabelW,y,tcBarW*(avg/100),tcBarH,1,1,"F");
-        doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...tc2);doc.text(avg+"%",tcLabelW+tcBarW+2,y+4);
-      }
-      y+=8;
-    });
-    y+=3;
-  }
-
-  // ── GENDER ANALYSIS (Task 2b: only if statistically meaningful) ──
-  if(APP.genderAnalysis&&APP.genderAnalysis.available){
-    const ga=APP.genderAnalysis;
-    if(y>240){doc.addPage();y=20;}
-    const narrative=ga.leadGroup?
-      (ga.leadGroup==="Female"?"Girls":"Boys")+" are outperforming "+(ga.leadGroup==="Female"?"boys":"girls")+" overall by "+ga.overallGap+" point"+(ga.overallGap===1?"":"s")+" this term."+
-      (ga.maxGapSubject?" The gap is largest in "+ga.maxGapSubject+" ("+ga.maxGapValue+" pts).":"")
-      :"Overall performance is essentially even between the two groups this term.";
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text("Gender Analysis",10,y);y+=5;
-    doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(90,96,122);
-    const gLines=doc.splitTextToSize(narrative,W-20);
-    doc.text(gLines,10,y);y+=gLines.length*4.2+5;
-  }
-
-  // ── STUDENT REMARKS SUMMARY (Task 2b: only if any student has a remark) ──
-  const remarkedStudents=APP.students.map(st=>({st,entries:(s.tests||[]).map(t=>({test:t.name,remark:(st.testData[t.name]||{}).remark})).filter(e=>e.remark)})).filter(x=>x.entries.length);
-  if(remarkedStudents.length){
-    if(y>248){doc.addPage();y=20;}
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text("Teacher Remarks — Notes for PTM",10,y);y+=5;
-    remarkedStudents.forEach(({st,entries})=>{
-      entries.forEach(e=>{
-        if(y>278){doc.addPage();y=20;}
-        doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(67,97,238);
-        doc.text(fitText(doc,st.name+" · "+e.test,60),10,y);
-        doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(26,29,46);
-        const rLines=doc.splitTextToSize(e.remark,W-80);
-        doc.text(rLines,72,y);
-        y+=Math.max(4.5,rLines.length*4);
-      });
-    });
-    y+=3;
   }
 
   // ── FOOTER (stamped on every page) ──
@@ -730,43 +594,41 @@ function buildMgmtPDF(doc){
   });
   y+=24;
 
-  // ── TOP PERFORMERS / NEEDS SUPPORT (Task 2c: top 3 only, gated on class
-  // size > 5; "Needs Support" column only when at-risk count > 0) ──
-  const top3=(n>5)?sts.slice(0,Math.min(3,sts.length)):[];
-  const bottom3=atRisk>0?[...sts].filter(st=>st.flags&&st.flags.some(f=>f.type==="at-risk")).slice(0,3):[];
+  // ── TOP PERFORMERS TABLE ──
+  const top5=sts.slice(0,Math.min(5,sts.length));
+  const bottom3=[...sts].filter(st=>st.flags&&st.flags.some(f=>f.type==="at-risk")).slice(0,3);
   const halfW=(W-24)/2;
 
-  if(top3.length||bottom3.length){
-    if(top3.length){doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(46,196,182);doc.text("Top Performers",10,y);}
-    if(bottom3.length){doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(242,92,84);doc.text("At-Risk Students",14+halfW,y);}
-    y+=4;
+  // Top performers (left)
+  doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(46,196,182);doc.text("Top Performers",10,y);
+  doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(242,92,84);doc.text("Needs Support",14+halfW,y);
+  y+=4;
 
-    const maxRows=Math.max(top3.length,bottom3.length);
-    for(let i=0;i<maxRows;i++){
-      if(y>275){break;}
-      const ts=top3[i],bs=bottom3[i];
-      // Left: top performer
-      if(ts){
-        const a=ts.analysis||{};
-        doc.setFillColor(230,249,247);doc.roundedRect(10,y,halfW,7,1,1,"F");
-        doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(26,29,46);
-        doc.text(fitText(doc,"#"+a.rank+" "+ts.name,halfW-22),13,y+5);
-        doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(46,196,182);
-        doc.text(a.overallAvg+"%",10+halfW-6,y+5,{align:"right"});
-      }
-      // Right: at-risk
-      if(bs){
-        const a=bs.analysis||{};
-        doc.setFillColor(253,236,234);doc.roundedRect(14+halfW,y,halfW,7,1,1,"F");
-        doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(26,29,46);
-        doc.text(fitText(doc,bs.name,halfW-22),17+halfW,y+5);
-        doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(242,92,84);
-        doc.text(a.overallAvg+"%",14+halfW+halfW-6,y+5,{align:"right"});
-      }
-      y+=8;
+  const maxRows=Math.max(top5.length,bottom3.length);
+  for(let i=0;i<maxRows;i++){
+    if(y>275){break;}
+    const ts=top5[i],bs=bottom3[i];
+    // Left: top performer
+    if(ts){
+      const a=ts.analysis||{};
+      doc.setFillColor(230,249,247);doc.roundedRect(10,y,halfW,7,1,1,"F");
+      doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(26,29,46);
+      doc.text(fitText(doc,"#"+a.rank+" "+ts.name,halfW-22),13,y+5);
+      doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(46,196,182);
+      doc.text(a.overallAvg+"%",10+halfW-6,y+5,{align:"right"});
     }
-    y+=4;
+    // Right: at-risk
+    if(bs){
+      const a=bs.analysis||{};
+      doc.setFillColor(253,236,234);doc.roundedRect(14+halfW,y,halfW,7,1,1,"F");
+      doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(26,29,46);
+      doc.text(fitText(doc,bs.name,halfW-22),17+halfW,y+5);
+      doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(242,92,84);
+      doc.text(a.overallAvg+"%",14+halfW+halfW-6,y+5,{align:"right"});
+    }
+    y+=8;
   }
+  y+=4;
 
   // ── GENDER PERFORMANCE ANALYSIS (school-level only; diversity_analysis
   // AI feature) — never shown on the per-student PDF, see computeGenderAnalysis()
@@ -797,27 +659,13 @@ function buildMgmtPDF(doc){
       });
       doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(26,29,46);doc.text(lines,14,y+10+panelH+5);
       y+=bh+5;
+    }else if(!ga.available&&y<270){
+      const lines=doc.splitTextToSize("Gender Performance Analysis: "+ga.reason,W-28);
+      const bh=lines.length*4+7;
+      doc.setFillColor(248,249,255);doc.setDrawColor(226,229,241);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
+      doc.setFont("helvetica","italic");doc.setFontSize(7);doc.setTextColor(155,164,192);doc.text(lines,12,y+5);
+      y+=bh+4;
     }
-  }
-
-  // ── COMPARE SECTIONS (Task 2c: compare mode only, and only with real data) ──
-  if(APP.compareMode&&APP.sectionComparison&&APP.sectionComparison.length){
-    if(y>240){doc.addPage();y=20;}
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text("Compare Sections",10,y);y+=5;
-    const ccols=[50,16,18,18,18,40],cheads=["Section","N","Avg","Pass%","At-Risk","Topper"];
-    doc.setFillColor(67,97,238);doc.rect(8,y,W-16,6,"F");
-    let ccx=10;
-    cheads.forEach((h,i)=>{doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setTextColor(255,255,255);doc.text(h,ccx,y+4.2);ccx+=ccols[i];});
-    y+=7;
-    APP.sectionComparison.forEach((r,i)=>{
-      if(y>282){doc.addPage();y=20;}
-      doc.setFillColor(i%2===0?255:248,i%2===0?255:249,i%2===0?255:255);doc.rect(8,y-1,W-16,6.5,"F");
-      ccx=10;
-      [[fitText(doc,r.label,ccols[0]-3),[26,29,46]],[String(r.n),[90,96,122]],[r.avg+"%",[67,97,238]],[r.passRate+"%",r.passRate>=60?[46,196,182]:[242,92,84]],[String(r.atRisk),r.atRisk>0?[242,92,84]:[46,196,182]],[fitText(doc,r.topperName,ccols[5]-3),[90,96,122]]]
-        .forEach(([v,color],ci)=>{doc.setFont("helvetica",ci===0?"bold":"normal");doc.setFontSize(7);doc.setTextColor(...color);doc.text(String(v),ccx,y+4);ccx+=ccols[ci];});
-      y+=6.5;
-    });
-    y+=5;
   }
 
   // ── RECOMMENDATION BOX ──

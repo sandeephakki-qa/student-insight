@@ -79,9 +79,14 @@ function validateSetup(){
 
   const valid=missing.length===0;
   $("#btn-download-template").prop("disabled",!valid).css({opacity:valid?1:.45,cursor:valid?"pointer":"not-allowed"}).toggleClass("btn-glow",valid);
-  const errEl=document.getElementById("sw-err-4");
-  if(errEl){ errEl.style.display=valid?"none":""; errEl.textContent=valid?"":"Still needed: "+missing.join(", ")+"."; }
-  if(typeof swRefresh==="function") swRefresh();
+  if(valid){
+    $("#setup-cta-card").show();
+    $("#setup-incomplete-card").hide();
+  } else {
+    $("#setup-cta-card").hide();
+    $("#setup-incomplete-card").show();
+    $("#setup-missing-list").text("Still needed: "+missing.join(", ")+".");
+  }
   return valid;
 }
 function toast(msg,type=""){const el=$(`<div class="toast ${type}" role="${type==="error"?"alert":"status"}">${msg}</div>`);$("#toast-wrap").append(el);setTimeout(()=>el.fadeOut(300,()=>el.remove()),3500);}
@@ -144,48 +149,6 @@ $("#modal-overlay").on("click",function(e){if($(e.target).is("#modal-overlay"))c
 /* ════ SERVICE WORKER ════ */
 if("serviceWorker" in navigator&&location.protocol!=="file:"){const swPath=location.pathname.includes("/student-insight/")?"/student-insight/sw.js":"/sw.js";navigator.serviceWorker.register(swPath).catch(()=>{});}
 
-/* ── VOICE INPUT (Web Speech API) ──────────────────────────────────────
-   Works on: Chrome desktop, Chrome Android, Edge, iOS Safari 14.5+
-   Does NOT work on: Firefox (no API support) — mic buttons simply hidden.
-   Note: most implementations send audio to cloud (Google/Apple) for
-   recognition. On-device offline voice is NOT guaranteed. A small note
-   is shown next to every mic button: "Needs internet".
-   ─────────────────────────────────────────────────────────────────── */
-function initVoiceInput(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){return;} // unsupported — mic buttons stay hidden, no error
-  document.querySelectorAll("[data-voice='true']").forEach(target=>{
-    if(target.dataset.voiceWired)return; // dashboard textareas re-render — don't double-wire
-    target.dataset.voiceWired="true";
-    const btn=document.createElement("button");
-    btn.type="button";
-    btn.className="btn btn-sm voice-mic-btn";
-    btn.title="Voice input — needs internet";
-    btn.innerHTML="🎙";
-    btn.setAttribute("aria-label","Start voice input");
-    target.insertAdjacentElement("afterend",btn);
-    let rec=null;
-    btn.addEventListener("click",()=>{
-      if(rec){rec.stop();rec=null;btn.classList.remove("voice-active");return;}
-      rec=new SR();
-      rec.lang=document.documentElement.lang||"en-IN";
-      rec.interimResults=false;
-      rec.maxAlternatives=1;
-      rec.onresult=e=>{
-        const transcript=e.results[0][0].transcript;
-        if(target.tagName==="TEXTAREA"||target.tagName==="INPUT"){
-          target.value=(target.value?target.value+" ":"")+transcript;
-          target.dispatchEvent(new Event("input",{bubbles:true})); // triggers save-button enable
-        }
-      };
-      rec.onerror=()=>{btn.classList.remove("voice-active");rec=null;};
-      rec.onend=()=>{btn.classList.remove("voice-active");rec=null;};
-      rec.start();
-      btn.classList.add("voice-active");
-    });
-  });
-}
-
 /* ════ INIT ════ */
 $(function(){
   if(location.protocol!=="file:"){const ml=document.createElement("link");ml.rel="manifest";ml.href="manifest.json";document.head.appendChild(ml);}
@@ -193,7 +156,6 @@ $(function(){
   try{localStorage.removeItem("sia_sessions");localStorage.removeItem("sia_auth");localStorage.removeItem("sia_gs_url");}catch(e){}
   Object.values(AI_FEATURES).flat().forEach(f=>APP.aiFeatures.add(f.id));renderAICheckboxes();initEnvBadge();applyCompareModeUI();initThemeToggle();populateCountryDropdown(); // pre-select all AI features silently (no toast) — selectAllAI() is reserved for the explicit "Select All" button / analysis-time fallback
   setUsageMode("institution",true); // default card visuals before any Setup interaction
-  initVoiceInput(); // wires up mic buttons on [data-voice=true] fields present at load (Setup inputs); dashboard remark textareas are wired on render, see render-dashboard.js
   goStep("home"); // always shows clean home
   // v1.8: the first-load Institution/Individual popup (v1.4-v1.7) was
   // removed per direct feedback — see PIB §17. Institution stays the
