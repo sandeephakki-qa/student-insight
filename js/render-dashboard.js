@@ -1339,7 +1339,7 @@ function showSampleFiles(){
   // v3.7: Home-only side-path, same rule as Setup/About/FAQ in goStep() —
   // see updateNavHomeOnlyState() for the matching visual/tooltip state.
   if(APP.currentStep!=="home"){toast("Available only from the Home screen.","warn");return;}
-  const base="https://sandeephakki-qa.github.io/student-insight/";
+  const base="https://sandeephakki-qa.github.io/student-insight/sample/sample/";
   const files=[
     {name:"Sample 1 — UPSC/IAS Coaching.xlsx",file:"Sample_1_For_UPSC_IAS_Coaching.xlsx",desc:"Coaching centre example — multiple tests for a competitive-exam batch.",mode:"Institution"},
     {name:"Sample 2 — MBBS College Lecturer.xlsx",file:"Sample_2_For_MBBS_College_Lecturer.xlsx",desc:"College example — subject-wise marks for a lecturer's class.",mode:"Institution"},
@@ -1375,7 +1375,7 @@ async function runSampleFile(fileNames){
   statusEl.style.display="block";
   scrollToEl(statusEl);
   try{
-    const base="https://sandeephakki-qa.github.io/student-insight/";
+    const base="https://sandeephakki-qa.github.io/student-insight/sample/";
     const files=await Promise.all(fileNames.map(async fn=>{
       const res=await fetch(base+fn);
       if(!res.ok)throw new Error("Couldn't fetch "+fn+" (server said "+res.status+")");
