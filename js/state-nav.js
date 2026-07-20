@@ -66,7 +66,11 @@ function goStep(step){
   // jump and explain why instead of silently navigating; the nav items
   // themselves also get a "disabled" look + tooltip via
   // updateNavHomeOnlyState() below so this rarely even gets clicked.
-  if((APP.currentStep==="dashboard"||APP.currentStep==="export")&&(step==="setup"||step==="about"||step==="faq")){
+  if((APP.currentStep==="dashboard"||APP.currentStep==="export")&&step==="setup"){
+    toast("Available only from the Home screen.","warn");
+    return;
+  }
+  if(APP.currentStep!=="home"&&(step==="about"||step==="faq")){
     toast("Available only from the Home screen.","warn");
     return;
   }
@@ -101,8 +105,10 @@ function goStep(step){
 // cursor) and swaps in an explanatory tooltip, so the disabled state is
 // discoverable on hover instead of only showing up as a toast on click.
 function updateNavHomeOnlyState(){
-  const lockAux=(APP.currentStep==="dashboard"||APP.currentStep==="export");
+  const lockAux=(APP.currentStep!=="home"); // Sample/About/FAQ: Home only (item #1 — previously also allowed from Setup, which was confusing mid-setup)
+  const lockSetup=(APP.currentStep==="dashboard"||APP.currentStep==="export");
   $(".nav-home-only").toggleClass("disabled",lockAux).attr("aria-disabled",lockAux?"true":"false").attr("tabindex",lockAux?"-1":"0").attr("title",lockAux?"Available only from the Home screen":"");
+  $(".nav-setup-tab").toggleClass("disabled",lockSetup).attr("aria-disabled",lockSetup?"true":"false").attr("tabindex",lockSetup?"-1":"0").attr("title",lockSetup?"Available only from the Home screen":"");
 }
 
 // PHASE 3 — Only India is active right now; other countries are listed

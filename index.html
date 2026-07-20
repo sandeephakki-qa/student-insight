@@ -857,7 +857,7 @@
   <span class="step-sep" aria-hidden="true">›</span>
   <div class="step-item locked" data-step="export" role="button" tabindex="0" onclick="goStep('export')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('export');}"><div class="step-num" aria-hidden="true">2</div><span>Export PDFs</span></div>
   <div style="flex:1"></div>
-  <div class="step-item step-cta nav-home-only" data-step="setup" role="button" tabindex="0" onclick="goStep('setup')" style="border-left:1px solid var(--c-border);margin-left:8px" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('setup');}" aria-label="Setup — build your own template"><div class="step-num" style="background:none;border:none;font-size:15px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z'/><rect x='5' y='5' width='14' height='16' rx='2'/></svg></div><span>Setup</span></div>
+  <div class="step-item step-cta nav-setup-tab" data-step="setup" role="button" tabindex="0" onclick="goStep('setup')" style="border-left:1px solid var(--c-border);margin-left:8px" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('setup');}" aria-label="Setup — build your own template"><div class="step-num" style="background:none;border:none;font-size:15px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z'/><rect x='5' y='5' width='14' height='16' rx='2'/></svg></div><span>Setup</span></div>
   <div class="step-item step-cta nav-home-only" data-step="samplefiles" onclick="showSampleFiles()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showSampleFiles();}" aria-label="Sample Files — try without downloading"><div class="step-num" style="background:none;border:none;font-size:15px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path d='M14 2v6h6'/><path d='M8 13h8M8 17h8M8 9h2'/></svg></div><span>Sample Files</span></div>
   <div class="step-item nav-home-only" data-step="about" role="button" tabindex="0" onclick="goStep('about')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('about');}"><div class="step-num" style="background:none;border:none;font-size:15px" aria-hidden="true">ℹ</div><span>About</span></div>
   <div class="step-item nav-home-only" data-step="faq" role="button" tabindex="0" onclick="goStep('faq')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('faq');}"><div class="step-num" style="background:none;border:none;font-size:15px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10'/><path d='M9.5 9a2.5 2.5 0 0 1 4.8 1c0 1.5-2.3 2-2.3 3.5'/><line x1='12' y1='17.5' x2='12' y2='17.5'/></svg></div><span>FAQ</span></div>
@@ -960,7 +960,7 @@
     </div>
 
     <div class="card-title" style="margin-bottom:10px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='5'/><circle cx='12' cy='12' r='1.3'/></svg></span> How would you like to start?</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="sw-grid-2" style="display:grid;gap:10px">
       <div class="card sw-choice-card" id="sw-card-new" role="button" tabindex="0" onclick="startNewSession();APP.setupCard1Choice='new';if(typeof swRefresh==='function')swRefresh();" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="cursor:pointer;padding:14px 16px;border-color:var(--c-primary)">
         <div style="display:flex;gap:10px;align-items:flex-start">
           <div style="font-size:22px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 5v14'/><path d='M5 12h14'/></svg></div>
@@ -994,7 +994,7 @@
   <div id="sw-step-2" class="sw-step" style="display:none">
     <div class="card" id="mode-select-card" style="border-color:var(--c-primary);background:var(--c-primary-soft)">
       <div class="card-title" style="margin-bottom:10px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='5'/><circle cx='12' cy='12' r='1.3'/></svg></span> Who is this for?</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="sw-grid-2" style="display:grid;gap:10px">
         <label class="mode-option-card" id="mode-card-institution" role="button" tabindex="0" aria-pressed="true" onclick="setUsageMode('institution')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setUsageMode('institution');}" style="cursor:pointer;padding:12px 14px;border-radius:var(--r-sm);border:2px solid var(--c-primary);background:var(--c-surface);display:flex;gap:10px;align-items:flex-start">
           <div style="font-size:22px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></div>
           <div>
@@ -1015,12 +1015,12 @@
     </div>
     <div class="card" style="padding:14px 16px;margin-top:14px">
       <div class="card-title"><span class="icon" id="inst-card-icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></span> <span id="inst-card-title">Institution</span></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px">
+      <div class="sw-grid-2" style="display:grid;gap:8px 12px">
         <div class="form-group" style="margin-bottom:0;grid-column:1/-1">
           <label id="inst-name-label">Institution Name <span style="color:var(--c-danger)">*</span></label>
           <input id="inst-name" type="text" data-voice="true" placeholder="e.g. Springfield International School" oninput="markDirty();validateSetup()"/>
-          <div id="inst-name-hint" style="font-size:11px;color:var(--c-text3);margin-top:3px;display:none"></div>
-          <div id="err-inst-name" style="display:none;font-size:11px;color:var(--c-danger);margin-top:3px">⚠ Institution name is required</div>
+          <div id="inst-name-hint" style="font-size:11px;color:var(--c-text3);margin-top:3px;display:none;min-height:14px"></div>
+          <div id="err-inst-name" style="display:none;font-size:11px;color:var(--c-danger);margin-top:3px;min-height:14px">⚠ Institution name is required</div>
         </div>
         <div class="form-group" style="margin-bottom:0" id="inst-type-group"><label>Type</label>
           <select id="inst-type" onchange="markDirty()"><option value="">Select...</option><option>Pre-primary / Playschool</option><option>Primary School</option><option>High School</option><option>College / University</option><option>Coaching Centre</option><option>Corporate Training</option><option>Other</option></select>
@@ -1040,17 +1040,17 @@
   <div id="sw-step-3" class="sw-step" style="display:none">
     <div class="card" style="padding:14px 16px">
       <div class="card-title"><span class="icon" id="class-card-icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z'/><path d='M20 17v3H6.5A2.5 2.5 0 0 1 4 17.5'/></svg></span> <span id="class-card-title">Class / Batch</span></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px">
+      <div class="sw-grid-2" style="display:grid;gap:8px 12px">
         <div class="form-group" style="margin-bottom:0" id="class-name-group">
           <label id="class-name-label">Class / Batch <span style="color:var(--c-danger)">*</span></label>
           <input id="class-name" type="text" data-voice="true" placeholder="e.g. Class 9" oninput="markDirty();validateSetup()"/>
-          <div id="err-class-name" style="display:none;font-size:11px;color:var(--c-danger);margin-top:3px">⚠ Class / Batch is required</div>
+          <div id="err-class-name" style="display:none;font-size:11px;color:var(--c-danger);margin-top:3px;min-height:14px">⚠ Class / Batch is required</div>
         </div>
         <div class="form-group" style="margin-bottom:0" id="class-section-group"><label>Section</label><input id="class-section" type="text" placeholder="e.g. B" oninput="markDirty()"/></div>
         <div class="form-group" style="margin-bottom:0">
           <label>Academic Year <span style="color:var(--c-danger)">*</span></label>
           <input id="class-year" type="text" placeholder="e.g. 2026" oninput="markDirty();validateSetup()"/>
-          <div id="err-class-year" style="display:none;font-size:11px;color:var(--c-danger);margin-top:3px">⚠ Academic year is required</div>
+          <div id="err-class-year" style="display:none;font-size:11px;color:var(--c-danger);margin-top:3px;min-height:14px">⚠ Academic year is required</div>
         </div>
         <div class="form-group" style="margin-bottom:0"><label id="class-teacher-label">Teacher Name</label><input id="class-teacher" type="text" oninput="markDirty()"/></div>
       </div>
@@ -1093,8 +1093,8 @@
     <div id="sw-err-4" class="sw-err" style="display:none"></div>
     <div class="sw-nav" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
       <button class="btn btn-secondary btn-sm" onclick="swBack()">← Back</button>
-      <div style="display:flex;align-items:center;gap:14px">
-        <a href="javascript:void(0)" id="btn-setup-next" onclick="goStep('home')" style="font-size:12.5px;color:var(--c-text2);text-decoration:underline">Done — Upload on Home →</a>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" id="btn-setup-next" onclick="goStep('home')">Done — Upload on Home →</button>
         <button class="btn btn-primary btn-sm" id="btn-download-template" onclick="generateTemplate()" disabled style="opacity:.45;cursor:not-allowed" title="Fill mandatory fields first"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 3v12'/><polyline points='7 10 12 15 17 10'/><path d='M4 21h16'/></svg> Download Template</button>
       </div>
     </div>

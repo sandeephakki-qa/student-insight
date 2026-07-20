@@ -1,5 +1,28 @@
 /* ════ EXPORT ════ */
 
+// STRESS-TEST FIX (BUG-1, STRESS_TEST_REPORT.md): jsPDF's built-in
+// "helvetica" font only covers WinAnsi/Latin-1 — no emoji, no
+// Devanagari/Kannada, etc. Free-text fields (remarks, names) are
+// user-authored (including via voice input) and will eventually contain
+// characters that font can't render, which previously rendered as blank
+// boxes or dropped silently with no visibility into it happening. This
+// wraps every jsPDF instance so ANY text passed to .text()/
+// splitTextToSize() is sanitized once, centrally — not at each of the
+// 100+ individual call sites across this file.
+function sanitizePdfDoc(doc){
+  const stripUnsupported=v=>String(v==null?"":v).replace(/[^\x00-\xFF]/g,"▯");
+  const sanitizeArg=a=>{
+    if(typeof a==="string")return stripUnsupported(a);
+    if(Array.isArray(a))return a.map(sanitizeArg);
+    return a;
+  };
+  const origText=doc.text.bind(doc);
+  doc.text=function(text,...rest){return origText(sanitizeArg(text),...rest);};
+  const origSplit=doc.splitTextToSize.bind(doc);
+  doc.splitTextToSize=function(text,...rest){return origSplit(sanitizeArg(text),...rest);};
+  return doc;
+}
+
 async function generateAllPDFs(){
   if(!APP.students.length){toast("No students to export.","warn");return;}
   if((APP.dataIssues||[]).length){toast("Fix the "+APP.dataIssues.length+" data quality issue(s) on the Dashboard before exporting.","warn");goStep("dashboard");return;}
@@ -16,9 +39,9 @@ async function generateAllPDFs(){
   try{
     if(doZ){
       const zip=new JSZip();
-      if(doS){for(const st of APP.students){prog("Generating: "+st.name+" ("+done+"/"+APP.students.length+")",Math.round(done/total*100));await sleep(20);const doc=new jsPDF("p","mm","a4");buildStudentPDF(doc,st);zip.file("Students/"+safeName(st.name)+"_"+safeName(st.id)+".pdf",doc.output("blob"));done++;}}
-      if(doT){prog("Generating Teacher Report…",Math.round(done/total*100));await sleep(20);const doc=new jsPDF("p","mm","a4");buildTeacherPDF(doc);zip.file("Teacher_Report.pdf",doc.output("blob"));done++;}
-      if(doM){prog("Generating Management Report…",Math.round(done/total*100));await sleep(20);const doc=new jsPDF("p","mm","a4");buildMgmtPDF(doc);zip.file("Management_Report.pdf",doc.output("blob"));done++;}
+      if(doS){for(const st of APP.students){prog("Generating: "+st.name+" ("+done+"/"+APP.students.length+")",Math.round(done/total*100));await sleep(20);const doc=sanitizePdfDoc(new jsPDF("p","mm","a4"));buildStudentPDF(doc,st);zip.file("Students/"+safeName(st.name)+"_"+safeName(st.id)+".pdf",doc.output("blob"));done++;}}
+      if(doT){prog("Generating Teacher Report…",Math.round(done/total*100));await sleep(20);const doc=sanitizePdfDoc(new jsPDF("p","mm","a4"));buildTeacherPDF(doc);zip.file("Teacher_Report.pdf",doc.output("blob"));done++;}
+      if(doM){prog("Generating Management Report…",Math.round(done/total*100));await sleep(20);const doc=sanitizePdfDoc(new jsPDF("p","mm","a4"));buildMgmtPDF(doc);zip.file("Management_Report.pdf",doc.output("blob"));done++;}
       prog("Building ZIP…",95);
       const zipBlob=await zip.generateAsync({type:"blob"});
       const s=APP.setup,fname=safeName((s.instName||"StudentInsight")+"_"+(s.className||"Class")+"_"+(s.year||"2026"))+"_Reports.zip";
@@ -26,9 +49,9 @@ async function generateAllPDFs(){
       toast("ZIP downloaded: "+fname,"success");
     } else {
       // ZIP unchecked — download each selected PDF individually
-      if(doS){for(const st of APP.students){prog("Generating: "+st.name+" ("+done+"/"+APP.students.length+")",Math.round(done/total*100));await sleep(20);const doc=new jsPDF("p","mm","a4");buildStudentPDF(doc,st);downloadBlob(doc.output("blob"),safeName(st.name)+"_"+safeName(st.id)+".pdf");done++;}}
-      if(doT){prog("Generating Teacher Report…",Math.round(done/total*100));await sleep(20);const doc=new jsPDF("p","mm","a4");buildTeacherPDF(doc);downloadBlob(doc.output("blob"),"Teacher_Report.pdf");done++;}
-      if(doM){prog("Generating Management Report…",Math.round(done/total*100));await sleep(20);const doc=new jsPDF("p","mm","a4");buildMgmtPDF(doc);downloadBlob(doc.output("blob"),"Management_Report.pdf");done++;}
+      if(doS){for(const st of APP.students){prog("Generating: "+st.name+" ("+done+"/"+APP.students.length+")",Math.round(done/total*100));await sleep(20);const doc=sanitizePdfDoc(new jsPDF("p","mm","a4"));buildStudentPDF(doc,st);downloadBlob(doc.output("blob"),safeName(st.name)+"_"+safeName(st.id)+".pdf");done++;}}
+      if(doT){prog("Generating Teacher Report…",Math.round(done/total*100));await sleep(20);const doc=sanitizePdfDoc(new jsPDF("p","mm","a4"));buildTeacherPDF(doc);downloadBlob(doc.output("blob"),"Teacher_Report.pdf");done++;}
+      if(doM){prog("Generating Management Report…",Math.round(done/total*100));await sleep(20);const doc=sanitizePdfDoc(new jsPDF("p","mm","a4"));buildMgmtPDF(doc);downloadBlob(doc.output("blob"),"Management_Report.pdf");done++;}
       toast(done+" PDF(s) downloaded individually.","success");
     }
   }catch(err){

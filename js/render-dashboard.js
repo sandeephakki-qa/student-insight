@@ -579,7 +579,7 @@ function renderFilteredList(kind){
     _helpOpenId=null;
     body=`<div class="finding-list">${items.map(x=>`
       <div id="help-row-${esc(x.st.id)}" class="finding-row help-row" role="button" tabindex="0" onclick="toggleHelpRow('${esc(x.st.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleHelpRow('${esc(x.st.id)}');}">
-        <span class="bucket-student-name">${esc(x.st.name)}</span><span> · ${esc(x.reason)}</span>
+        <span class="bucket-text"><span class="bucket-student-name">${esc(x.st.name)}</span><span>${esc(x.reason)}</span></span>
       </div>
       <div id="help-body-${esc(x.st.id)}" class="help-row-body" data-rendered="false" style="display:none"></div>
     `).join("")}</div>`;
@@ -1197,8 +1197,24 @@ function remarkCardsHtml(st){
   if(!tests.length)return "";
   return `<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:8px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z'/></svg> Teacher Remarks <span style="font-weight:400;color:var(--c-text3);font-size:11px">(editable — download the updated sheet to keep changes)</span></div><div style="display:flex;flex-direction:column;gap:10px">${tests.map(t=>{
     const remark=(st.testData[t.name]||{}).remark||"";
-    return `<div><div style="font-size:11.5px;font-weight:700;color:var(--c-text2);margin-bottom:4px">${esc(t.name)}</div><textarea class="narrative-edit remark-edit" data-voice="true" data-test="${esc(t.name)}" style="width:100%;min-height:44px;font-size:13px;font-family:inherit;padding:8px;border:1px solid var(--c-border);border-radius:var(--r-sm);resize:vertical" oninput="$(this).next('.narrative-save-row').find('button').prop('disabled',false)">${esc(remark)}</textarea><div class="narrative-save-row" style="display:flex;justify-content:flex-end;margin-top:4px"><button class="btn btn-secondary" style="padding:5px 14px;font-size:12px" disabled onclick="saveRemarkField('${esc(st.id)}','${esc(t.name)}',this)">Save</button></div></div>`;
+    const remarkId="remark-"+esc(st.id)+"-"+esc(t.name).replace(/[^\w]/g,"_");
+    const rlen=remark.length;
+    const rcountText=rlen+" characters"+(rlen>300?" — long remarks may push other sections to extra pages in the PDF":"");
+    const rcountColor=rlen>300?"var(--c-warn,#f9a826)":"var(--c-text3)";
+    return `<div><div style="font-size:11.5px;font-weight:700;color:var(--c-text2);margin-bottom:4px">${esc(t.name)}</div><textarea class="narrative-edit remark-edit" data-voice="true" data-test="${esc(t.name)}" id="${remarkId}" style="width:100%;min-height:44px;font-size:13px;font-family:inherit;padding:8px;border:1px solid var(--c-border);border-radius:var(--r-sm);resize:vertical" oninput="$(this).next('.narrative-save-row').find('button').prop('disabled',false);updateRemarkCharCount(this)">${esc(remark)}</textarea><div class="narrative-save-row" style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><span class="remark-char-count" data-for="${remarkId}" style="font-size:11px;color:${rcountColor}">${rcountText}</span><button class="btn btn-secondary" style="padding:5px 14px;font-size:12px" disabled onclick="saveRemarkField('${esc(st.id)}','${esc(t.name)}',this)">Save</button></div></div>`;
   }).join("")}</div></div>`;
+}
+// STRESS-TEST FIX (BUG-4, STRESS_TEST_REPORT.md): a very long remark (400+
+// chars) wraps safely in the PDF (splitTextToSize confirmed no crash risk)
+// but can push 8-10 lines into a single student's report, crowding out
+// the Chapters/Parent-message sections below it. Soft warning only — no
+// hard cap, so nothing a teacher types is ever silently truncated.
+function updateRemarkCharCount(textareaEl){
+  const len=(textareaEl.value||"").length;
+  const countEl=document.querySelector('.remark-char-count[data-for="'+textareaEl.id+'"]');
+  if(!countEl)return;
+  countEl.textContent=len+" characters"+(len>300?" — long remarks may push other sections to extra pages in the PDF":"");
+  countEl.style.color=len>300?"var(--c-warn,#f9a826)":"var(--c-text3)";
 }
 function saveRemarkField(id,testName,btnEl){
   const st=APP.students.find(s=>s.id===id);if(!st)return;
@@ -1223,19 +1239,24 @@ function showRemarksDirtyBanner(){
 }
 // TASK 3b: writes a brand-new .xlsx from the raw rows already in memory —
 // the originally uploaded file is never touched or re-read from disk.
-function downloadUpdatedSheet(){
+/* ════════════════════════════════════════════════════════════════════
+   OLD SINGLE-SHEET SCHEMA — downloadUpdatedSheet()
+   Kept commented out for reference/safety per explicit request. Delete
+   once the new multi-tab version below has been confirmed working.
+   ════════════════════════════════════════════════════════════════════
+function downloadUpdatedSheet_OLD(){
   if(!APP.rawData||!APP.students.length){toast("No data loaded.","warn");return;}
   const markKey=Object.keys(APP.rawData).find(k=>k.includes("MARK")&&k.includes("CONTEXT"))
                  ||Object.keys(APP.rawData).find(k=>k.includes("MARK"));
   if(!markKey){toast("Cannot find marks sheet in loaded data.","error");return;}
-  const rows=APP.rawData["_arr_"+markKey]; // raw 2D array already in memory
+  const rows=APP.rawData["_arr_"+markKey];
   if(!rows){toast("Raw data not available.","error");return;}
   const header=rows[0].map(h=>h==null?"":String(h).trim());
   const studentMap={};
   APP.students.forEach(st=>{ studentMap[String(st.id).trim().toUpperCase()]=st; });
   const idIdx=header.indexOf("Student ID");
   const updatedRows=rows.map((row,ri)=>{
-    if(ri===0)return row; // keep header unchanged
+    if(ri===0)return row;
     const id=String(row[idIdx]||"").trim().toUpperCase();
     const st=studentMap[id];
     if(!st)return row;
@@ -1258,10 +1279,66 @@ function downloadUpdatedSheet(){
   APP._remarksDirty=false;
   $("#remarks-dirty-banner").remove();
 }
+════════════════════════════════════════════════════════════════════ */
+
+// NEW SCHEMA (multi-tab redesign): writes a full workbook back out —
+// SETUP is regenerated fresh from current settings, STUDENTS is copied
+// through byte-for-byte, and every test tab is copied through with only
+// its Remark column values refreshed from what's currently in memory
+// (edited via the student modal). Reuses buildSetupSheet()/safeSheetName()
+// from template-upload.js, same as the template generator and merge flow.
+function downloadUpdatedSheet(){
+  if(!APP.rawData||!APP.students.length){toast("No data loaded.","warn");return;}
+  const studentsArr=APP.rawData["_arr_STUDENTS"];
+  if(!studentsArr){toast("Cannot find the STUDENTS tab in the loaded data.","error");return;}
+  const wb=XLSX.utils.book_new();
+  const usedNames=new Set();
+  if(typeof buildSetupSheet==="function"){
+    XLSX.utils.book_append_sheet(wb,buildSetupSheet(),"SETUP");
+    usedNames.add("SETUP");
+  }
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(studentsArr),typeof safeSheetName==="function"?safeSheetName("STUDENTS",usedNames):"STUDENTS");
+
+  const studentMap={};
+  APP.students.forEach(st=>{ studentMap[String(st.id).trim().toUpperCase()]=st; });
+
+  (APP.setup.tests||[]).forEach(t=>{
+    const rows=APP.rawData["_arr_"+t.name];
+    if(!rows){return;} // this test has no tab in the source file — nothing to write back for it
+    const header=rows[0].map(h=>h==null?"":String(h).trim());
+    const idIdx=header.indexOf("Student ID");
+    const rmIdx=header.indexOf("Remark");
+    const updatedRows=rows.map((row,ri)=>{
+      if(ri===0||idIdx===-1||rmIdx===-1)return row;
+      const id=String(row[idIdx]||"").trim().toUpperCase();
+      const st=studentMap[id];
+      if(!st)return row;
+      const newRow=[...row];
+      newRow[rmIdx]=(st.testData[t.name]&&st.testData[t.name].remark)||"";
+      return newRow;
+    });
+    const sheetName=typeof safeSheetName==="function"?safeSheetName(t.name,usedNames):t.name;
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(updatedRows),sheetName);
+  });
+
+  if(typeof buildReadmeSheet==="function"){
+    usedNames.add("README");
+    XLSX.utils.book_append_sheet(wb,buildReadmeSheet(),"README");
+  }
+
+  const ts=new Date();
+  const tag=ts.getFullYear()+String(ts.getMonth()+1).padStart(2,"0")+String(ts.getDate()).padStart(2,"0")
+            +"_"+String(ts.getHours()).padStart(2,"0")+String(ts.getMinutes()).padStart(2,"0");
+  const fname=(APP.setup.instName||"sheet")+"_remarks_"+tag+".xlsx";
+  XLSX.writeFile(wb,fname);
+  toast("Updated sheet downloaded: "+fname,"success");
+  APP._remarksDirty=false;
+  $("#remarks-dirty-banner").remove();
+}
 function showSampleFiles(){
   // v3.7: Home-only side-path, same rule as Setup/About/FAQ in goStep() —
   // see updateNavHomeOnlyState() for the matching visual/tooltip state.
-  if(APP.currentStep==="dashboard"||APP.currentStep==="export"){toast("Available only from the Home screen.","warn");return;}
+  if(APP.currentStep!=="home"){toast("Available only from the Home screen.","warn");return;}
   const base="https://studin.in/";
   const files=[
     {name:"Sample 1 — UPSC/IAS Coaching.xlsx",file:"Sample_1_For_UPSC_IAS_Coaching.xlsx",desc:"Coaching centre example — multiple tests for a competitive-exam batch.",mode:"Institution"},

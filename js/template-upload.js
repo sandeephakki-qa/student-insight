@@ -13,6 +13,21 @@ const TPL_STYLE={
   sample:{font:{color:{rgb:"888888"},italic:true},alignment:{vertical:"center"}}
 };
 function colLetter(n){let s="";n++;while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26);}return s;}
+// NEW SCHEMA (multi-tab redesign): Excel sheet names can't contain
+// \ / ? * [ ] : , can't be blank, can't exceed 31 chars, and must be
+// unique within the workbook — a raw test name like "Unit Test 2/26"
+// would silently corrupt the file without this.
+function safeSheetName(name,usedNames){
+  let n=String(name||"Test").replace(/[\\/?*\[\]:]/g,"-").trim().slice(0,31)||"Test";
+  let candidate=n,i=2;
+  while(usedNames.has(candidate)){
+    const suffix=" ("+i+")";
+    candidate=n.slice(0,31-suffix.length)+suffix;
+    i++;
+  }
+  usedNames.add(candidate);
+  return candidate;
+}
 /* Shared by generateTemplate() (fresh workbook) and generateMergedTemplate()
    (existing workbook + new test columns) — both need the exact same SETUP
    tab, built from whatever's currently in APP.setup, so there's a single
@@ -39,6 +54,58 @@ function buildSetupSheet(){
   });
   return wsSetup;
 }
+// NEW SCHEMA — Tab 2: STUDENTS roster. Student ID mandatory, Full Name
+// optional (app falls back to printing the ID wherever a name would show
+// once this reaches the parser/UI layer — that fallback is a parsing-layer
+// change, tracked separately from this template-generation piece), Gender
+// mandatory (M/F).
+function buildStudentsSheet(){
+  const hdr=["Student ID","Full Name","Gender"];
+  const rows=[hdr];
+  for(let i=1;i<=5;i++)rows.push(["STU00"+i,"","M"]);
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws["!cols"]=[{wch:16},{wch:28},{wch:10}];
+  ws["!rows"]=rows.map((_,r)=>({hpt:r===0?32:20}));
+  ws["!views"]=[{state:"frozen",ySplit:1,topLeftCell:"A2",activePane:"bottomLeft"}];
+  hdr.forEach((_,c)=>{const cell=ws[colLetter(c)+"1"];if(cell)cell.s=TPL_STYLE.header;});
+  for(let r=1;r<rows.length;r++)for(let c=0;c<3;c++){const cell=ws[colLetter(c)+(r+1)];if(cell)cell.s=TPL_STYLE.sample;}
+  return ws;
+}
+// NEW SCHEMA — Tabs 3..N+2: one per test. Student ID + one Marks column
+// per subject + Absent Days + Chapter (optional) + Remark (optional).
+// Roster fields (Name/Gender) live on STUDENTS only, not repeated here.
+function buildTestSheet(test,subjects){
+  const hdr=["Student ID"];
+  subjects.forEach(s=>hdr.push(s+" Marks"));
+  hdr.push("Absent Days","Chapter","Remark");
+  const rows=[hdr];
+  for(let i=1;i<=5;i++)rows.push(["STU00"+i,...Array(hdr.length-1).fill("")]);
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws["!cols"]=hdr.map((_,i)=>({wch:i===0?12:i>=hdr.length-2?24:12}));
+  ws["!rows"]=rows.map((_,r)=>({hpt:r===0?32:20}));
+  ws["!views"]=[{state:"frozen",xSplit:1,ySplit:1,topLeftCell:colLetter(1)+"2",activePane:"bottomRight"}];
+  hdr.forEach((_,c)=>{const cell=ws[colLetter(c)+"1"];if(cell)cell.s=TPL_STYLE.header;});
+  for(let r=1;r<rows.length;r++){const cell=ws["A"+(r+1)];if(cell)cell.s=TPL_STYLE.sample;}
+  return ws;
+}
+// NEW SCHEMA — final tab: README, explaining the multi-tab layout since
+// this is a genuine change from the old single-sheet format teachers may
+// already be used to.
+function buildReadmeSheet(){
+  const lines=[
+    ["Student Insight — How this workbook is organised"],
+    [""],
+    ["SETUP — institution, class, subjects, tests, and scoring settings. Edit here if anything needs to change."],
+    ["STUDENTS — your class roster. Student ID is required; Full Name is optional (the ID is shown instead if left blank); Gender is required (M or F)."],
+    ["One tab per test — each test/exam gets its own tab, named after the test. Fill marks, absences, chapter (optional), and remarks there."],
+    [""],
+    ["Adding a new test later: go to Setup -> Update Existing Template -> upload this file -> add the new test -> re-download."],
+    ["A new tab is added for the new test; every existing tab and its marks are kept exactly as they are."],
+  ];
+  const ws=XLSX.utils.aoa_to_sheet(lines);
+  ws["!cols"]=[{wch:110}];
+  return ws;
+}
 function generateTemplate(){
   collectSetupForm();
   if(!APP.setup.instName){toast(APP.setup.mode==="individual"?"Fill Student/Aspirant Name first.":"Fill Institution Name first.","warn");return;}
@@ -51,25 +118,14 @@ function generateTemplate(){
   const wb=XLSX.utils.book_new();
   const {subjects,tests,instName}=APP.setup;
   XLSX.utils.book_append_sheet(wb,buildSetupSheet(),"SETUP");
-  /* MARKS+CONTEXT tab — now also carries the roster fields (Full Name,
-     Gender) that used to live on a separate STUDENTS tab. Parent/Guardian
-     Name is intentionally dropped — no longer collected. Student ID/Full
-     Name/Gender (columns A-C) and the header row are frozen so they stay
-     in view while scrolling through the test columns to the right. */
-  const markHdr=["Student ID","Full Name","Gender"];
-  tests.forEach(t=>{subjects.forEach(s=>markHdr.push(t.name+" - "+s+" Marks"));markHdr.push(t.name+" - Absent Days");markHdr.push(t.name+" - Chapter");markHdr.push(t.name+" - Remark");});
-  const markRows=[markHdr];for(let i=1;i<=5;i++)markRows.push(["STU00"+i,"","",...Array(markHdr.length-3).fill("")]);
-  const wsMarks=XLSX.utils.aoa_to_sheet(markRows);
-  wsMarks["!cols"]=markHdr.map((_,i)=>({wch:i<3?16:19}));
-  wsMarks["!rows"]=markRows.map((_,r)=>({hpt:r===0?60:20}));
-  // Freeze header row (ySplit:1) + first 3 columns (xSplit:3) so Student
-  // ID/Full Name/Gender don't scroll out of view — this is the "movement"
-  // fix: without a freeze pane, those columns and the header row scroll
-  // away exactly like any other cell once there are many test columns.
-  wsMarks["!views"]=[{state:"frozen",xSplit:3,ySplit:1,topLeftCell:colLetter(3)+"2",activePane:"bottomRight"}];
-  markHdr.forEach((_,c)=>{const addr=colLetter(c)+"1",cell=wsMarks[addr];if(cell)cell.s=TPL_STYLE.header;});
-  for(let r=1;r<markRows.length;r++)for(let c=0;c<3;c++){const addr=colLetter(c)+(r+1),cell=wsMarks[addr];if(cell)cell.s=TPL_STYLE.sample;}
-  XLSX.utils.book_append_sheet(wb,wsMarks,"MARKS+CONTEXT");
+  XLSX.utils.book_append_sheet(wb,buildStudentsSheet(),"STUDENTS");
+  const usedNames=new Set(["SETUP","STUDENTS"]);
+  tests.forEach(t=>{
+    const sheetName=safeSheetName(t.name,usedNames);
+    XLSX.utils.book_append_sheet(wb,buildTestSheet(t,subjects),sheetName);
+  });
+  usedNames.add("README");
+  XLSX.utils.book_append_sheet(wb,buildReadmeSheet(),"README");
   const fname=(instName+" "+APP.setup.className+" "+APP.setup.year).replace(/[^\w\s-]/g,"").replace(/\s+/g,"_")+".xlsx";
   XLSX.writeFile(wb,fname);toast("Template downloaded: "+fname,"success");unlockStep("data");
   lockUsageMode(); // template now exists for this mode — no more switching without a new project
@@ -97,9 +153,12 @@ function handleUpdateUpload(input){
   };
   r.readAsArrayBuffer(file);
 }
-// Split out from handleUpdateUpload so the parsing/validation logic can be
-// exercised directly in tests without needing a real browser FileReader.
-function loadMergeSourceFromArrayBuffer(arrayBuffer,fileName){
+/* ════════════════════════════════════════════════════════════════════
+   OLD SINGLE-SHEET SCHEMA — loadMergeSourceFromArrayBuffer()
+   Kept commented out for reference/safety per explicit request. Delete
+   once the new multi-tab version below has been confirmed working.
+   ════════════════════════════════════════════════════════════════════
+function loadMergeSourceFromArrayBuffer_OLD(arrayBuffer,fileName){
   const wb=XLSX.read(new Uint8Array(arrayBuffer),{type:"array"});
   parseWorkbookSheets(wb);
   const markKey=Object.keys(APP.rawData).find(k=>k.includes("MARK")&&k.includes("CONTEXT"))||Object.keys(APP.rawData).find(k=>k.includes("MARK"));
@@ -108,32 +167,90 @@ function loadMergeSourceFromArrayBuffer(arrayBuffer,fileName){
   if(!rawArr||!rawArr.length){toast(isIndividual?"We couldn't read your data from that file — make sure you're uploading the same Excel file you downloaded from this app earlier.":"Couldn't find a MARKS+CONTEXT tab in that file.","error");return false;}
   const header=(rawArr[0]||[]).map(h=>h===null||h===undefined?"":String(h).trim());
   if(!header.some(h=>h==="Student ID")){toast(isIndividual?"That doesn't look like a file downloaded from this app — please upload the same Excel file you filled in earlier, not a different one.":"That file's MARKS+CONTEXT tab doesn't look like a Student Insight sheet (no 'Student ID' column found) — can't safely merge into it.","error");return false;}
-  // Keep only real data rows (skip any fully-blank trailing rows), and
-  // pad/trim every row to the header's width so appended columns line
-  // up correctly even if a row was short a trailing blank cell or two.
   const dataRows=rawArr.slice(1)
     .filter(row=>row&&row.some(v=>v!==null&&v!==undefined&&v!==""))
     .map(row=>header.map((_,i)=>{const v=row[i];return v===null||v===undefined?"":v;}));
   if(!dataRows.length){toast(isIndividual?"That file doesn't have any filled-in rows yet — nothing to bring forward. Use Download Template to start fresh instead.":"That sheet has a header but no student rows yet — nothing to preserve. Use a fresh Download Template instead.","warn");return false;}
-  // Duplicate-ID check up front — two rows sharing a Student ID would
-  // silently collapse into one student during analysis later, so flag it
-  // now while it's still easy to trace back to the source file/row.
   const idCol=header.indexOf("Student ID");
   const seenIds={};const dupeIds=[];
   dataRows.forEach(row=>{const id=String(row[idCol]||"").trim().toUpperCase();if(!id)return;if(seenIds[id])dupeIds.push(row[idCol]);seenIds[id]=true;});
-  // One test's name is recoverable exactly from its "<Test> - Absent Days"
-  // column (appears exactly once per test, unlike the per-subject Marks
-  // columns) — used to detect renamed/removed tests before merging.
   const origTestNames=header.filter(h=>/ - Absent Days$/.test(h)||/ — Absent Days$/.test(h)).map(h=>h.replace(/ [-—] Absent Days$/,""));
   APP.mergeSource={header,rows:dataRows,sourceFileName:fileName,origTestNames,
     origSubjects:(APP.setup.subjects||[]).slice(), dupeIds:[...new Set(dupeIds)]};
   APP.mergeMode=true;
-  autoInferSetup(); // fills subjects/tests/institution form from the file's SETUP tab
-  APP.mergeSource.origSubjects=(APP.setup.subjects||[]).slice(); // capture post-autoinfer, this is the "before" baseline for the mismatch check at merge time
+  autoInferSetup();
+  APP.mergeSource.origSubjects=(APP.setup.subjects||[]).slice();
   const testNames=(APP.setup.tests||[]).map(t=>t.name).join(", ")||"(none detected)";
-  let bannerHtml=`Loaded <b>${esc(fileName)}</b> — <b>${dataRows.length}</b> student row(s), existing test(s): <b>${esc(testNames)}</b>. Now click <b>✚ Add Test</b> below for Test 2 (or Test 3), then use <b><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M17 1l4 4-4 4'/><path d='M3 11V9a4 4 0 0 1 4-4h14'/><path d='M7 23l-4-4 4-4'/><path d='M21 13v2a4 4 0 0 1-4 4H3'/></svg> Update &amp; Download</b> above. You'll get a summary to review before anything downloads.`;
+  let bannerHtml=`Loaded <b>${esc(fileName)}</b> — <b>${dataRows.length}</b> student row(s), existing test(s): <b>${esc(testNames)}</b>. Now click <b>✚ Add Test</b> below for Test 2 (or Test 3), then use Update & Download.`;
   if(APP.mergeSource.dupeIds.length){
-    bannerHtml+=`<div style="margin-top:6px;color:#8b1a1a">⚠ Duplicate Student ID(s) already in this file: ${esc(APP.mergeSource.dupeIds.join(", "))}. Fix these in the source file for reliable analysis.</div>`;
+    bannerHtml+=`<div style="margin-top:6px;color:#8b1a1a">⚠ Duplicate Student ID(s) already in this file: ${esc(APP.mergeSource.dupeIds.join(", "))}.</div>`;
+  }
+  $("#merge-banner-text").html(bannerHtml);
+  $("#merge-banner").show();
+  toast("Existing sheet loaded — add your new test, then click Update & Download.","success");
+  APP.setupCard1Choice='update';
+  if(typeof swGoto==="function") swGoto(2);
+  return true;
+}
+════════════════════════════════════════════════════════════════════ */
+
+// NEW SCHEMA (multi-tab redesign): the workbook now carries SETUP,
+// STUDENTS (roster: ID/Name/Gender), one tab per test, and README —
+// instead of diffing/appending columns on one flat sheet, an "update" is
+// now literally "keep every existing tab byte-for-byte, add new blank
+// test tab(s) for whatever's new". Reuses parseWorkbookSheets() (already
+// schema-agnostic — no changes needed there) and autoInferSetup() (reads
+// the SETUP tab, also unchanged) as-is.
+function loadMergeSourceFromArrayBuffer(arrayBuffer,fileName){
+  const wb=XLSX.read(new Uint8Array(arrayBuffer),{type:"array"});
+  parseWorkbookSheets(wb);
+  const isIndividual=APP.setup.mode==="individual";
+  const sheetNamesUpper=wb.SheetNames.map(n=>n.toUpperCase().trim());
+  if(!sheetNamesUpper.includes("SETUP")||!sheetNamesUpper.includes("STUDENTS")){
+    toast(isIndividual?"That doesn't look like a file downloaded from this app — please upload the same Excel file you filled in earlier, not a different one.":"That file doesn't have SETUP and STUDENTS tabs — can't safely update it. If this is an older single-sheet Student Insight file, please download a fresh template and re-enter your data — sorry for the inconvenience, the file format has been improved to one tab per test.","error");
+    return false;
+  }
+  const studentsSheetName=wb.SheetNames[sheetNamesUpper.indexOf("STUDENTS")];
+  const studentsArr=APP.rawData["_arr_"+studentsSheetName]||[];
+  const studentsHeader=(studentsArr[0]||[]).map(h=>h===null||h===undefined?"":String(h).trim());
+  if(!studentsHeader.some(h=>h==="Student ID")){
+    toast("The STUDENTS tab doesn't have a 'Student ID' column — can't safely update this file.","error");
+    return false;
+  }
+  const studentsRows=studentsArr.slice(1).filter(row=>row&&row.some(v=>v!==null&&v!==undefined&&v!==""));
+  if(!studentsRows.length){
+    toast(isIndividual?"That file's STUDENTS tab doesn't have any filled-in rows yet — nothing to bring forward. Use Download Template to start fresh instead.":"That file's STUDENTS tab has a header but no student rows yet — nothing to preserve. Use a fresh Download Template instead.","warn");
+    return false;
+  }
+  // Duplicate-ID check now lives on the STUDENTS tab, since that's the
+  // single source of student identity in the new schema (test tabs no
+  // longer carry Name/Gender at all).
+  const idCol=studentsHeader.indexOf("Student ID");
+  const seenIds={};const dupeIds=[];
+  studentsRows.forEach(row=>{const id=String(row[idCol]||"").trim().toUpperCase();if(!id)return;if(seenIds[id])dupeIds.push(row[idCol]);seenIds[id]=true;});
+  // Every sheet that isn't SETUP/STUDENTS/README is treated as a test tab
+  // — its sheet name IS the test name (that's exactly what generateTemplate()
+  // writes via safeSheetName()). autoInferSetup() below reads the *canonical*
+  // test names from the SETUP tab, which is what APP.setup.tests ends up
+  // holding; origTestSheetNames here is what actually exists as tabs right
+  // now, used to detect which of those are genuinely new further down.
+  const reservedUpper=new Set(["SETUP","STUDENTS","README"]);
+  const origTestSheetNames=wb.SheetNames.filter(n=>!reservedUpper.has(n.toUpperCase().trim()));
+  APP.mergeSource={
+    workbook:wb, // the real parsed workbook — existing tabs get copied through untouched, not re-diffed row-by-row
+    studentsSheetName,studentsHeader,studentsRows,
+    origTestSheetNames,
+    sourceFileName:fileName,
+    origSubjects:(APP.setup.subjects||[]).slice(),
+    dupeIds:[...new Set(dupeIds)],
+  };
+  APP.mergeMode=true;
+  autoInferSetup(); // fills subjects/tests/institution form from the file's SETUP tab (unchanged function)
+  APP.mergeSource.origSubjects=(APP.setup.subjects||[]).slice();
+  const testNames=origTestSheetNames.join(", ")||"(none detected)";
+  let bannerHtml=`Loaded <b>${esc(fileName)}</b> — <b>${studentsRows.length}</b> student(s) on the roster, existing test tab(s): <b>${esc(testNames)}</b>. Now click <b>✚ Add Test</b> below for the new test, then use <b><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M17 1l4 4-4 4'/><path d='M3 11V9a4 4 0 0 1 4-4h14'/><path d='M7 23l-4-4 4-4'/><path d='M21 13v2a4 4 0 0 1-4 4H3'/></svg> Update &amp; Download</b> above. Every existing tab is kept exactly as-is — you'll get a summary to review before anything downloads.`;
+  if(APP.mergeSource.dupeIds.length){
+    bannerHtml+=`<div style="margin-top:6px;color:#8b1a1a">⚠ Duplicate Student ID(s) already in the STUDENTS tab: ${esc(APP.mergeSource.dupeIds.join(", "))}. Fix these in the source file for reliable analysis.</div>`;
   }
   $("#merge-banner-text").html(bannerHtml);
   $("#merge-banner").show();
@@ -141,7 +258,7 @@ function loadMergeSourceFromArrayBuffer(arrayBuffer,fileName){
   $("#btn-load-existing").html("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 21V9'/><polyline points='7 14 12 9 17 14'/><path d='M4 21h16'/></svg> Load a Different Sheet");
   toast("Existing sheet loaded — add your new test, then click Update & Download.","success");
   APP.setupCard1Choice='update';
-  if(typeof swGoto==="function") swGoto(2); // pre-filled by autoInferSetup(), advance
+  if(typeof swGoto==="function") swGoto(2);
   return true;
 }
 function cancelMergeMode(){
@@ -159,28 +276,20 @@ function timestampTag(){
   const d=new Date(),p=n=>String(n).padStart(2,"0");
   return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+"_"+p(d.getHours())+p(d.getMinutes());
 }
-/* Builds the merged workbook in memory and shows a confirmation summary
-   (rows in vs out, exact columns being added, any integrity warnings)
-   BEFORE anything is written to disk. Nothing downloads until the person
-   explicitly confirms in that dialog — see confirmMergedDownload(). */
-function generateMergedTemplate(){
+/* ════════════════════════════════════════════════════════════════════
+   OLD SINGLE-SHEET SCHEMA — generateMergedTemplate()
+   Kept commented out for reference/safety per explicit request. Delete
+   once the new multi-tab version below has been confirmed working.
+   ════════════════════════════════════════════════════════════════════
+function generateMergedTemplate_OLD(){
   const {subjects,tests}=APP.setup;
   const src=APP.mergeSource;
-  // A test counts as "already in the file" if its column-naming pattern is
-  // already present in the original header — same "<Test> - <Subject>
-  // Marks" convention generateTemplate() writes, so this lines up whether
-  // the original file was made by this app or hand-built to match it.
   const origHasTest=name=>src.header.some(h=>h.startsWith(name+" - ")||h.startsWith(name+" — "));
   const newTests=tests.filter(t=>!origHasTest(t.name));
   if(!newTests.length){
     toast("No new test found — every test in your Setup form already exists in the loaded sheet. Add the new test's name first (✚ Add Test).","warn");
     return;
   }
-  // Guard: a test name collision-free rename of an EXISTING test (e.g. "Test 1"
-  // edited to "Unit Test 1" in the form) would otherwise look like a brand
-  // new test and get appended as duplicate blank columns, leaving the old
-  // ones orphaned under their original name. Flag it so it's caught before
-  // download rather than discovered later as two half-empty test blocks.
   const missingOrigTests=(src.origTestNames||[]).filter(n=>!tests.some(t=>t.name===n));
   const subjectsChanged=(()=>{
     const a=[...(src.origSubjects||[])].map(s=>s.toLowerCase()).sort();
@@ -193,14 +302,9 @@ function generateMergedTemplate(){
   const blankTail=Array(appendHeader.length).fill("");
   const mergedDataRows=src.rows.map(row=>row.concat(blankTail));
   const markRows=[fullHeader,...mergedDataRows];
-  // ── Integrity self-check, before writing anything ──
-  // If these don't hold, something upstream went wrong — better to refuse
-  // and say so than to hand back a silently mismatched file.
   const integrityErrors=[];
   if(mergedDataRows.length!==src.rows.length)integrityErrors.push(`Row count changed unexpectedly (${src.rows.length} → ${mergedDataRows.length}).`);
   mergedDataRows.forEach((row,i)=>{if(row.length!==fullHeader.length)integrityErrors.push(`Row ${i+2} has ${row.length} cells, expected ${fullHeader.length}.`);});
-  // Every original cell must still be present, unchanged, in its original
-  // position — this is the crux of "the old data can't get corrupted".
   src.rows.forEach((origRow,i)=>{
     for(let c=0;c<src.header.length;c++){
       if(String(mergedDataRows[i][c])!==String(origRow[c])){integrityErrors.push(`Row ${i+2}, column "${fullHeader[c]}" doesn't match the original — aborting.`);}
@@ -222,22 +326,84 @@ function generateMergedTemplate(){
   APP._pendingMerge={wb,fname,rowsIn:src.rows.length,rowsOut:mergedDataRows.length,colsIn:src.header.length,colsOut:fullHeader.length,appendHeader,newTestNames:newTests.map(t=>t.name),subjectsChanged,missingOrigTests,dupeIds:src.dupeIds||[]};
   renderMergeConfirmModal();
 }
+════════════════════════════════════════════════════════════════════ */
+
+// NEW SCHEMA (multi-tab redesign): "update" is now sheet-level, not
+// row/column-level — existing SETUP/STUDENTS/test tabs are copied through
+// from the original parsed workbook completely untouched (the actual
+// worksheet objects, not re-serialized row-by-row), and only genuinely
+// new test(s) get a brand new blank tab appended. This removes the need
+// for the old per-cell integrity diff entirely — nothing that already
+// existed is ever re-written, so it can't drift from the original by
+// definition. SETUP and README ARE regenerated fresh, since SETUP is
+// meant to reflect current settings and README is static boilerplate.
+function generateMergedTemplate(){
+  const {subjects,tests}=APP.setup;
+  const src=APP.mergeSource;
+  const origTestNamesUpper=new Set(src.origTestSheetNames.map(n=>n.toUpperCase().trim()));
+  const newTests=tests.filter(t=>!origTestNamesUpper.has(t.name.toUpperCase().trim()));
+  if(!newTests.length){
+    toast("No new test found — every test in your Setup form already has a tab in the loaded sheet. Add the new test's name first (✚ Add Test).","warn");
+    return;
+  }
+  // A test that existed in the file but is no longer in the Setup form —
+  // most likely a rename (e.g. "Test 1" edited to "Unit Test 1") rather
+  // than a deliberate removal. Its tab is still kept either way (nothing
+  // is ever deleted), this is purely an informational warning.
+  const currentTestNamesUpper=new Set(tests.map(t=>t.name.toUpperCase().trim()));
+  const missingOrigTests=src.origTestSheetNames.filter(n=>!currentTestNamesUpper.has(n.toUpperCase().trim()));
+  const subjectsChanged=(()=>{
+    const a=[...(src.origSubjects||[])].map(s=>s.toLowerCase()).sort();
+    const b=[...subjects].map(s=>s.toLowerCase()).sort();
+    return a.length!==b.length||a.some((v,i)=>v!==b[i]);
+  })();
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,buildSetupSheet(),"SETUP"); // regenerated fresh from current Setup form
+  const usedNames=new Set(["SETUP"]);
+  // STUDENTS + every existing test tab: copy the ORIGINAL worksheet object
+  // straight through. This is the safety guarantee — old marks physically
+  // cannot be altered by this code path, because this code path never
+  // touches their cells at all.
+  const origWb=src.workbook;
+  const studentsWs=origWb.Sheets[src.studentsSheetName];
+  XLSX.utils.book_append_sheet(wb,studentsWs,safeSheetName("STUDENTS",usedNames));
+  src.origTestSheetNames.forEach(sheetName=>{
+    XLSX.utils.book_append_sheet(wb,origWb.Sheets[sheetName],safeSheetName(sheetName,usedNames));
+  });
+  newTests.forEach(t=>{
+    const sheetName=safeSheetName(t.name,usedNames);
+    XLSX.utils.book_append_sheet(wb,buildTestSheet(t,subjects),sheetName);
+  });
+  usedNames.add("README");
+  XLSX.utils.book_append_sheet(wb,buildReadmeSheet(),"README");
+  const fname=(APP.setup.instName+" "+APP.setup.className+" "+APP.setup.year).replace(/[^\w\s-]/g,"").replace(/\s+/g,"_")+"_UPDATED_"+timestampTag()+".xlsx";
+  APP._pendingMerge={
+    wb,fname,
+    studentCount:src.studentsRows.length,
+    tabsIn:src.origTestSheetNames.length+2, // + SETUP + STUDENTS
+    tabsOut:wb.SheetNames.length,
+    newTestNames:newTests.map(t=>t.name),
+    keptTestNames:src.origTestSheetNames.slice(),
+    subjectsChanged,missingOrigTests,dupeIds:src.dupeIds||[],
+  };
+  renderMergeConfirmModal();
+}
 function renderMergeConfirmModal(){
   const p=APP._pendingMerge;if(!p)return;
   const warnings=[];
-  if(p.subjectsChanged)warnings.push("Your Subjects list is different from the loaded file's. Existing test columns are untouched either way, but double-check this was intentional.");
-  if(p.missingOrigTests.length)warnings.push(`Test(s) from the loaded file aren't in your current Setup form: <b>${esc(p.missingOrigTests.join(", "))}</b>. Their columns/marks will still be kept as-is in the new file — this just means the SETUP tab metadata for them won't be regenerated. If you meant to keep the same test, re-add it with the exact original name instead of a new one.`);
-  if(p.dupeIds.length)warnings.push(`Duplicate Student ID(s) already existed in the loaded file: ${esc(p.dupeIds.join(", "))}.`);
+  if(p.subjectsChanged)warnings.push("Your Subjects list is different from the loaded file's. Existing test tabs are untouched either way, but double-check this was intentional.");
+  if(p.missingOrigTests.length)warnings.push(`Test tab(s) from the loaded file aren't in your current Setup form: <b>${esc(p.missingOrigTests.join(", "))}</b>. That tab and its marks are still kept exactly as-is in the new file — this just means it wasn't recognised as matching a test in your Setup form. If you meant to keep the same test, re-add it with the exact original name instead of a new one.`);
+  if(p.dupeIds.length)warnings.push(`Duplicate Student ID(s) already existed on the STUDENTS tab: ${esc(p.dupeIds.join(", "))}.`);
   const warnHtml=warnings.length?`<div style="margin:10px 0;padding:10px 12px;background:#fff4e0;border-radius:var(--r-sm);font-size:12px;color:#8a5a00">⚠ ${warnings.join("<br>⚠ ")}</div>`:"";
   $("#modal-content").html(`
     <h3 style="font-family:var(--font-display);font-size:17px;margin-bottom:4px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M17 1l4 4-4 4'/><path d='M3 11V9a4 4 0 0 1 4-4h14'/><path d='M7 23l-4-4 4-4'/><path d='M21 13v2a4 4 0 0 1-4 4H3'/></svg> Review before downloading</h3>
-    <div style="font-size:12px;color:var(--c-text3);margin-bottom:14px">Nothing has been saved yet. Check this matches what you expected, then confirm.</div>
+    <div style="font-size:12px;color:var(--c-text3);margin-bottom:14px">Nothing has been saved yet. Every existing tab is copied through unchanged — only new blank test tab(s) are added. Check this matches what you expected, then confirm.</div>
     <div class="grid-2" style="gap:10px;margin-bottom:6px">
-      <div class="kpi-card"><div class="kpi-label">Student rows</div><div class="kpi-val" style="font-size:16px">${p.rowsIn} → ${p.rowsOut}</div></div>
-      <div class="kpi-card"><div class="kpi-label">Columns</div><div class="kpi-val" style="font-size:16px">${p.colsIn} → ${p.colsOut}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Students on roster</div><div class="kpi-val" style="font-size:16px">${p.studentCount}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Tabs</div><div class="kpi-val" style="font-size:16px">${p.tabsIn} → ${p.tabsOut}</div></div>
     </div>
-    <div style="font-size:12.5px;margin:10px 0 4px"><b>New test(s) being added:</b> ${esc(p.newTestNames.join(", "))}</div>
-    <div style="font-size:11.5px;color:var(--c-text2);max-height:110px;overflow:auto;background:var(--c-surface2);border-radius:var(--r-sm);padding:8px 10px;margin-bottom:6px">${p.appendHeader.map(h=>esc(h)).join("<br>")}</div>
+    <div style="font-size:12.5px;margin:10px 0 4px"><b>New test tab(s) being added:</b> ${esc(p.newTestNames.join(", "))}</div>
+    <div style="font-size:11.5px;color:var(--c-text2);max-height:110px;overflow:auto;background:var(--c-surface2);border-radius:var(--r-sm);padding:8px 10px;margin-bottom:6px">Kept unchanged: SETUP, STUDENTS, ${p.keptTestNames.map(n=>esc(n)).join(", ")||"(no prior test tabs)"}<br>Added new: ${p.newTestNames.map(n=>esc(n)).join(", ")}</div>
     ${warnHtml}
     <div style="font-size:11px;color:var(--c-text3);margin-bottom:14px">Will save as: <code>${esc(p.fname)}</code></div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
@@ -250,7 +416,7 @@ function renderMergeConfirmModal(){
 function confirmMergedDownload(){
   const p=APP._pendingMerge;if(!p){closeModal();return;}
   XLSX.writeFile(p.wb,p.fname);
-  toast(`Updated file downloaded: ${p.fname} — ${p.rowsOut} student row(s) kept as-is, added ${p.newTestNames.length} new test column block(s).`,"success");
+  toast(`Updated file downloaded: ${p.fname} — ${p.studentCount} student(s) kept as-is, added ${p.newTestNames.length} new test tab(s).`,"success");
   unlockStep("data");
   $("#btn-download-template").removeClass("btn-glow");
   $("#btn-setup-next").addClass("btn-glow");

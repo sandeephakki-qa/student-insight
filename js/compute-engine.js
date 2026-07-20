@@ -63,23 +63,80 @@ async function runAnalysis(){
   updateExportGate();
   toast("Analysis complete - "+APP.students.length+" students processed.","success");goStep("dashboard");
 }
-function validateData(){
+/* ════════════════════════════════════════════════════════════════════
+   OLD SINGLE-SHEET SCHEMA — validateData()
+   Kept commented out for reference/safety per explicit request. Delete
+   once the new multi-tab version below has been confirmed working.
+   ════════════════════════════════════════════════════════════════════
+function validateData_OLD(){
   const w=[];
   const markKey=Object.keys(APP.rawData).find(k=>k.includes("MARK"))||"";
   const marks=APP.rawData["MARKS+CONTEXT"]||APP.rawData["MARKS_CONTEXT"]||APP.rawData[markKey]||[];
-  // Trim + case-fold before comparing — a teacher typing "ASP001" on one
-  // row and "asp001" on another is a very plausible slip, and treating
-  // them as different students under-counts real duplicates.
   const normId=v=>String(v||"").trim().toUpperCase();
   const ids=marks.map(r=>normId(r["Student ID"])).filter(Boolean);
-  // Duplicate IDs
   const dups=[...new Set(ids.filter((id,i)=>ids.indexOf(id)!==i))];
   if(dups.length)w.push({e:1,m:"Duplicate Student IDs: "+dups.join(", ")});
-  // No marks
   if(!ids.length)w.push({e:1,m:"No student rows found in MARKS+CONTEXT. Upload a filled Excel."});
-  // Rows missing a Full Name — roster details now live on this same sheet
   const noName=marks.filter(r=>normId(r["Student ID"])&&!String(r["Full Name"]||"").trim()).length;
   if(noName)w.push({e:0,m:noName+" row(s) have a Student ID but no Full Name filled in."});
+  return w;
+}
+════════════════════════════════════════════════════════════════════ */
+
+// NEW SCHEMA (multi-tab redesign): student identity now lives solely on
+// STUDENTS, so that's what duplicate-ID/no-rows checks run against. Two
+// new checks that had no equivalent in the single-sheet world: (1) every
+// configured test's name must match an actual tab name in the uploaded
+// file — this is also the "confirms the template is genuinely ours" check
+// requested explicitly, since a file that was hand-edited or built by
+// something else is very unlikely to have tab names matching exactly;
+// (2) orphan rows (marks for a Student ID not on the roster) are counted
+// here as a warning banner, in addition to the per-row detail already
+// pushed into APP.dataIssues by parseStudents().
+function validateData(){
+  const w=[];
+  const normId=v=>String(v||"").trim().toUpperCase();
+  const studentsRows=APP.rawData["STUDENTS"];
+
+  if(studentsRows===undefined){
+    w.push({e:1,m:"No STUDENTS tab found. If this is an older Student Insight file, please download a fresh template and re-enter your data — sorry for the inconvenience, the file format has been updated to one tab per test."});
+    return w; // nothing else is checkable without a roster
+  }
+  const ids=(studentsRows||[]).map(r=>normId(r["Student ID"])).filter(Boolean);
+  const dups=[...new Set(ids.filter((id,i)=>ids.indexOf(id)!==i))];
+  if(dups.length)w.push({e:1,m:"Duplicate Student IDs on the STUDENTS tab: "+dups.join(", ")});
+  if(!ids.length)w.push({e:1,m:"No student rows found on the STUDENTS tab. Upload a filled Excel."});
+
+  // TEMPLATE-AUTHENTICITY CHECK (explicitly requested): every test's name
+  // in Setup must exist as an actual tab name in the uploaded workbook —
+  // confirms this is genuinely a Student Insight file, and catches a
+  // renamed test/tab before it silently produces an empty test.
+  const sheetNamesUpper=new Set(Object.keys(APP.rawData).filter(k=>!k.startsWith("_")).map(n=>n.toUpperCase().trim()));
+  const missingTabs=(APP.setup.tests||[]).filter(t=>!sheetNamesUpper.has(t.name.toUpperCase().trim())).map(t=>t.name);
+  if(missingTabs.length)w.push({e:1,m:`No tab found matching test name "${missingTabs.join('", "')}" — the tab name must exactly match the test name in Setup (this also confirms the file is a genuine Student Insight template).`});
+
+  // Gender is required by the template design (M/F) but only feeds the
+  // optional gender-analysis feature — a warning, not a hard block.
+  const noGender=(studentsRows||[]).filter(r=>normId(r["Student ID"])&&!String(r["Gender"]||"").trim()).length;
+  if(noGender)w.push({e:0,m:noGender+" student(s) on the STUDENTS tab don't have a Gender filled in (expected M or F)."});
+
+  // Orphan rows — marks entered for a Student ID that isn't on the
+  // roster. parseStudents() already records the per-row detail; this is
+  // the aggregate warning shown before analysis even runs, whenever
+  // possible (parseStudents() itself hasn't necessarily run yet the first
+  // time validateData() is called, so this re-derives the count directly).
+  const rosterIds=new Set(ids);
+  let orphanCount=0;
+  (APP.setup.tests||[]).forEach(t=>{
+    const sheet=APP.rawData[t.name];
+    if(!sheet)return;
+    sheet.forEach(row=>{
+      const id=normId(row["Student ID"]);
+      if(id&&!rosterIds.has(id))orphanCount++;
+    });
+  });
+  if(orphanCount)w.push({e:0,m:orphanCount+" row(s) across test tabs have a Student ID that isn't on the STUDENTS roster — those rows will be skipped."});
+
   return w;
 }
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
@@ -105,23 +162,17 @@ function scrollToEl(el){
   window.scrollTo({top:Math.max(0,targetY),behavior:"smooth"});
 }
 
-/* ════ PARSE STUDENTS ════ */
-function parseStudents(){
+/* ════════════════════════════════════════════════════════════════════
+   OLD SINGLE-SHEET SCHEMA — parseStudents()
+   Kept commented out for reference/safety per explicit request. Delete
+   once the new multi-tab version below has been confirmed working.
+   ════════════════════════════════════════════════════════════════════
+function parseStudents_OLD(){
   const {subjects,tests}=APP.setup;
-  // Reset here (start of an analysis run) rather than in computeAnalysis,
-  // so the invalid/negative-mark issues detected below survive into the
-  // banner instead of being wiped out by computeAnalysis's own reset.
   APP.dataIssues=[];
   const markKey=Object.keys(APP.rawData).find(k=>k.includes("MARK")&&k.includes("CONTEXT"))||Object.keys(APP.rawData).find(k=>k.includes("MARK"))||"";
   const markSheetName=APP.rawData["MARKS+CONTEXT"]?"MARKS+CONTEXT":(APP.rawData["MARKS_CONTEXT"]?"MARKS_CONTEXT":markKey);
   const markSheet=APP.rawData[markSheetName]||[];
-
-  // ── Grouped-header detection (sample Excel: subjects repeat per test) ──
-  // Object.keys() can never report the same header twice, so counting
-  // duplicates off markSheet[0]'s keys always looked like "1 occurrence"
-  // even when a subject column repeated once per test — silently disabling
-  // this whole branch. Read the true header row (duplicates intact) from
-  // _hdr_<sheet>, saved alongside the parsed rows during import instead.
   const _hdrRow=APP.rawData["_hdr_"+markSheetName]||Object.keys(markSheet[0]||{});
   const _firstSubj=(subjects[0]||"").trim();
   const _subjCount=_firstSubj?_hdrRow.filter(k=>(k||"").trim()===_firstSubj).length:0;
@@ -139,47 +190,24 @@ function parseStudents(){
       const chPos=ko["Chapter"]||[];if(chPos[0]!==undefined)posMap[t.name]["__chapter"]=chPos[0];
     });
   }
-
   function getVal(row,testName,short,full){
-    // Positional map first (grouped header) — read straight from the
-    // untouched raw row array by column index, bypassing the row object's
-    // collapsed (last-value-wins) keys entirely.
     if(posMap&&posMap[testName]&&posMap[testName][short]!==undefined){
       const raw=row.__raw;
       const pv=raw?raw[posMap[testName][short]]:undefined;
       if(pv!==undefined&&pv!==null&&pv!==""){const n=parseFloat(String(pv).replace(/[^0-9.-]/g,""));return isNaN(n)?pv:n;}
     }
-  // Build key variants: hyphen, em dash, underscore separators. Subject
-  // mark columns in the template are named "<Test> - <Subject> Marks"
-  // (trailing " Marks") — that suffix variant has to be tried too, or
-  // every subject score in a freshly-downloaded template silently fails
-  // to match and gets treated as a blank cell.
-  const keys=[
-    testName+" - "+short+" Marks",
-    testName+" — "+short+" Marks",
-    testName+" - "+short,
-    testName+" — "+short,
-    testName+"-"+short,
-    testName+"_"+short,
-    full, short,
-  ];
-  for(const k of keys){
-    if(k===undefined||k===null)continue;
-    // Also try with em dash normalized to hyphen
-    const kn=k.replace(/—/g,"-").replace(/[\n\r]/g," ").replace(/\s+/g," ").trim();
-    const v=row[k]!==undefined?row[k]:(row[kn]!==undefined?row[kn]:undefined);
-    if(v!==undefined&&v!==null&&v!==""){
-      const n=parseFloat(String(v).replace(/[^0-9.-]/g,""));
-      return isNaN(n)?v:n;
+    const keys=[testName+" - "+short+" Marks",testName+" — "+short+" Marks",testName+" - "+short,testName+" — "+short,testName+"-"+short,testName+"_"+short,full,short];
+    for(const k of keys){
+      if(k===undefined||k===null)continue;
+      const kn=k.replace(/—/g,"-").replace(/[\n\r]/g," ").replace(/\s+/g," ").trim();
+      const v=row[k]!==undefined?row[k]:(row[kn]!==undefined?row[kn]:undefined);
+      if(v!==undefined&&v!==null&&v!==""){
+        const n=parseFloat(String(v).replace(/[^0-9.-]/g,""));
+        return isNaN(n)?v:n;
+      }
     }
+    return null;
   }
-  return null;
-}
-  // Mirrors getVal()'s lookup precedence but returns the cell's untouched
-  // original content instead of the numeric-coerced result, so callers can
-  // tell the difference between "cell was blank" and "cell had something in
-  // it that didn't cleanly parse as a number" — getVal alone collapses both
-  // to the same outcome (nothing stored), silently.
   function getRawVal(row,testName,short,full){
     if(posMap&&posMap[testName]&&posMap[testName][short]!==undefined){
       const raw=row.__raw;
@@ -195,14 +223,6 @@ function parseStudents(){
     }
     return null;
   }
-  // Roster fields (Full Name, Gender, ...) now live directly on the
-  // MARKS+CONTEXT row for files built from the current (2-tab) template.
-  // BACKWARD COMPATIBILITY: older 3-tab files put these on a separate
-  // STUDENTS sheet instead — build a lookup from it (if present) purely
-  // as a fallback for whichever fields the MARKS+CONTEXT row is missing,
-  // so those files keep working instead of silently losing Gender/etc.
-  // Key is normalized (trim + uppercase) so "ASP001"/"asp001" match; the
-  // originally-entered casing is preserved for display via .id below.
   const normId=v=>String(v||"").trim().toUpperCase();
   const legacyStudentSheet=APP.rawData["STUDENTS"]||[];
   const legacyMap={};
@@ -222,11 +242,6 @@ function parseStudents(){
     const legacy=legacyMap[key];
     const nm=String(row["Full Name"]||row["Student Name"]||row["Name"]||"").trim();
     if(!key)return;
-    // U2: a row with a Student ID but a genuinely blank Full Name (and no
-    // legacy-sheet name to fall back on) is treated as an unused template
-    // row (e.g. leftover sample rows 2-5 the user never filled in or
-    // deleted), not a valid-but-broken student — skip it entirely rather
-    // than surfacing a confusing "STU002"-style ghost entry.
     if(!nm&&!(legacy&&legacy.name)){skippedBlankRows++;return;}
     if(!studentData[key])studentData[key]={id:rawId,name:nm||(legacy&&legacy.name)||rawId,
       gender:row["Gender"]||(legacy&&legacy.gender)||"",dob:row["Date of Birth"]||(legacy&&legacy.dob)||"",
@@ -237,24 +252,17 @@ function parseStudents(){
       if(!studentData[key].testData[t.name])studentData[key].testData[t.name]={marks:{},absents:0,remark:"",chapter:""};
       subjects.forEach(s=>{
         const raw=getRawVal(row,t.name,s);
-        if(raw===null||raw===undefined)return;// genuinely blank cell — nothing to flag
+        if(raw===null||raw===undefined)return;
         const cleaned=String(raw).trim();
         const stripped=cleaned.replace(/[^0-9.-]/g,"");
         const n=parseFloat(stripped);
         const studentLabel=studentData[key].name||rawId;
         if(isNaN(n)){
-          // Entirely non-numeric (e.g. "AB", "N/A", "Absent", "-") — today this
-          // was silently treated as no mark entered. Now it's flagged so the
-          // teacher knows the cell needs attention, instead of it just vanishing.
           APP.dataIssues.push({studentId:rawId,studentName:studentLabel,test:t.name,subject:s,
             message:`entered "${raw}" — not a valid number, mark ignored`});
           return;
         }
         if(stripped!==cleaned){
-          // Digits were recovered by stripping stray characters (e.g. "89A" → 89,
-          // "O0" → 0). The number below still gets used (best effort), but the
-          // teacher is told the source cell wasn't clean, since a typo like this
-          // can silently turn into a materially different (and wrong) score.
           APP.dataIssues.push({studentId:rawId,studentName:studentLabel,test:t.name,subject:s,
             message:`entered "${raw}" — contained non-numeric characters, read as ${n}`});
         }
@@ -278,6 +286,114 @@ function parseStudents(){
   });
   APP.students=Object.values(studentData);
   if(skippedBlankRows>0)toast(skippedBlankRows+" empty template row"+(skippedBlankRows>1?"s were":" was")+" skipped.","info");
+}
+════════════════════════════════════════════════════════════════════ */
+
+// NEW SCHEMA (multi-tab redesign): STUDENTS tab is now the single source
+// of student identity (id/name/gender) — marks come from N separate
+// per-test sheets, joined back to the roster by Student ID. No more
+// grouped-header/posMap positional-column gymnastics: one test = one
+// sheet = one normal flat header row, so a plain key lookup is enough.
+// A row in a test tab whose Student ID isn't on the roster is now a real,
+// named failure mode ("orphan row") that didn't exist in the single-sheet
+// world — surfaced per-row in APP.dataIssues, same place mark-quality
+// issues already show up.
+function parseStudents(){
+  const {subjects,tests}=APP.setup;
+  APP.dataIssues=[];
+  const normId=v=>String(v||"").trim().toUpperCase();
+
+  // ── ROSTER — STUDENTS tab, single source of student identity ──
+  const rosterRows=APP.rawData["STUDENTS"]||[];
+  const studentData={};
+  const rosterOrder=[];
+  rosterRows.forEach(row=>{
+    const rawId=String(row["Student ID"]||"").trim();
+    if(!rawId)return; // blank ID — unused template sample row, skip silently
+    const key=normId(rawId);
+    if(studentData[key])return; // duplicate roster ID — validateData() surfaces this as a blocking error separately
+    const nm=String(row["Full Name"]||"").trim();
+    // Full Name is optional by design — falls back to the ID everywhere
+    // `.name` is displayed (dashboard, PDFs, remarks, Smart Search…) since
+    // they all already read this one field.
+    studentData[key]={id:rawId,name:nm||rawId,hasName:!!nm,
+      gender:String(row["Gender"]||"").trim(),testData:{}};
+    rosterOrder.push(key);
+    tests.forEach(t=>{studentData[key].testData[t.name]={marks:{},absents:0,remark:"",chapter:""};});
+  });
+
+  function getRawVal(row,short){
+    const keys=[short+" Marks",short];
+    for(const k of keys){
+      const v=row[k];
+      if(v!==undefined&&v!==null&&v!=="")return v;
+    }
+    return null;
+  }
+  function getVal(row,short){
+    const raw=getRawVal(row,short);
+    if(raw===null)return null;
+    const n=parseFloat(String(raw).replace(/[^0-9.-]/g,""));
+    return isNaN(n)?raw:n;
+  }
+
+  // ── MARKS — one sheet per test, joined back to the roster by Student ID ──
+  let orphanCount=0;
+  tests.forEach(t=>{
+    const sheet=APP.rawData[t.name];
+    if(!sheet){
+      // Also checked as a hard, blocking validation in validateData() —
+      // this per-test note is the softer "this one test has nothing"
+      // case, kept so partial uploads (some tests filled, one not yet)
+      // still analyse the tests that ARE present.
+      APP.dataIssues.push({studentId:"",studentName:"",test:t.name,subject:"",
+        message:`No tab named "${t.name}" was found in the uploaded file — this test has no marks.`});
+      return;
+    }
+    sheet.forEach(row=>{
+      const rawId=String(row["Student ID"]||"").trim();
+      if(!rawId)return;
+      const key=normId(rawId);
+      if(!studentData[key]){
+        orphanCount++;
+        APP.dataIssues.push({studentId:rawId,studentName:rawId,test:t.name,subject:"",
+          message:`Student ID "${rawId}" appears in the "${t.name}" tab but not on the STUDENTS roster — this row was skipped.`});
+        return;
+      }
+      subjects.forEach(s=>{
+        const raw=getRawVal(row,s);
+        if(raw===null||raw===undefined)return; // genuinely blank cell — nothing to flag
+        const cleaned=String(raw).trim();
+        const stripped=cleaned.replace(/[^0-9.-]/g,"");
+        const n=parseFloat(stripped);
+        const studentLabel=studentData[key].name;
+        if(isNaN(n)){
+          APP.dataIssues.push({studentId:rawId,studentName:studentLabel,test:t.name,subject:s,
+            message:`entered "${raw}" — not a valid number, mark ignored`});
+          return;
+        }
+        if(stripped!==cleaned){
+          APP.dataIssues.push({studentId:rawId,studentName:studentLabel,test:t.name,subject:s,
+            message:`entered "${raw}" — contained non-numeric characters, read as ${n}`});
+        }
+        if(n<0){
+          APP.dataIssues.push({studentId:rawId,studentName:studentLabel,test:t.name,subject:s,
+            message:`entered ${n} — negative marks aren't valid, mark ignored`});
+          return;
+        }
+        studentData[key].testData[t.name].marks[s]=n;
+      });
+      const ab=getVal(row,"Absent Days");
+      if(ab!==null&&ab!=="")studentData[key].testData[t.name].absents=parseInt(ab)||0;
+      const rm=getRawVal(row,"Remark")||getRawVal(row,"Teacher Remark");
+      if(rm!==null&&rm!=="")studentData[key].testData[t.name].remark=String(rm);
+      const ch=getRawVal(row,"Chapter");
+      if(ch!==null&&ch!=="")studentData[key].testData[t.name].chapter=String(ch).trim();
+    });
+  });
+
+  APP.students=rosterOrder.map(k=>studentData[k]);
+  if(orphanCount>0)toast(orphanCount+" row"+(orphanCount>1?"s had":" had")+" a Student ID not on the roster and "+(orphanCount>1?"were":"was")+" skipped — see Data Issues.","warn");
 }
 
 /* ════ COMPUTE ANALYSIS ════ */

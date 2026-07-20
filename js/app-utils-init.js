@@ -166,7 +166,6 @@ function initVoiceInput(){
     target.parentNode.insertBefore(wrap,target);
     wrap.appendChild(target);
     target.classList.add("has-voice-btn");
-    target.style.paddingRight="34px"; // set directly — wins over any inline `padding:` shorthand already on the field
     const btn=document.createElement("button");
     btn.type="button";
     btn.className="btn btn-sm voice-mic-btn";

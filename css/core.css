@@ -138,8 +138,8 @@ textarea:focus-visible,[tabindex]:focus-visible,[role="button"]:focus-visible,
    .step-item.locked — hover needs to still work so the title="" tooltip
    is discoverable; the actual navigation block happens in JS (goStep()/
    showSampleFiles() guards), which also surfaces a toast on click. */
-.step-item.nav-home-only.disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
-.step-item.nav-home-only.disabled:hover{color:var(--c-text3)}
+.step-item.nav-home-only.disabled,.step-item.nav-setup-tab.disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+.step-item.nav-home-only.disabled:hover,.step-item.nav-setup-tab.disabled:hover{color:var(--c-text3)}
 .step-item.completed .step-num{background:var(--c-success);border-color:var(--c-success);color:#fff}
 .step-item:focus-visible{outline:2px solid var(--c-primary);outline-offset:-2px}
 .step-sep{color:var(--c-text3);font-size:12px;padding:0 2px}
@@ -403,18 +403,39 @@ table.data-table th[data-sortable]:focus-visible{outline:2px solid var(--c-prima
 }
 @media(max-width:768px){
   #main{padding:var(--sp-4)}
-  .grid-2{grid-template-columns:1fr}
   #stepper{gap:0;padding:0 12px}
   .step-item{padding:0 8px;font-size:11px}
   .step-sep{padding:0}
   .step-item span{display:none}
   .step-item .step-num{font-size:10px}
-  .student-grid{grid-template-columns:1fr}
   .filter-bar{flex-direction:column;align-items:stretch}
   .filter-bar input{min-width:unset}
   .db-header{flex-direction:column;align-items:flex-start}
   .phase-actionbar{flex-direction:column;align-items:stretch}
   .modal-box{padding:20px}
+  /* MOBILE FIX (item #3): the footer's text wraps to 2-3 lines on narrow
+     screens, but body only reserved a fixed 44px for it — so a `position:
+     fixed` footer ended up overlapping/hiding the Back/Next/Download
+     buttons sitting at the bottom of every panel. Simplest robust fix:
+     let the footer flow normally in-page on mobile instead of guessing
+     its wrapped height. */
+  #footer{position:static;margin-top:24px}
+  body{padding-bottom:0}
+  /* MOBILE FIX (item #4): Back / Done / Download were squeezed onto the
+     same crowded row with mismatched widths on narrow screens. Stack them
+     full-width instead, so every control reads the same. */
+  .sw-nav{flex-direction:column;align-items:stretch}
+  .sw-nav>div{flex-direction:column;align-items:stretch;width:100%}
+  .sw-nav .btn{width:100%;justify-content:center}
+}
+/* STRESS-TEST FIX (BUG-2, STRESS_TEST_REPORT.md): grid collapse needs a
+   threshold BELOW iPad mini (744px CSS width) and an unfolded Galaxy
+   Fold 7 (~717-904px) — both are genuinely wide enough for 2 columns and
+   were being squeezed into a single mobile column by the old 768px rule.
+   Verify 700px against a real device/emulator if possible. */
+@media(max-width:700px){
+  .grid-2{grid-template-columns:1fr}
+  .student-grid{grid-template-columns:1fr}
 }
 @media(max-width:480px){
   :root{--content-top:90px}
@@ -614,17 +635,19 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
 .sw-nav button:only-child { margin-left:auto; }
 .sw-choice-card { border-width:2px; transition:box-shadow .15s; }
 .sw-choice-card.sw-choice-active { box-shadow:0 0 0 2px var(--c-primary) inset; }
+.sw-grid-2 { grid-template-columns:1fr 1fr; }
+@media(max-width:700px){ .sw-grid-2 { grid-template-columns:1fr; } }
 
 /* ── Voice Input mic buttons (Task 3c, studin-features-prompt v1.0) ── */
-/* FEEDBACK #2 fix: field + mic button wrapper — the button is absolutely
-   positioned inside the field's right edge so it never wraps to a new
-   line, regardless of the field's width. */
-.voice-field-wrap { position:relative; }
+/* MOBILE FIX: absolute-positioned overlay was escaping its field's
+   boundary on narrow screens (mic icon floating outside the input/card).
+   Flex-row is robust regardless of container width or nesting — the mic
+   button is a normal same-line sibling, sized to content, never absolute. */
+.voice-field-wrap { display:flex; align-items:flex-start; gap:6px; width:100%; }
 .voice-field-wrap input.has-voice-btn,
-.voice-field-wrap textarea.has-voice-btn { padding-right:34px; }
-.voice-mic-btn { padding:4px 8px;font-size:14px;line-height:1;min-height:unset;
+.voice-field-wrap textarea.has-voice-btn { flex:1 1 auto; min-width:0; width:auto; }
+.voice-mic-btn { padding:4px 8px;font-size:14px;line-height:1;min-height:unset;flex-shrink:0;
                  border:1px solid var(--c-border);background:var(--c-surface2); }
-.voice-field-wrap .voice-mic-btn { position:absolute;top:4px;right:4px;z-index:2; }
 .voice-mic-btn.voice-active { background:var(--c-danger,#e03131);color:#fff;
                                border-color:var(--c-danger,#e03131); }
 
