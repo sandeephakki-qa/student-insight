@@ -127,10 +127,14 @@ function generateTemplate(){
   usedNames.add("README");
   XLSX.utils.book_append_sheet(wb,buildReadmeSheet(),"README");
   const fname=(instName+" "+APP.setup.className+" "+APP.setup.year).replace(/[^\w\s-]/g,"").replace(/\s+/g,"_")+".xlsx";
-  XLSX.writeFile(wb,fname);toast("Template downloaded: "+fname,"success");unlockStep("data");
-  lockUsageMode(); // template now exists for this mode — no more switching without a new project
-  $("#btn-download-template").removeClass("btn-glow");
-  $("#btn-setup-next").addClass("btn-glow");
+  XLSX.writeFile(wb,fname);toast("Template downloaded: "+fname,"success");
+  // BUG FIX (v3.9, item #4): Download Template is the real end of this
+  // flow — the person leaves to fill the file offline and comes back to
+  // Home later. Leaving the wizard's in-memory state sitting around meant
+  // a later "Back" or "Create New Template" could pick up stale
+  // setup/mergeMode data instead of a clean slate. The download itself is
+  // a synchronous blob save, so it's unaffected by the reload that follows.
+  setTimeout(()=>location.reload(),900);
 }
 
 /* ════ UPDATE EXISTING SHEET (add a new test, keep old marks) ════
@@ -428,6 +432,10 @@ function confirmMergedDownload(){
   $("#merge-banner").hide();
   $("#btn-download-template").html("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 3v12'/><polyline points='7 10 12 15 17 10'/><path d='M4 21h16'/></svg> Download Template");
   $("#btn-load-existing").html("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 21V9'/><polyline points='7 14 12 9 17 14'/><path d='M4 21h16'/></svg> Load Existing Filled Sheet");
+  // BUG FIX (v3.9, item #4): same reasoning as the fresh-template path in
+  // generateTemplate() — this is the terminal action of the "Update
+  // Existing Template" flow, so refresh to a clean slate afterward.
+  setTimeout(()=>location.reload(),900);
 }
 
 /* ════ SHARED FILE VALIDATION ════

@@ -915,7 +915,17 @@ function safeFileName(n){return String(n||"").replace(/[^\w\s-]/g,"").replace(/\
 // Shared by fingerprintRawData()/addCompareSection() (Compare mode) and the
 // single-file Home upload path alike — one place that knows how to find the
 // MARKS+CONTEXT sheet regardless of minor naming variants.
+// BUG FIX (v3.8): current templates split marks across one sheet PER TEST
+// ("Prelims Mock 1", "Unit Test 1", etc.) with the roster in its own
+// STUDENTS sheet — there is no single "MARKS+CONTEXT" sheet in any current
+// sample/template. Looking for a sheet name containing "MARK" therefore
+// always came back empty, showing "0 rows detected" on every real upload
+// (cosmetic on the Home single-file card, but also made Compare Mode wrongly
+// flag every valid file with "No student rows found"). STUDENTS is the
+// reliable roster regardless of how the per-test sheets are named; the old
+// MARKS+CONTEXT lookup is kept as a fallback for any legacy single-sheet file.
 function resolveMarksRows(rawData){
+  if(rawData["STUDENTS"]&&rawData["STUDENTS"].length)return rawData["STUDENTS"];
   const markKey=Object.keys(rawData).find(k=>k.includes("MARK")&&k.includes("CONTEXT"))||Object.keys(rawData).find(k=>k.includes("MARK"))||"";
   return rawData["MARKS+CONTEXT"]||rawData["MARKS_CONTEXT"]||rawData[markKey]||[];
 }
@@ -1006,7 +1016,7 @@ function validateTemplateStructure(peek,rowCount){
   const errors=[];
   if(!peek.subjects||!peek.subjects.length)errors.push("Couldn't detect any Subjects from its SETUP tab.");
   if(!peek.tests||!peek.tests.length)errors.push("Couldn't detect any Tests from its SETUP tab.");
-  if(!rowCount)errors.push("No student rows found in its MARKS+CONTEXT tab.");
+  if(!rowCount)errors.push("No student rows found in its STUDENTS tab.");
   return errors;
 }
 // Cheap content fingerprint for a section's marks data — used to catch a

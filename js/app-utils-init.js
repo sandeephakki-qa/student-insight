@@ -85,7 +85,7 @@ function validateSetup(){
   return valid;
 }
 function toast(msg,type=""){const el=$(`<div class="toast ${type}" role="${type==="error"?"alert":"status"}">${msg}</div>`);$("#toast-wrap").append(el);setTimeout(()=>el.fadeOut(300,()=>el.remove()),3500);}
-function initEnvBadge(){const h=location.hostname;if(h.includes("sandeephakki-qa")||h.includes("localhost")||h.includes("127.")){$("#env-badge").text(h.includes("localhost")||h.includes("127.")?"LOCAL":"QA").show();}}
+function initEnvBadge(){const env=(window.APP_CONFIG&&APP_CONFIG.env)||"PROD";if(env!=="PROD"){$("#env-badge").text(env).show();}$("#project-page-link,#footer-project-link").attr("href",(window.APP_CONFIG&&APP_CONFIG.projectPageUrl)||"https://studin.in/");}
 
 
 /* TRUST ACCORDION */

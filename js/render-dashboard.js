@@ -1339,7 +1339,7 @@ function showSampleFiles(){
   // v3.7: Home-only side-path, same rule as Setup/About/FAQ in goStep() —
   // see updateNavHomeOnlyState() for the matching visual/tooltip state.
   if(APP.currentStep!=="home"){toast("Available only from the Home screen.","warn");return;}
-  const base="https://sandeephakki-qa.github.io/student-insight/sample/sample/";
+  const base=(window.APP_CONFIG&&APP_CONFIG.assetBase!==undefined)?APP_CONFIG.assetBase:"https://studin.in/";
   const files=[
     {name:"Sample 1 — UPSC/IAS Coaching.xlsx",file:"Sample_1_For_UPSC_IAS_Coaching.xlsx",desc:"Coaching centre example — multiple tests for a competitive-exam batch.",mode:"Institution"},
     {name:"Sample 2 — MBBS College Lecturer.xlsx",file:"Sample_2_For_MBBS_College_Lecturer.xlsx",desc:"College example — subject-wise marks for a lecturer's class.",mode:"Institution"},
@@ -1349,9 +1349,10 @@ function showSampleFiles(){
     {name:"Sample 6 — Competitive Exam Aspirant (UPSC).xlsx",file:"Sample_6_For_Individual_UPSC_Aspirant.xlsx",desc:"Individual mode example — one aspirant's own UPSC CSE prep, marks on a 200-point scale.",mode:"Individual"},
     {name:"Sample 7 — Management: Class 7 Section A.xlsx",file:"Sample_7_For_School_Management_Section_A_Class7.xlsx",desc:"Compare Sections example (1 of 3) — or use \"Try All 3 Together\" below to see a management-style side-by-side comparison across sections instantly.",mode:"Compare"},
     {name:"Sample 8 — Management: Class 7 Section B.xlsx",file:"Sample_8_For_School_Management_Section_B_Class7.xlsx",desc:"Compare Sections example (2 of 3) — same Class 7, same Subjects/Tests/Max Marks as Sample 7 & 9, different section.",mode:"Compare"},
-    {name:"Sample 9 — Management: Class 7 Section C.xlsx",file:"Sample_9_For_School_Management_Section_C_Class7.xlsx",desc:"Compare Sections example (3 of 3) — same Class 7, same Subjects/Tests/Max Marks as Sample 7 & 8, different section.",mode:"Compare"}
+    {name:"Sample 9 — Management: Class 7 Section C.xlsx",file:"Sample_9_For_School_Management_Section_C_Class7.xlsx",desc:"Compare Sections example (3 of 3) — same Class 7, same Subjects/Tests/Max Marks as Sample 7 & 8, different section.",mode:"Compare"},
+    {name:"Sample 10 — Large Scale (100 Students × 10 Tests).xlsx",file:"Sample_10_For_Large_Scale_100_Students.xlsx",desc:"See how Student Insight holds up at real institutional scale — a full academic year (10 monthly exams) for a 100-student class, not a small demo class.",mode:"Scale"}
   ];
-  const badge={Institution:{bg:"#eafaf1",fg:"#1e8a5f"},Individual:{bg:"#e8edfb",fg:"var(--c-primary)"},Compare:{bg:"#fdf1e3",fg:"#b5690a"}};
+  const badge={Institution:{bg:"#eafaf1",fg:"#1e8a5f"},Individual:{bg:"#e8edfb",fg:"var(--c-primary)"},Compare:{bg:"#fdf1e3",fg:"#b5690a"},Scale:{bg:"#f1ecf9",fg:"#7b5ea7"}};
   const compareFiles=files.filter(f=>f.mode==="Compare").map(f=>f.file);
   const rows=files.map(f=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--c-border);border-radius:var(--r-sm);margin-bottom:10px"><div><div style="font-weight:700;font-size:13px">${esc(f.name)} <span style="font-weight:600;font-size:10px;padding:1px 7px;border-radius:9px;background:${badge[f.mode].bg};color:${badge[f.mode].fg}">${f.mode==="Compare"?"<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg> Compare Set":f.mode}</span></div><div style="font-size:11.5px;color:var(--c-text3);margin-top:2px">${esc(f.desc)}</div></div><div style="display:flex;gap:6px;flex-shrink:0"><button type="button" class="btn btn-primary btn-sm" onclick="runSampleFile(['${f.file}'])"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M13 2 3 14h9l-1 8 10-12h-9l1-8z'/></svg> Try Now</button><a class="btn btn-secondary btn-sm" href="${base}${f.file}" download title="Download to your device instead"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 3v12'/><polyline points='7 10 12 15 17 10'/><path d='M4 21h16'/></svg></a></div></div>`).join("");
   const compareFilesArgLiteral="["+compareFiles.map(f=>"'"+f+"'").join(",")+"]";
@@ -1375,7 +1376,7 @@ async function runSampleFile(fileNames){
   statusEl.style.display="block";
   scrollToEl(statusEl);
   try{
-    const base="https://sandeephakki-qa.github.io/student-insight/sample/";
+    const base=(window.APP_CONFIG&&APP_CONFIG.assetBase!==undefined)?APP_CONFIG.assetBase:"https://studin.in/";
     const files=await Promise.all(fileNames.map(async fn=>{
       const res=await fetch(base+fn);
       if(!res.ok)throw new Error("Couldn't fetch "+fn+" (server said "+res.status+")");

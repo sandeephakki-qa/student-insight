@@ -91,7 +91,7 @@ function stampFooterAllPages(doc,confidentialLabel){
     doc.setPage(p);
     doc.setFillColor(30,58,95);doc.rect(0,H-10,W,10,"F");
     doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(226,229,241);
-    doc.textWithLink("Student Insight",10,H-4,{url:"https://sandeephakki-qa.github.io/student-insight/sample/"});
+    doc.textWithLink("Student Insight",10,H-4,{url:(window.APP_CONFIG&&APP_CONFIG.projectPageUrl)||"https://studin.in/"});
     const linkW=doc.getTextWidth("Student Insight");
     doc.text(" — Free & Open Source  |  Privacy-First  |  Built by Sandeep Hakki",10+linkW,H-4);
     doc.text(confidentialLabel,W-10,H-4,{align:"right"});

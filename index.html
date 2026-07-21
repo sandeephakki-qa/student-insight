@@ -573,6 +573,42 @@
 
 12. CHANGELOG — terse, append-only; full reasoning for pre-v2.0 items
     lived in an earlier PIB revision, ask if needed
+    v3.9 — 4 mobile bug fixes from iPhone 13 Pro Max QA screenshots:
+      (1) Setup Step 4's Back/Done/Download buttons all read as one
+      confusing block on narrow screens — Back is now a quiet ghost link,
+      Download Template is the one clear primary action, with real
+      spacing between them. (2) iOS Safari zoom-in-and-stuck-zoomed on
+      focusing any input — caused by font-size under the 16px iOS
+      threshold; all inputs/selects/textareas now floor at 16px on
+      mobile. (3) Footer overlapping/oddly-close to content on short
+      pages — swapped position:fixed + mobile-only static override for a
+      proper flexbox sticky footer everywhere, so it sits at the
+      viewport bottom on short pages and flows below content on tall
+      ones, with no special-casing needed. (4) Template Download (both
+      fresh and "Update Existing") now reloads the app ~1s after the
+      file saves, since it's the wizard's real terminal step (next action
+      happens offline) — guarantees no stale setup/mergeMode state can
+      leak into a later Back or New Template. PDF/ZIP export was left
+      as-is on purpose: it's repeatable mid-session (re-export after a
+      fix, Compare Mode's per-section loop) so forcing a reload there
+      would break normal use; its state was already clean via
+      try/finally + startNewSession()'s existing full reset.
+    v3.8 — "0 rows detected" bug fixed: resolveMarksRows() was looking
+      for a sheet named MARKS+CONTEXT (an old single-sheet template);
+      current templates split marks across one sheet PER TEST with the
+      roster in its own STUDENTS sheet, so it always came back empty.
+      Home's single-file card now shows the real count (verified: 30 for
+      Sample 1, 100 for Sample 10, 2 for Sample 5, etc. — was 0 for all).
+      Also fixes Compare Mode, which was silently building the same
+      wrong (0) rowCount for every uploaded file via the same function.
+    v3.7 — env-config.js added: single runtime settings file
+      (js/env-config.js, loaded first) auto-detects QA/Prod/local from
+      location.hostname and exposes window.APP_CONFIG {assetBase,
+      projectPageUrl}. Replaces the 5 hardcoded "https://studin.in/"
+      occurrences (sample-file fetch x2 in render-dashboard.js, PDF
+      footer link in export-pdf.js, Project Page + footer links in
+      index.html). No manual edit needed when deploying to either repo —
+      QA now correctly pulls its own sample files instead of Prod's.
     v3.6 — Bible §5/§8 "Student clustering / k-means": built for real,
       gated to n>=30 students exactly as the bible specifies (below that,
       the bucket simply doesn't appear — no fake/noisy clustering shown
@@ -1092,10 +1128,10 @@
     </div>
     <div id="sw-err-4" class="sw-err" style="display:none"></div>
     <div class="sw-nav" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-      <button class="btn btn-secondary btn-sm" onclick="swBack()">← Back</button>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <button class="btn btn-secondary btn-sm" id="btn-setup-next" onclick="goStep('home')">Done — Upload on Home →</button>
+      <button class="btn btn-ghost btn-sm" onclick="swBack()">← Back</button>
+      <div class="sw-nav-actions" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <button class="btn btn-primary btn-sm" id="btn-download-template" onclick="generateTemplate()" disabled style="opacity:.45;cursor:not-allowed" title="Fill mandatory fields first"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 3v12'/><polyline points='7 10 12 15 17 10'/><path d='M4 21h16'/></svg> Download Template</button>
+        <button class="btn btn-secondary btn-sm" id="btn-setup-next" onclick="goStep('home')">Done — Upload on Home →</button>
       </div>
     </div>
   </div>
@@ -1507,7 +1543,7 @@
               LinkedIn
             </a>
             <a href="mailto:sandeep@hakki.in" class="btn btn-primary btn-sm">✉ sandeep@hakki.in</a>
-            <a href="https://sandeephakki-qa.github.io/student-insight/" target="_blank" rel="noopener" class="btn btn-secondary btn-sm"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10'/><line x1='2' y1='12' x2='22' y2='12'/><path d='M12 2a15 15 0 0 1 0 20a15 15 0 0 1 0-20z'/></svg> Project Page</a>
+            <a id="project-page-link" href="https://studin.in/" target="_blank" rel="noopener" class="btn btn-secondary btn-sm"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10'/><line x1='2' y1='12' x2='22' y2='12'/><path d='M12 2a15 15 0 0 1 0 20a15 15 0 0 1 0-20z'/></svg> Project Page</a>
          </div>
         </div>
       </div>
@@ -1678,7 +1714,7 @@
 
 <!-- FOOTER -->
 <footer id="footer">
-  Powered by <a href="https://sandeephakki-qa.github.io/student-insight/" target="_blank" rel="noopener">Student Insight</a> — Free &amp; Open Source · Built as a social cause by Sandeep Hakki · <a href="mailto:sandeep@hakki.in">sandeep@hakki.in</a>
+  Powered by <a id="footer-project-link" href="https://studin.in/" target="_blank" rel="noopener">Student Insight</a> — Free &amp; Open Source · Built as a social cause by Sandeep Hakki · <a href="mailto:sandeep@hakki.in">sandeep@hakki.in</a>
 </footer>
 
 <!-- PERF: library scripts moved from <head> so they no longer block initial
@@ -1691,6 +1727,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="js/env-config.js"></script>
 <script src="js/state-nav.js"></script>
 <script src="js/project-setup.js"></script>
 <script src="js/template-upload.js"></script>
