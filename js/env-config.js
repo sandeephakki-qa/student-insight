@@ -21,7 +21,7 @@
     },
     qa: {
       label: "QA",
-      assetBase: "https://sandeephakki-qa.github.io/student-insight/",
+      assetBase: "https://sandeephakki-qa.github.io/student-insight/samples/",
       projectPageUrl: "https://sandeephakki-qa.github.io/student-insight/"
     },
     local: {
