@@ -21,6 +21,10 @@
     },
     qa: {
       label: "QA",
+      // Verified directly (raw.githubusercontent.com HEAD checks, 2026-07-22):
+      // the QA repo keeps sample .xlsx files under /samples/, unlike prod
+      // which flattens them to the site root. Pointing this at root (as it
+      // was before) 404'd on every "Try Now" click — see PIB changelog v4.1.
       assetBase: "https://sandeephakki-qa.github.io/student-insight/samples/",
       projectPageUrl: "https://sandeephakki-qa.github.io/student-insight/"
     },

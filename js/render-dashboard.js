@@ -1499,9 +1499,10 @@ function downloadUpdatedSheet(){
   $("#remarks-dirty-banner").remove();
 }
 function showSampleFiles(){
-  // v3.7: Home-only side-path, same rule as Setup/About/FAQ in goStep() —
-  // see updateNavHomeOnlyState() for the matching visual/tooltip state.
-  if(APP.currentStep!=="home"){toast("Available only from the Home screen.","warn");return;}
+  // v4.1 (bug #1/#2 fix): shares the same rule as Setup/About/FAQ in
+  // goStep() now — open from anywhere except Dashboard/Export. See
+  // updateNavHomeOnlyState() for the matching visual/tooltip state.
+  if(APP.currentStep==="dashboard"||APP.currentStep==="export"){toast("Available only from the Home screen.","warn");return;}
   const base=(window.APP_CONFIG&&APP_CONFIG.assetBase!==undefined)?APP_CONFIG.assetBase:"https://studin.in/";
   const files=[
     {name:"Sample 1 — UPSC/IAS Coaching.xlsx",file:"Sample_1_For_UPSC_IAS_Coaching.xlsx",desc:"Coaching centre example — multiple tests for a competitive-exam batch.",mode:"Institution"},

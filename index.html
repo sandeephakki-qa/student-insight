@@ -573,6 +573,33 @@
 
 12. CHANGELOG — terse, append-only; full reasoning for pre-v2.0 items
     lived in an earlier PIB revision, ask if needed
+    v4.1 — 4 bug fixes: (1/2) Setup/Sample Files/About/FAQ nav-lock rule
+      unified — previously Sample/About/FAQ used a stricter "Home only"
+      check that also blocked them mid-Setup (the actual reported bug),
+      while Setup itself only locked on Dashboard/Export. All four now
+      share one rule: open from anywhere, locked only once on Dashboard
+      or Export. (3) QA's "Try Now" sample-file fetch 404'd — verified
+      directly via raw.githubusercontent.com that the QA repo keeps
+      sample .xlsx files under /samples/, unlike prod which flattens
+      them to root; env-config.js's QA assetBase was pointing at the
+      wrong path. (4) Added real manifest.json + sw.js files (neither
+      existed before — the registration code was silently failing on
+      every load). manifest.json uses relative start_url/scope/icon
+      paths so it works identically on prod (root) and QA (GH Pages
+      subpath) with no per-env logic possible for a static file served
+      directly by the browser. sw.js computes its shell-cache paths
+      from self.registration.scope at runtime instead of a hardcoded
+      "/", replacing the old fragile location.pathname.includes(
+      "/student-insight/") check (hardcoded one specific repo name,
+      silently wrong for prod, right only for QA by coincidence) —
+      same fix applied to the SW registration call in
+      app-utils-init.js, now a plain relative "sw.js". Also made sw.js
+      always fetch .xlsx sample files fresh from network, bypassing
+      cache, so a QA tester never gets a stale cached demo file with no
+      indication it's outdated. NOTE: manifest.json references
+      icon-192.png/icon-512.png which do not exist in the repo yet —
+      intentionally not fabricated; add real brand icon files at the
+      site root before the manifest is fully installable as a PWA.
     v4.0 — Full localization of Setup + About + FAQ-chrome across all
       13 languages (English + 12 Indian languages), ~142 new keys ×13 =
       ~1,846 translated strings, on top of the existing ~40-key bucket/

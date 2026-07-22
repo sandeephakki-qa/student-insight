@@ -1,22 +1,33 @@
 /* ============================================================
-   Student Insight — Service Worker v10.0
+   Student Insight — Service Worker v11.0
    Caches the app shell for offline use.
    Cache is versioned — bump CACHE_VERSION on each deploy.
-   v10.0: moved from GitHub Pages project path (/student-insight/)
-   to the custom domain https://studin.in/, served at root — shell
-   paths updated accordingly. Bumping the version forces every
-   existing installed client to drop its old (now-wrong-path) cache
-   on next visit instead of silently serving stale/broken shell files.
+
+   v11.0 (bug #4 fix): SHELL_ASSETS are now built from the service
+   worker's own runtime scope (self.registration.scope) instead of
+   hardcoded absolute paths starting with "/". A hardcoded "/" always
+   resolves to the ORIGIN root — correct for studin.in (prod, served
+   at the domain root) but silently wrong for the QA GitHub Pages
+   deployment (served under /student-insight/), where it pointed at
+   paths that don't exist. self.registration.scope is computed by the
+   browser at registration time from wherever sw.js actually lives, so
+   this now auto-detects prod / QA / local / any future subpath with
+   no hostname or path string-matching needed anywhere in this file.
 ============================================================ */
 
-const CACHE_VERSION = 'sia-v10.0';
+const CACHE_VERSION = 'sia-v11.0';
 const CACHE_NAME    = CACHE_VERSION;
+
+// e.g. "https://studin.in/" on prod, or
+// "https://sandeephakki-qa.github.io/student-insight/" on QA — whatever
+// directory this file was actually registered from.
+const SCOPE = self.registration.scope;
 
 // App shell assets to cache on install
 const SHELL_ASSETS = [
-  '/student-insight/',
-  '/student-insight/index.html',
-  '/student-insight/manifest.json',
+  SCOPE,
+  SCOPE + 'index.html',
+  SCOPE + 'manifest.json',
 ];
 
 // CDN assets the app depends on (cache on first fetch)
@@ -75,6 +86,15 @@ self.addEventListener('fetch', event => {
         });
       })
     );
+    return;
+  }
+
+  // Sample .xlsx files (samples/*.xlsx on any environment) — always go to
+  // network. Never served stale from cache: a stale cached "Try Now" file
+  // would silently show a QA tester (or a real user) outdated demo data
+  // with no indication it's not the current file.
+  if (/\.xlsx($|\?)/i.test(event.request.url)) {
+    event.respondWith(fetch(event.request));
     return;
   }
 

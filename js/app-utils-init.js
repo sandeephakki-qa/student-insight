@@ -142,7 +142,15 @@ $(document).on("keydown","[role=button]",function(e){if(e.key==="Enter"||e.key==
 $("#modal-overlay").on("click",function(e){if($(e.target).is("#modal-overlay"))closeModal();});
 
 /* ════ SERVICE WORKER ════ */
-if("serviceWorker" in navigator&&location.protocol!=="file:"){const swPath=location.pathname.includes("/student-insight/")?"/student-insight/sw.js":"/sw.js";navigator.serviceWorker.register(swPath).catch(()=>{});}
+// v4.1 (bug #4 fix): previously computed an absolute swPath by checking
+// whether location.pathname contained the literal string "/student-insight/"
+// — fragile (hardcodes a specific repo name, breaks for any other subpath)
+// and already wrong in practice since QA is the only one that needs it and
+// prod doesn't. A plain relative "sw.js" is resolved by the browser against
+// the current document URL automatically, so it registers correctly under
+// any hosting shape (root domain, GH Pages project subpath, local folder)
+// with zero env-detection code needed here.
+if("serviceWorker" in navigator&&location.protocol!=="file:"){navigator.serviceWorker.register("sw.js").catch(()=>{});}
 
 /* ── VOICE INPUT (Web Speech API) ──────────────────────────────────────
    Works on: Chrome desktop, Chrome Android, Edge, iOS Safari 14.5+

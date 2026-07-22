@@ -60,17 +60,16 @@ function goStep(step){
   // form's own subject rows actually have anything in them (see
   // domSubjects.length there), which correctly no-ops for Home's
   // autoInferSetup()-driven single-file flow instead of overwriting it.
-  // v3.7: Setup / Sample Files / About / FAQ are Home-only side-paths —
-  // once the user has moved on to Dashboard/Export, jumping into any of
-  // them mid-review just adds clutter/confusion (per Sandy). Block the
-  // jump and explain why instead of silently navigating; the nav items
-  // themselves also get a "disabled" look + tooltip via
+  // v4.1 (bug #1/#2 fix): Setup / About / FAQ (and Sample Files, guarded
+  // separately in showSampleFiles()) share one rule — open from anywhere
+  // except once the user has moved on to Dashboard/Export, where jumping
+  // back into any of them mid-review just adds clutter/confusion (per
+  // Sandy). Previously About/FAQ used a stricter "Home only" check that
+  // also blocked them while mid-Setup — that mismatch was the reported
+  // bug. Block the jump and explain why instead of silently navigating;
+  // the nav items themselves also get a "disabled" look + tooltip via
   // updateNavHomeOnlyState() below so this rarely even gets clicked.
-  if((APP.currentStep==="dashboard"||APP.currentStep==="export")&&step==="setup"){
-    toast("Available only from the Home screen.","warn");
-    return;
-  }
-  if(APP.currentStep!=="home"&&(step==="about"||step==="faq")){
+  if((APP.currentStep==="dashboard"||APP.currentStep==="export")&&(step==="setup"||step==="about"||step==="faq")){
     toast("Available only from the Home screen.","warn");
     return;
   }
@@ -100,15 +99,15 @@ function goStep(step){
   if(step==="home")renderHomePage();
   if(step==="setup"){ if(typeof swGoto==="function") swGoto(APP.setupWizardStep||1); }
 }
-// v3.7: Setup/Sample Files/About/FAQ nav items only make sense from Home
-// — visually flags them as unavailable elsewhere (dim + not-allowed
-// cursor) and swaps in an explanatory tooltip, so the disabled state is
-// discoverable on hover instead of only showing up as a toast on click.
+// v4.1 (bug #1/#2 fix): Setup/Sample Files/About/FAQ now share one rule —
+// open from anywhere (Home, Setup itself, AI, etc.), locked only once the
+// user has moved on to Dashboard/Export. Previously Sample/About/FAQ used
+// a stricter "Home only" rule that also blocked them while mid-Setup,
+// which was the actual reported bug (they should never be more locked
+// than the Setup tab itself).
 function updateNavHomeOnlyState(){
-  const lockAux=(APP.currentStep!=="home"); // Sample/About/FAQ: Home only (item #1 — previously also allowed from Setup, which was confusing mid-setup)
-  const lockSetup=(APP.currentStep==="dashboard"||APP.currentStep==="export");
-  $(".nav-home-only").toggleClass("disabled",lockAux).attr("aria-disabled",lockAux?"true":"false").attr("tabindex",lockAux?"-1":"0").attr("title",lockAux?"Available only from the Home screen":"");
-  $(".nav-setup-tab").toggleClass("disabled",lockSetup).attr("aria-disabled",lockSetup?"true":"false").attr("tabindex",lockSetup?"-1":"0").attr("title",lockSetup?"Available only from the Home screen":"");
+  const lock=(APP.currentStep==="dashboard"||APP.currentStep==="export");
+  $(".nav-home-only,.nav-setup-tab").toggleClass("disabled",lock).attr("aria-disabled",lock?"true":"false").attr("tabindex",lock?"-1":"0").attr("title",lock?"Available only from the Home screen":"");
 }
 
 // PHASE 3 — Only India is active right now; other countries are listed
