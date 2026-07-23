@@ -61,6 +61,15 @@ async function runAnalysis(){
   // btn-analyse / phase-actionbar-btns removed (v3.2) — panel-ai is now a pure progress screen, nothing to re-enable.
   if(APP.students.length){unlockStep("dashboard");unlockStep("export");}
   updateExportGate();
+  // GOTCHA FIX (v4.3): markClean() existed but was never called anywhere,
+  // so the #unsaved-dot lit on the first Setup edit and stayed lit for the
+  // rest of the session regardless of what happened after. Product
+  // decision: a completed analysis is the point the current Setup form
+  // values get captured into something the user can actually see (the
+  // dashboard about to render) — same idea as a "save," for an app with
+  // no persistence. Editing Setup again after this still re-dirties via
+  // the existing markDirty() calls, so the dot stays meaningful.
+  markClean();
   toast("Analysis complete - "+APP.students.length+" students processed.","success");goStep("dashboard");
 }
 /* ════════════════════════════════════════════════════════════════════
@@ -397,6 +406,30 @@ function parseStudents(){
 }
 
 /* ════ COMPUTE ANALYSIS ════ */
+// TASK (Project Bible v2 §4.3, "remark sentiment tagging"): the
+// "AI Remark Sentiment" checkbox (ai_teacher_remarks_ai) and the
+// "Sentiment analysis on remarks…" loader step have existed since the AI
+// panel was built, but nothing ever computed a tone — confirmed nothing
+// in this codebase read or wrote a sentiment/tone value anywhere before
+// this. Deterministic keyword match, not a real NLP/ML model — same
+// "everything computed locally, nothing sent anywhere" constraint as the
+// rest of this app applies to free-text teacher remarks too, so an
+// API-based sentiment call was never on the table. English-only (remarks
+// are free-text teacher input, not part of the app's own translated UI)
+// and doesn't handle negation ("not lazy" reads as negative) — a known,
+// stated limitation of a lightweight heuristic, not a hidden one.
+const REMARK_CONCERN_WORDS=["weak","struggl","poor","lack","irregular","careless","distract","worry","worri","concern","fail","declin","inconsistent","lazy","disturb","disrupt","inattentive","low effort","needs improvement","needs to improve","must improve","not focus","losing interest","falling behind"];
+const REMARK_POSITIVE_WORDS=["excellent","outstanding","great","good","improv","consistent","hardworking","hard-working","sincere","active","bright","confident","strong","well done","keep it up","diligent","dedicated","punctual","attentive","enthusiastic","brilliant","proud","commendable","impressive"];
+function classifyRemarkTone(text){
+  if(!text||!text.trim())return null;
+  const t=text.toLowerCase();
+  const concernHits=REMARK_CONCERN_WORDS.filter(w=>t.includes(w)).length;
+  const positiveHits=REMARK_POSITIVE_WORDS.filter(w=>t.includes(w)).length;
+  if(concernHits>positiveHits)return "concern";
+  if(positiveHits>concernHits)return "positive";
+  return "neutral";
+}
+
 function computeAnalysis(){
   const {subjects,tests,passThreshold,absentAlert,dropAlert}=APP.setup;
   // Not reset here — parseStudents() (which always runs immediately before
@@ -407,6 +440,7 @@ function computeAnalysis(){
     st.analysis={};const testAvgs=[];const cumAvgByTest=[];let cumMarks=0,cumMax=0;
     tests.forEach((t)=>{
       const td=st.testData[t.name]||{marks:{},absents:0,remark:"",chapter:""};
+      td.remarkTone=classifyRemarkTone(td.remark);
       let total=0,maxTotal=0,scored=0;
       subjects.forEach(s=>{const m=td.marks[s];const mx=(t.maxMarks&&t.maxMarks[s])||100;if(m!==null&&m!==undefined&&m!==""){const mv=parseFloat(m)||0;if(mv>mx)APP.dataIssues.push({studentId:st.id,studentName:st.name,test:t.name,subject:s,message:`entered ${mv}, exceeds max of ${mx} — will inflate this test's percentage`});total+=Math.min(mv,mx);maxTotal+=mx;scored++;}else maxTotal+=mx;});
       testAvgs.push(scored?Math.round((total/maxTotal)*100):null);
@@ -424,6 +458,15 @@ function computeAnalysis(){
     testAvgs.forEach((v,i)=>{if(v!==null){if(bestI===-1||v>testAvgs[bestI])bestI=i;if(worstI===-1||v<testAvgs[worstI])worstI=i;}});
     st.analysis.bestTest=bestI>-1?{name:tests[bestI].name,pct:testAvgs[bestI]}:null;
     st.analysis.worstTest=(worstI>-1&&worstI!==bestI)?{name:tests[worstI].name,pct:testAvgs[worstI]}:null;
+    // Remark-tone rollup — counts, not the classifier itself (see
+    // classifyRemarkTone above, already run per-test in the loop above).
+    const tones=tests.map(t=>(st.testData[t.name]||{}).remarkTone).filter(Boolean);
+    st.analysis.remarkToneSummary=tones.length?{
+      positive:tones.filter(x=>x==="positive").length,
+      neutral:tones.filter(x=>x==="neutral").length,
+      concern:tones.filter(x=>x==="concern").length,
+      total:tones.length
+    }:null;
     // Single rounding from raw cumulative totals (avoids compounding rounding error from averaging pre-rounded per-test %s)
     st.analysis.overallAvg=cumMax?Math.round((cumMarks/cumMax)*100):0;
     st.analysis.testAvgs=testAvgs;
@@ -811,9 +854,44 @@ function computeClassStats(){
     const belowCount=vals.filter(v=>v<passThreshold).length;
     return {subject:s,pctBelow:Math.round((belowCount/n)*100),avgClass:Math.round(vals.reduce((a,b)=>a+b,0)/n)};
   }).sort((a,b)=>b.pctBelow-a.pctBelow):[];
+  // Subject-vs-subject correlation matrix — do strong-in-Physics students
+  // also tend to be strong in Maths? Pairwise Pearson r across every
+  // student's subjectAvgs. Reuses the same subjectAvgs subjectWeakness
+  // uses above; nothing new is computed per student.
+  // Gate at n>=10: unlike attendanceCorrelation's 2-vs-2 group-average
+  // comparison, a single Pearson r computed over a handful of points is
+  // extremely sensitive to one outlier — 10 is a reasoned floor for this
+  // app (no existing precedent to match exactly; percentile suppresses
+  // below 12, k-means clustering gates at 30, this sits between the two
+  // since it's a class-level summary stat like attendanceCorrelation, not
+  // a per-student computation).
+  // NOTE: correlation is scale/shift-invariant, so z-standardizing inputs
+  // first (as computeCohortClusters() above does for its feature vectors)
+  // would produce an IDENTICAL r — that step is skipped here on purpose,
+  // not omitted by oversight.
+  const subjectCorrelation=(subjects&&subjects.length>=2&&n>=10)?(()=>{
+    function pearson(xs,ys){
+      const m=xs.length;
+      const mx=xs.reduce((a,b)=>a+b,0)/m,my=ys.reduce((a,b)=>a+b,0)/m;
+      let num=0,dx2=0,dy2=0;
+      for(let i=0;i<m;i++){const dx=xs[i]-mx,dy=ys[i]-my;num+=dx*dy;dx2+=dx*dx;dy2+=dy*dy;}
+      if(dx2===0||dy2===0)return null; // zero-variance subject (every student scored identically) — r is genuinely undefined, not 0
+      return Math.round((num/Math.sqrt(dx2*dy2))*100)/100;
+    }
+    const seriesBySubject={};
+    subjects.forEach(s=>{seriesBySubject[s]=APP.students.map(st=>st.analysis.subjectAvgs[s]||0);});
+    const matrix=subjects.map(a=>subjects.map(b=>a===b?1:pearson(seriesBySubject[a],seriesBySubject[b])));
+    const pairs=[];
+    for(let i=0;i<subjects.length;i++)for(let j=i+1;j<subjects.length;j++){
+      const r=matrix[i][j];
+      if(r!==null)pairs.push({a:subjects[i],b:subjects[j],r});
+    }
+    pairs.sort((p,q)=>Math.abs(q.r)-Math.abs(p.r));
+    return {subjects,matrix,pairs,n};
+  })():null;
   APP.classStats={mean,median,q1,q3,sd,n,healthAvg:hAvg,min:avgs[0],max:avgs[n-1],
     distribution:{excellent:avgs.filter(v=>v>=80).length,good:avgs.filter(v=>v>=60&&v<80).length,average:avgs.filter(v=>v>=35&&v<60).length,below:avgs.filter(v=>v<35).length},
-    attendanceCorrelation,subjectWeakness};
+    attendanceCorrelation,subjectWeakness,subjectCorrelation};
   return APP.classStats;
 }
 /* ════ GENDER-GAP ANALYSIS (school/institutional level only) ════
@@ -1181,6 +1259,12 @@ async function runCompareAnalysisCore(){
     ? " — "+comparable.length+" matching group"+(comparable.length===1?"":"s")+" ("+comparable.map(g=>g.sections.length).join(", ")+" section"+(comparable.some(g=>g.sections.length!==1)?"s":"")+") compared automatically."
     : validSections.length>1?" — no two files share the same subjects/tests, so each is shown individually.":".";
   toast(validSections.length+" file(s) analysed"+msg,"success");
+  // GOTCHA FIX (v4.3): same reasoning as the single-file path in
+  // runAnalysis() above — Compare Mode has its own separate success point,
+  // so it needs its own markClean() call rather than relying on the one
+  // in runAnalysis() (which this function's caller returns out of early,
+  // before ever reaching it).
+  markClean();
   goStep("dashboard");
 }
 // A schema "signature" used purely to silently GROUP sections that share

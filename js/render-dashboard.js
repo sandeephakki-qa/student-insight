@@ -373,15 +373,16 @@ function i18nLabel(key, fallback){
 function reapplyI18nStrings(){
   applyDataI18nSweep();
   // RTL support: only Urdu (ur.json) is flagged rtl:true in its _meta
-  // today. This flips the DIRECTION of the two screens that actually
-  // localize (buckets, Smart Search) — NOT the whole page, since the rest
-  // of the app (Setup, FAQ, Export, etc.) is still English-only layout
-  // and flipping it would look broken, not better. A real full-page RTL
-  // pass is separate future work — this is a scoped, honest fix for the
-  // two screens that currently show Urdu text at all.
+  // today. This flips the DIRECTION of the screens that actually
+  // localize (buckets, Smart Search, AI feature panel — v4.2 adds the
+  // latter) — NOT the whole page, since the rest of the app (Setup, FAQ,
+  // Export, etc.) is still English-only layout and flipping it would look
+  // broken, not better. A real full-page RTL pass is separate future
+  // work — this is a scoped, honest fix for the screens that currently
+  // show translated text at all.
   const table = window.I18N_TABLES[window.SR_LANG];
   const isRtl = !!(table && table._meta && table._meta.rtl);
-  $("#bucket-screen,#bucket-list-screen,#bucket-answer-screen,#smart-search-screen")
+  $("#bucket-screen,#bucket-list-screen,#bucket-answer-screen,#smart-search-screen,#panel-ai")
     .attr("dir", isRtl ? "rtl" : "ltr")
     .toggleClass("rtl-screen", isRtl);
   if($("#bucket-screen").is(":visible")){
@@ -389,6 +390,13 @@ function reapplyI18nStrings(){
   }
   if($("#smart-search-screen").is(":visible") && typeof renderSmartSearchScreen==="function"){
     renderSmartSearchScreen();
+  }
+  // v4.2: AI feature checkboxes are JS-injected innerHTML (data-driven from
+  // AI_FEATURES), not static data-i18n markup, so the sweep above can't
+  // reach them — re-render explicitly, same pattern as buckets/Smart
+  // Search above, only when that panel is actually on screen.
+  if($("#panel-ai").is(":visible") && typeof renderAICheckboxes==="function"){
+    renderAICheckboxes();
   }
 }
 function srT(key,params,count){
@@ -585,8 +593,57 @@ function renderIndividualReportAnswer(st){
       <p>${esc(generateTrendFacts(st))}</p>
     </div>
     <div class="chart-container" style="margin-top:14px"><div class="card-title">Progress Trend</div><canvas id="bucket-chart-student-trend"></canvas></div>
+    <div class="card" id="target-score-card" style="padding:14px 16px;margin-top:14px"></div>
   `).addClass("screen-fade-in").show();
   renderBucketStudentTrendChart("bucket-chart-student-trend",st);
+  renderTargetScoreCard(st.id);
+}
+// TASK (Project Bible v2 §5, "target-score tracker"): "Let a parent type
+// a target % for the next test; show gap vs. predictedNext. Pure UI
+// state (in-memory only, resets on reload per NO_PERSISTENCE) — no
+// schema change." _targetScoreInputs deliberately lives only as a plain
+// module-level variable — never written to APP.setup, st.analysis, or
+// anything else that gets read/exported anywhere — so it satisfies
+// NO_PERSISTENCE by construction: a page reload (or even just re-running
+// analysis) wipes it, same as any other unsaved browser state.
+let _targetScoreInputs={};
+function renderTargetScoreCard(studentId){
+  const st=APP.students.find(s=>s.id===studentId);if(!st)return;
+  const a=st.analysis||{};
+  const savedTarget=_targetScoreInputs[studentId];
+  const html=`<div class="card-title" style="margin-bottom:8px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2'/></svg> Target for Next Test</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <label style="font-size:12.5px;color:var(--c-text2)">Target %</label>
+      <input type="number" id="target-score-input" min="0" max="100" step="1" value="${savedTarget!=null?savedTarget:""}" placeholder="e.g. 85" style="width:80px;text-align:center;padding:6px 8px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:13px" oninput="setTargetScore('${esc(studentId)}',this.value)"/>
+    </div>
+    <div id="target-score-gap" style="margin-top:10px"></div>
+    <div style="font-size:11px;color:var(--c-text3);margin-top:8px">This target is just for you to plan around — it isn't saved anywhere and resets if you reload or re-analyse.</div>`;
+  $("#target-score-card").html(html);
+  renderTargetScoreGap(studentId);
+}
+function setTargetScore(studentId,val){
+  const n=parseFloat(val);
+  if(val===""||isNaN(n)){delete _targetScoreInputs[studentId];}
+  else{_targetScoreInputs[studentId]=Math.max(0,Math.min(100,n));}
+  renderTargetScoreGap(studentId);
+}
+function renderTargetScoreGap(studentId){
+  const st=APP.students.find(s=>s.id===studentId);if(!st)return;
+  const a=st.analysis||{};
+  const target=_targetScoreInputs[studentId];
+  const el=$("#target-score-gap");
+  if(target==null){el.html("");return;}
+  if(a.predictedNext==null){
+    el.html(`<div style="font-size:12.5px;color:var(--c-text3)">Not enough test history yet to project a next-test score (need at least 2 tests) — so there's nothing to compare your target against yet.</div>`);
+    return;
+  }
+  const gap=Math.round((target-a.predictedNext)*10)/10;
+  if(gap<=0){
+    el.html(`<div style="padding:10px 12px;background:var(--c-success)18;border-radius:var(--r-sm);font-size:12.5px;color:var(--c-success);font-weight:600">On track — the current trend projects ${a.predictedNext}%, already at or above your ${target}% target.</div>`);
+  }else{
+    const severity=gap>15?"var(--c-danger)":"var(--c-warn)";
+    el.html(`<div style="padding:10px 12px;background:${severity}18;border-radius:var(--r-sm);font-size:12.5px;color:${severity};font-weight:600">The current trend projects ${a.predictedNext}% — ${gap} point${gap===1?"":"s"} short of your ${target}% target.</div>`);
+  }
 }
 function renderIndividualSubjectsAnswer(st){
   const avgs=(st.analysis&&st.analysis.subjectAvgs)||{};
@@ -1216,8 +1273,39 @@ function renderClassInsights(){
     $("#attendance-correlation-panel").html(`<div class="wb-grid"><div class="wb-card"><div style="font-size:22px">🟢</div><div style="font-size:12px;font-weight:600;margin:4px 0">No Absences (n=${ac.noAbsence.n})</div><div class="wb-val" style="color:var(--c-success)">${ac.noAbsence.avg}%</div></div><div class="wb-card"><div style="font-size:22px">🟠</div><div style="font-size:12px;font-weight:600;margin:4px 0">1+ Absences (n=${ac.someAbsence.n})</div><div class="wb-val" style="color:var(--c-warn)">${ac.someAbsence.avg}%</div></div><div class="wb-card"><div style="font-size:22px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polyline points='3 7 9 13 13 9 21 18'/><polyline points='15 18 21 18 21 12'/></svg></div><div style="font-size:12px;font-weight:600;margin:4px 0">Gap</div><div class="wb-val">${gap>=0?"+":""}${gap}%</div></div></div><div style="font-size:11px;color:var(--c-text3);margin-top:8px">Correlation only — this doesn't prove absences *cause* the difference, just that the two groups scored differently this term.</div>`);
   }
   const sw=cs.subjectWeakness||[];
-  if(!sw.length){$("#subject-weakness-wrap").html("<div style='color:var(--c-text3);padding:10px'>No subject data.</div>");return;}
-  $("#subject-weakness-wrap").html(`<table class="data-table"><thead><tr><th>Subject</th><th>Class Average</th><th>% Below Pass Threshold</th></tr></thead><tbody>${sw.map(r=>`<tr><td style="font-weight:600">${esc(r.subject)}</td><td>${r.avgClass}%</td><td style="color:${r.pctBelow>=40?'var(--c-danger)':r.pctBelow>=20?'var(--c-warn)':'var(--c-success)'}">${r.pctBelow}%</td></tr>`).join("")}</tbody></table>`);
+  if(!sw.length){$("#subject-weakness-wrap").html("<div style='color:var(--c-text3);padding:10px'>No subject data.</div>");}
+  else{$("#subject-weakness-wrap").html(`<table class="data-table"><thead><tr><th>Subject</th><th>Class Average</th><th>% Below Pass Threshold</th></tr></thead><tbody>${sw.map(r=>`<tr><td style="font-weight:600">${esc(r.subject)}</td><td>${r.avgClass}%</td><td style="color:${r.pctBelow>=40?'var(--c-danger)':r.pctBelow>=20?'var(--c-warn)':'var(--c-success)'}">${r.pctBelow}%</td></tr>`).join("")}</tbody></table>`);}
+  renderSubjectCorrelation();
+}
+// Heatmap + top-pairs summary for cs.subjectCorrelation (see computeClassStats
+// for the n>=10, subjects.length>=2 gate and why it sits between the
+// attendanceCorrelation and k-means clustering thresholds).
+function renderSubjectCorrelation(){
+  const sc=(APP.classStats||{}).subjectCorrelation;
+  const el=$("#subject-correlation-panel");
+  if(!sc){
+    const subjCount=(APP.setup.subjects||[]).length;
+    const reason=subjCount<2?"needs at least 2 subjects to compare.":`needs at least 10 students (this class has ${APP.classStats&&APP.classStats.n||0}) — with fewer, a single student's result can swing the number misleadingly.`;
+    el.html(`<div style='color:var(--c-text3);padding:10px'>Not enough data to compare — ${reason}</div>`);
+    return;
+  }
+  function cellColor(r){
+    if(r===null)return "background:var(--c-surface2);color:var(--c-text3)";
+    if(r===1)return "background:var(--c-surface2);color:var(--c-text2);font-weight:700";
+    const strength=Math.min(Math.abs(r),1);
+    const varName=r>=0?"--c-success":"--c-danger";
+    return `background:color-mix(in srgb, var(${varName}) ${Math.round(15+strength*55)}%, transparent);font-weight:${strength>=0.4?700:400}`;
+  }
+  const head=`<th></th>${sc.subjects.map(s=>`<th style="writing-mode:vertical-rl;text-orientation:mixed;font-size:10.5px;padding:6px 2px;max-width:34px">${esc(s)}</th>`).join("")}`;
+  const rows=sc.subjects.map((rowSubj,i)=>`<tr><td style="font-weight:600;font-size:11px;white-space:nowrap">${esc(rowSubj)}</td>${sc.matrix[i].map(r=>`<td style="text-align:center;font-size:11px;padding:6px 4px;${cellColor(r)}">${r===null?"—":r.toFixed(2)}</td>`).join("")}</tr>`).join("");
+  const top=sc.pairs.slice(0,3).map(p=>{
+    const strength=Math.abs(p.r)>=0.7?"strongly":Math.abs(p.r)>=0.4?"moderately":"weakly";
+    const direction=p.r>=0?"together":"in opposite directions";
+    return `<div style="font-size:12px;padding:4px 0">${esc(p.a)} and ${esc(p.b)} move <b>${strength} ${direction}</b> (r = ${p.r>=0?"+":""}${p.r.toFixed(2)})</div>`;
+  }).join("")||"<div style='font-size:12px;color:var(--c-text3)'>No pairs with a computable correlation (a subject with identical marks across every student can't be correlated).</div>";
+  el.html(`<div style="overflow-x:auto"><table class="data-table" style="width:auto"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>
+    <div style="margin-top:12px">${top}</div>
+    <div style="font-size:11px;color:var(--c-text3);margin-top:8px">Based on ${sc.n} students. Correlation only — a strong link between two subjects doesn't mean one causes the other, just that students who do well in one tend to do well (or poorly) in the other too.</div>`);
 }
 // E2: getFilteredStudents is the ONE sanctioned accessor for on-screen student
 // data. In Individual mode it returns only the selected child/aspirant; in
@@ -1283,7 +1371,7 @@ function openStudentModal(id){
       return `<td>${esc(String(v))}/${mx}</td>`;
     }).join("");
     const totalCell=opted>0?`${sumScored}/${sumMax}<div style="font-size:10px;color:var(--c-text3)">${opted}/${subjects.length} opted</div>`:`<span style="color:var(--c-text3)">-</span>`;
-    return `<tr><td style="font-weight:600">${esc(t.name)}</td>${cells}<td>${totalCell}</td><td style="font-weight:700">${a.testAvgs[ti]!==null?a.testAvgs[ti]+"%":"-"}</td><td>${td.absents||0}</td><td style="font-size:11px">${esc(td.remark||"")}</td></tr>`;
+    return `<tr><td style="font-weight:600">${esc(t.name)}</td>${cells}<td>${totalCell}</td><td style="font-weight:700">${a.testAvgs[ti]!==null?a.testAvgs[ti]+"%":"-"}</td><td>${td.absents||0}</td><td style="font-size:11px">${esc(td.remark||"")}${remarkToneBadgeHtml(td.remarkTone)}</td></tr>`;
   }).join("");
   // Class Avg row directly under the marks table (Institution mode only —
   // there's no "class" to compare against in Individual mode) so "where does
@@ -1350,6 +1438,15 @@ function saveNarrativeField(id,field,btnEl){
   const labels={parentMessage:"The Bottom Line",strengthsLetter:"Strengths note",homePlan:"Home plan",schoolPlan:"School plan"};
   toast((labels[field]||"Field")+" saved for "+st.name.split(" ")[0]+".","success");
 }
+// Small badge for a computed remark tone (see classifyRemarkTone in
+// compute-engine.js) — same .badge + "color+22-suffix-opacity" convention
+// already used for flags and subject-delta badges above.
+function remarkToneBadgeHtml(tone){
+  if(!tone)return "";
+  const map={positive:{c:"var(--c-success)",l:"Positive"},neutral:{c:"var(--c-text3)",l:"Neutral"},concern:{c:"var(--c-warn)",l:"Needs attention"}};
+  const m=map[tone];if(!m)return "";
+  return `<span class="badge" style="background:${m.c}22;color:${m.c};margin-left:6px" title="Tone auto-detected from remark keywords — a light heuristic, not a guarantee">${m.l}</span>`;
+}
 // TASK 3a (studin-features-prompt v1.0): editable per-test remark cards,
 // reusing the narrativeCard() textarea+Save markup pattern — remarks live
 // at st.testData[testName].remark (nested per test), not a flat
@@ -1360,11 +1457,12 @@ function remarkCardsHtml(st){
   if(!tests.length)return "";
   return `<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:8px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z'/></svg> Teacher Remarks <span style="font-weight:400;color:var(--c-text3);font-size:11px">(editable — download the updated sheet to keep changes)</span></div><div style="display:flex;flex-direction:column;gap:10px">${tests.map(t=>{
     const remark=(st.testData[t.name]||{}).remark||"";
+    const remarkTone=(st.testData[t.name]||{}).remarkTone;
     const remarkId="remark-"+esc(st.id)+"-"+esc(t.name).replace(/[^\w]/g,"_");
     const rlen=remark.length;
     const rcountText=rlen+" characters"+(rlen>300?" — long remarks may push other sections to extra pages in the PDF":"");
     const rcountColor=rlen>300?"var(--c-warn,#f9a826)":"var(--c-text3)";
-    return `<div><div style="font-size:11.5px;font-weight:700;color:var(--c-text2);margin-bottom:4px">${esc(t.name)}</div><textarea class="narrative-edit remark-edit" data-voice="true" data-test="${esc(t.name)}" id="${remarkId}" style="width:100%;min-height:44px;font-size:13px;font-family:inherit;padding:8px;border:1px solid var(--c-border);border-radius:var(--r-sm);resize:vertical" oninput="$(this).next('.narrative-save-row').find('button').prop('disabled',false);updateRemarkCharCount(this)">${esc(remark)}</textarea><div class="narrative-save-row" style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><span class="remark-char-count" data-for="${remarkId}" style="font-size:11px;color:${rcountColor}">${rcountText}</span><button class="btn btn-secondary" style="padding:5px 14px;font-size:12px" disabled onclick="saveRemarkField('${esc(st.id)}','${esc(t.name)}',this)">Save</button></div></div>`;
+    return `<div><div style="font-size:11.5px;font-weight:700;color:var(--c-text2);margin-bottom:4px">${esc(t.name)}${remarkToneBadgeHtml(remarkTone)}</div><textarea class="narrative-edit remark-edit" data-voice="true" data-test="${esc(t.name)}" id="${remarkId}" style="width:100%;min-height:44px;font-size:13px;font-family:inherit;padding:8px;border:1px solid var(--c-border);border-radius:var(--r-sm);resize:vertical" oninput="$(this).next('.narrative-save-row').find('button').prop('disabled',false);updateRemarkCharCount(this)">${esc(remark)}</textarea><div class="narrative-save-row" style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><span class="remark-char-count" data-for="${remarkId}" style="font-size:11px;color:${rcountColor}">${rcountText}</span><button class="btn btn-secondary" style="padding:5px 14px;font-size:12px" disabled onclick="saveRemarkField('${esc(st.id)}','${esc(t.name)}',this)">Save</button></div></div>`;
   }).join("")}</div></div>`;
 }
 // STRESS-TEST FIX (BUG-4, STRESS_TEST_REPORT.md): a very long remark (400+
@@ -1384,6 +1482,13 @@ function saveRemarkField(id,testName,btnEl){
   const $ta=$(btnEl).closest("div").find("textarea.remark-edit");
   if(!st.testData[testName])st.testData[testName]={marks:{},absents:0,remark:"",chapter:""};
   st.testData[testName].remark=$ta.val();
+  // Re-run the same classifier computeAnalysis() used at import time, so
+  // editing a remark updates its tone badge immediately instead of only
+  // on the next full analysis re-run.
+  st.testData[testName].remarkTone=classifyRemarkTone(st.testData[testName].remark);
+  const cardTitle=$ta.closest("div").find("> div").first();
+  if(cardTitle.length)cardTitle.find(".badge").remove();
+  if(cardTitle.length&&st.testData[testName].remarkTone)cardTitle.append(remarkToneBadgeHtml(st.testData[testName].remarkTone));
   $(btnEl).prop("disabled",true);
   APP._remarksDirty=true;
   showRemarksDirtyBanner();

@@ -419,13 +419,14 @@
 ════════════════════════════════════════════════════════════════════════
 
 9. GOTCHAS — append-only, one line each, never remove
-   KNOWN GAP (pre-existing, not fixed): markDirty() (fired on any
-     Setup-form edit) turns on #unsaved-dot; markClean() is the only
-     code that would turn it back off, and markClean() is never
-     called anywhere. Net effect: the dot, once lit, stays on for the
-     rest of the session regardless of subsequent save/export/analysis
-     actions. Needs a product decision on WHEN it should clear before
-     wiring markClean() in.
+   KNOWN GAP, FIXED v4.3: markDirty() (fired on any Setup-form edit)
+     turned on #unsaved-dot; markClean() existed but was never called,
+     so the dot stayed lit for the rest of the session regardless of
+     later actions. Product decision made: a completed analysis (both
+     the single-file path in runAnalysis() and the Compare Mode path in
+     runCompareAnalysisCore(), which has its own separate success point)
+     is the moment the current Setup form values get captured into
+     something the user can see — markClean() now fires there.
    percentile-precision  below 12 students, percentile math implies
      false precision (e.g. "14th percentile" out of 8 kids) — suppress
      it, show rank + plain point-diff instead (see §7 MARKS TABLE).
@@ -573,6 +574,71 @@
 
 12. CHANGELOG — terse, append-only; full reasoning for pre-v2.0 items
     lived in an earlier PIB revision, ask if needed
+    v4.4 — Target-score tracker (Project Bible v2 §5, "For parents").
+      Individual mode's Progress Report bucket now has a target-%-for-
+      next-test input, comparing against the existing (previously
+      computed but never actually shown anywhere) predictedNext field —
+      on-track / short-by-N messaging, color-coded by gap size. Pure
+      in-memory UI state (_targetScoreInputs, keyed by student id) —
+      deliberately never written to APP.setup, student.analysis, or
+      anything else read/exported elsewhere, so NO_PERSISTENCE holds by
+      construction: a reload wipes it the same as any other unsaved
+      browser state, no explicit reset code needed. Handles the <2-test
+      case (predictedNext is null) with an explanatory message instead
+      of a broken comparison. Per-child, not shared — switching the
+      Individual-mode student switcher shows each child's own
+      independently-tracked target, consistent with §5a's "not sibling-
+      specific" framing (this isn't a comparison between children, just
+      separate scoped state per child).
+    v4.3 — 3 items from Project Bible v2 §4 (small/confirmed items):
+      (1) markDirty()/markClean() gap fixed — markClean() existed but was
+      never called; now fires at both analysis-success points (single-
+      file runAnalysis() and Compare Mode's separate runCompareAnalysisCore())
+      since that's the moment the current Setup form values get captured
+      into something the user can see, closing the loop opened by the
+      last markDirty(). (2) Subject-vs-subject correlation matrix added
+      to computeClassStats() (institution mode only, gated at subjects
+      >=2 and n>=10 students — a reasoned floor between attendanceCorrelation's
+      2-vs-2 and k-means clustering's n>=30, since a single Pearson r is
+      unstable on tiny samples). Rendered as a heatmap + top-3-pairs
+      summary, 3rd card in the existing Insights tab. Computed on raw
+      subjectAvgs, not z-standardized first — correlation is scale/shift
+      invariant so standardizing would give an identical r; noted in
+      code so it doesn't read as a missed step. Smoke-tested the Pearson
+      function against known perfect +1/-1 cases and a zero-variance
+      guard before wiring it in. (3) Remark sentiment/keyword tagging:
+      the "AI Remark Sentiment" checkbox and loader step have existed
+      since the AI panel was built, but nothing computed a tone —
+      confirmed zero consumers anywhere before this. Added a
+      deterministic keyword-match classifier (positive/neutral/concern;
+      no ML/API call, consistent with this app's local-only computation
+      model; English-only, no negation handling — stated limitation, not
+      hidden) as classifyRemarkTone(), writing testData[test].remarkTone
+      per test plus a student.analysis.remarkToneSummary rollup, exactly
+      the "safe, additive new field" scope the bible asked for — no
+      class-level card added, that wasn't requested. Tone badge shown in
+      both the editable remark cards and the compact marks-history
+      table, refreshed live on Save (not just next full re-render).
+    v4.2 — AI feature panel (42 features × label+sub = 84 keys) localized
+      across all 13 languages, sourced from a re-uploaded old reference
+      file's en/hi/kn — cross-verified id-for-id against the live
+      AI_FEATURES data structure first (zero drift found, unlike that
+      same file's About/FAQ content in an earlier upload, which had
+      diverged from the live app and was correctly NOT reused). Bengali,
+      Marathi, Gujarati, Punjabi, Odia, Assamese, Tamil, Telugu,
+      Malayalam and Urdu translated fresh from EN meaning. Wiring: this
+      panel is JS-injected innerHTML (data-driven off AI_FEATURES), not
+      static data-i18n markup, so renderAICheckboxes() now resolves each
+      label/sub via i18nLabel("ai_<id>_label"/"ai_<id>_sub") with the
+      English AI_FEATURES text as fallback. Two refresh paths added so
+      it's never stale: reapplyI18nStrings() re-renders it when the
+      panel is already visible during a language switch, and goStep()
+      re-renders it on every navigation into the panel — covers the
+      more likely case of switching language elsewhere first, then
+      visiting AI afterward. #panel-ai also added to the RTL-scoped
+      selector list alongside buckets/Smart Search for Urdu. Caught and
+      fixed one transcription typo in the Assamese batch (a missing
+      vowel sign on "score", "স্কৰ" → "স্কোৰ") before merging.
     v4.1 — 4 bug fixes: (1/2) Setup/Sample Files/About/FAQ nav-lock rule
       unified — previously Sample/About/FAQ used a stricter "Home only"
       check that also blocked them mid-Setup (the actual reported bug),
@@ -1375,6 +1441,10 @@
     <div class="card">
       <div class="card-title" style="margin-bottom:12px">Subject Weakness (Class-Wide)</div>
       <div class="tbl-wrap" id="subject-weakness-wrap"></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-title" style="margin-bottom:12px">Subject Correlation</div>
+      <div id="subject-correlation-panel"></div>
     </div>
   </div>
 

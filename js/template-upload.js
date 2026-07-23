@@ -892,7 +892,11 @@ const AI_FEATURES={
   ],
 };
 function renderAICheckboxes(){
-  function makeGrid(items,cid){$("#"+cid).html(items.map(f=>`<div class="ai-check-item ${APP.aiFeatures.has(f.id)?"selected":""}" onclick="toggleAI('${f.id}',this)"><input type="checkbox" ${APP.aiFeatures.has(f.id)?"checked":""} onclick="event.stopPropagation();toggleAI('${f.id}',this.closest('.ai-check-item'))"/><div><div class="ai-check-label">${f.label}</div><div class="ai-check-sub">${f.sub}</div></div></div>`).join(""));}
+  // v4.2: label/sub now resolved via i18nLabel("ai_<id>_label"/"ai_<id>_sub")
+  // instead of reading f.label/f.sub directly — AI_FEATURES itself stays
+  // English-only as the canonical fallback/data source; the display text
+  // comes from the current language's i18n table when available.
+  function makeGrid(items,cid){$("#"+cid).html(items.map(f=>`<div class="ai-check-item ${APP.aiFeatures.has(f.id)?"selected":""}" onclick="toggleAI('${f.id}',this)"><input type="checkbox" ${APP.aiFeatures.has(f.id)?"checked":""} onclick="event.stopPropagation();toggleAI('${f.id}',this.closest('.ai-check-item'))"/><div><div class="ai-check-label">${i18nLabel("ai_"+f.id+"_label",f.label)}</div><div class="ai-check-sub">${i18nLabel("ai_"+f.id+"_sub",f.sub)}</div></div></div>`).join(""));}
   makeGrid(AI_FEATURES.perf,"ai-perf-checks");makeGrid(AI_FEATURES.warn,"ai-warn-checks");makeGrid(AI_FEATURES.narr,"ai-narr-checks");makeGrid(AI_FEATURES.well,"ai-well-checks");makeGrid(AI_FEATURES.mgmt,"ai-mgmt-checks");updateAICount();
 }
 function toggleAI(id,el){if(APP.aiFeatures.has(id))APP.aiFeatures.delete(id);else APP.aiFeatures.add(id);$(el).toggleClass("selected",APP.aiFeatures.has(id));$(el).find("input[type=checkbox]").prop("checked",APP.aiFeatures.has(id));updateAICount();}

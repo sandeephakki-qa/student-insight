@@ -81,6 +81,12 @@ function goStep(step){
   $(".panel").removeClass("active");$("#panel-"+step).addClass("active");
   $(".step-item").removeClass("active").removeAttr("aria-current");$("[data-step='"+step+"']").addClass("active").removeClass("locked").attr("aria-current","step");
   updateNavHomeOnlyState();
+  // v4.2: re-render AI feature checkboxes fresh in the current language on
+  // every visit to this panel — reapplyI18nStrings() only catches a
+  // language switch made WHILE already on this panel; this covers the
+  // (likely more common) case of switching language elsewhere first, then
+  // navigating here afterward.
+  if(step==="ai"&&typeof renderAICheckboxes==="function")renderAICheckboxes();
   if(step==="dashboard"){
     if(APP.compareMode){
       populateCompareSectionPicker();

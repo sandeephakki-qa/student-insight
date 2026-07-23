@@ -71,7 +71,8 @@
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);background:var(--c-bg);color:var(--c-text);font-size:var(--fs-base);line-height:var(--lh-body);min-height:100vh;padding-bottom:44px;transition:background var(--dur-base) var(--ease-standard),color var(--dur-base) var(--ease-standard)}
+body{font-family:var(--font);background:var(--c-bg);color:var(--c-text);font-size:var(--fs-base);line-height:var(--lh-body);min-height:100vh;display:flex;flex-direction:column;transition:background var(--dur-base) var(--ease-standard),color var(--dur-base) var(--ease-standard)}
+#main{flex:1 0 auto}
 a{color:var(--c-primary);text-decoration:none}
 a:visited{color:var(--c-link-visited)}
 button{font-family:var(--font);cursor:pointer;border:none;outline:none}
@@ -208,6 +209,9 @@ textarea:focus-visible,[tabindex]:focus-visible,[role="button"]:focus-visible,
 .btn-secondary{background:var(--c-surface2);color:var(--c-text2);border:1px solid var(--c-border)}
 .btn-secondary:hover{background:var(--c-border)}
 .btn-secondary:active{background:var(--c-border-strong);transform:translateY(1px)}
+.btn-ghost{background:transparent;color:var(--c-text3);border:1px solid transparent;box-shadow:none}
+.btn-ghost:hover{background:var(--c-surface2);color:var(--c-text2)}
+.btn-ghost:active{transform:translateY(1px)}
 .btn-success{background:var(--c-success);color:#fff}
 .btn-success:hover{background:#25a99d}
 .btn-success:active{background:#1f8f85;transform:translateY(1px)}
@@ -392,7 +396,7 @@ table.data-table th[data-sortable]:focus-visible{outline:2px solid var(--c-prima
 .wb-val{font-size:20px;font-weight:700;font-family:var(--font-display)}
 
 /* FOOTER */
-#footer{text-align:center;font-size:11px;color:var(--c-text3);padding:8px;border-top:1px solid var(--c-border);position:fixed;bottom:0;inset-inline:0;background:var(--c-surface);z-index:998}
+#footer{text-align:center;font-size:11px;color:var(--c-text3);padding:8px;border-top:1px solid var(--c-border);background:var(--c-surface);flex-shrink:0;margin-top:24px}
 
 /* RESPONSIVE FIXES — 1024 (tablet) / 768 (small tablet/large phone) / 480 (phone) / 360 (small phone/foldable) */
 @media(max-width:1024px){
@@ -413,20 +417,28 @@ table.data-table th[data-sortable]:focus-visible{outline:2px solid var(--c-prima
   .db-header{flex-direction:column;align-items:flex-start}
   .phase-actionbar{flex-direction:column;align-items:stretch}
   .modal-box{padding:20px}
-  /* MOBILE FIX (item #3): the footer's text wraps to 2-3 lines on narrow
-     screens, but body only reserved a fixed 44px for it — so a `position:
-     fixed` footer ended up overlapping/hiding the Back/Next/Download
-     buttons sitting at the bottom of every panel. Simplest robust fix:
-     let the footer flow normally in-page on mobile instead of guessing
-     its wrapped height. */
-  #footer{position:static;margin-top:24px}
-  body{padding-bottom:0}
+  /* MOBILE FIX (item #2, iPhone screenshots): iOS Safari auto-zooms the
+     whole page when a focused input's computed font-size is under 16px,
+     and on some pages doesn't reliably zoom back out on blur, leaving the
+     user stuck zoomed in. 16px is the documented iOS threshold — this
+     overrides every input/select/textarea (including more specific rules
+     like .form-group input, .filter-bar input, .mm-chip input which were
+     each below it) without touching desktop sizing at all.
+     Ref: https://webkit.org/blog/7929/designing-websites-for-iphone-x/ */
+  input,select,textarea{font-size:16px!important}
   /* MOBILE FIX (item #4): Back / Done / Download were squeezed onto the
      same crowded row with mismatched widths on narrow screens. Stack them
      full-width instead, so every control reads the same. */
   .sw-nav{flex-direction:column;align-items:stretch}
   .sw-nav>div{flex-direction:column;align-items:stretch;width:100%}
   .sw-nav .btn{width:100%;justify-content:center}
+  /* MOBILE FIX (item #5, iPhone screenshots): stacking Back + the two
+     action buttons with equal weight and no gap read as "3 confusing
+     buttons". Back is now a quiet ghost link (styled above) so it doesn't
+     compete with the real action; give it its own row with space below
+     so it doesn't visually fuse into the action group underneath it. */
+  .sw-nav{gap:18px}
+  .sw-nav-actions{gap:10px!important}
 }
 /* STRESS-TEST FIX (BUG-2, STRESS_TEST_REPORT.md): grid collapse needs a
    threshold BELOW iPad mini (744px CSS width) and an unfolded Galaxy
