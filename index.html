@@ -574,6 +574,34 @@
 
 12. CHANGELOG — terse, append-only; full reasoning for pre-v2.0 items
     lived in an earlier PIB revision, ask if needed
+    v4.6 — 2 remaining §5 parent features. (1) "What changed since last
+      test" one-liner: the doc suggested reusing subjectDeltas — checked
+      first and that field actually means "this student's subject
+      average vs the CLASS average" (computeExtraInsights() in
+      compute-engine.js), which is always exactly 0 in Individual mode
+      (no class to compare against) and misleading even in institution
+      mode for this purpose. Built generateWhatChangedSummary() fresh
+      instead, computing the real last-vs-previous-test delta straight
+      from raw per-test marks — same Math.min(mv,mx)/maxMarks math
+      computeAnalysis() already uses, so the numbers agree. Added as a
+      6th generate* narrative function, wired into the Progress Report
+      bucket alongside the existing parent message/trend facts. (2)
+      Shareable single-insight image: "Share as Image" button in the
+      same bucket renders the parent message, the new what-changed
+      one-liner, and the existing Chart.js trend canvas into a single
+      downloadable PNG via plain Canvas 2D (drawImage + manual word-wrap
+      — no library, no server, matching this app's existing constraints;
+      first canvas.toDataURL/toBlob usage anywhere in the codebase, so
+      no precedent to follow, built from scratch). Read-only rendering
+      of already-computed fields, no new schema. Caught and fixed two
+      self-inflicted syntax breaks while placing these functions in the
+      file — a str_replace step matched and dropped two function
+      declaration lines (generateSchoolPlan's and, on the very next
+      edit, generateWhatChangedSummary's own) without me confirming the
+      replacement preserved them; caught both via node --check rather
+      than assuming the edit landed clean, which is the actual habit
+      worth calling out here — verify after every edit that touches
+      existing code, not just after the last one in a sequence.
     v4.5 — i18n gap-fill (Project Bible v2 §4 review follow-up). A
       systematic review of all 13 language files (placeholder/HTML-tag
       integrity, invisible-character scan, length-ratio sanity, and a
