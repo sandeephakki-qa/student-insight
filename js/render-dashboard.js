@@ -71,6 +71,123 @@ function generateHomePlan(st){
   if(broad)return `This week: struggling roughly evenly across every subject means there's no single fix — rotate, one subject per day (20–30 min), and spend that time on fundamentals rather than more practice volume. Trying to cover everything at once usually fixes nothing.`;
   return `This week: 20–30 min/day on ${weakest.join(" and ")} specifically, not general revision. Have ${name} explain one solved problem out loud each day — that surfaces real gaps faster than more worksheets.`;
 }
+// TASK (Project Bible v2 §5, "What changed since last test" one-liner):
+// the doc suggested reusing subjectDeltas — checked it first and that
+// field is actually "this student's subject average vs the CLASS
+// average," computed in computeExtraInsights() in compute-engine.js. In
+// Individual mode there's no class to compare against, so that value is
+// always exactly 0 there — not usable for a last-test comparison, and
+// misleading even in institution mode (a 0 there means "average for the
+// class," not "no change since last test"). Computing the real
+// last-vs-previous-test delta fresh instead, straight from raw per-test
+// marks — same Math.min(mv,mx) clamping and maxMarks fallback
+// computeAnalysis() already uses per test, so the numbers agree.
+// TASK (Project Bible v2 §5, "Shareable single-insight image"): "Render
+// one insight card (e.g. the parent message + trend chart) to a
+// downloadable PNG via canvas, for sharing outside the app. Read-only
+// rendering of existing fields." No new computation — generateParentMessage,
+// generateWhatChangedSummary, and the already-rendered Chart.js trend
+// canvas are all reused as-is. Colors below are the hex values behind
+// this app's own --c-primary/--c-text/etc CSS variables (Canvas 2D can't
+// read CSS custom properties directly), kept in sync by hand — if the
+// palette in css/core.css's :root block ever changes, update here too.
+function wrapCanvasText(ctx,text,maxWidth){
+  const words=text.split(" ");
+  const lines=[];let line="";
+  words.forEach(w=>{
+    const test=line?line+" "+w:w;
+    if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=w;}
+    else line=test;
+  });
+  if(line)lines.push(line);
+  return lines;
+}
+function shareInsightAsImage(studentId){
+  const st=APP.students.find(s=>s.id===studentId);if(!st)return;
+  const a=st.analysis||{};
+  const srcChart=document.getElementById("bucket-chart-student-trend");
+  const W=800,PAD=40;
+  const measureCanvas=document.createElement("canvas");
+  const mctx=measureCanvas.getContext("2d");
+  const parentMsg=generateParentMessage(st);
+  const whatChanged=generateWhatChangedSummary(st);
+  mctx.font="15px Inter, sans-serif";
+  const msgLines=wrapCanvasText(mctx,parentMsg,W-PAD*2);
+  mctx.font="italic 13px Inter, sans-serif";
+  const changedLines=wrapCanvasText(mctx,whatChanged,W-PAD*2);
+  const headerH=90,nameH=66,msgH=msgLines.length*22+8,changedH=changedLines.length*19+24;
+  const chartAspect=(srcChart&&srcChart.width)?srcChart.height/srcChart.width:0.5;
+  const chartDrawH=srcChart?(W-PAD*2)*chartAspect:0;
+  const footerH=46;
+  const H=headerH+nameH+msgH+changedH+chartDrawH+footerH+PAD;
+  const canvas=document.createElement("canvas");
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext("2d");
+  ctx.fillStyle="#ffffff";ctx.fillRect(0,0,W,H);
+  ctx.fillStyle="#4361ee";ctx.fillRect(0,0,W,headerH);
+  ctx.fillStyle="#ffffff";ctx.font="700 20px 'DM Sans', sans-serif";ctx.textBaseline="alphabetic";
+  ctx.fillText("Student Insight — Progress Report",PAD,headerH/2-4);
+  ctx.font="12px Inter, sans-serif";ctx.fillStyle="rgba(255,255,255,.85)";
+  ctx.fillText(new Date().toLocaleDateString(),PAD,headerH/2+18);
+  let y=headerH+40;
+  ctx.fillStyle="#1a1d2e";ctx.font="700 24px 'DM Sans', sans-serif";
+  ctx.fillText(st.name,PAD,y);
+  y+=28;
+  ctx.font="600 15px Inter, sans-serif";ctx.fillStyle="#5a607a";
+  ctx.fillText(`Overall: ${a.overallAvg}%  ·  Grade ${a.grade||"-"}  ·  Trend: ${a.trend||"-"}`,PAD,y);
+  y+=32;
+  ctx.font="15px Inter, sans-serif";ctx.fillStyle="#1a1d2e";
+  msgLines.forEach(l=>{ctx.fillText(l,PAD,y);y+=22;});
+  y+=10;
+  ctx.font="italic 13px Inter, sans-serif";ctx.fillStyle="#5a607a";
+  changedLines.forEach(l=>{ctx.fillText(l,PAD,y);y+=19;});
+  y+=18;
+  if(srcChart){
+    ctx.drawImage(srcChart,PAD,y,W-PAD*2,chartDrawH);
+    y+=chartDrawH+20;
+  }
+  ctx.strokeStyle="#e2e5f1";ctx.beginPath();ctx.moveTo(PAD,y);ctx.lineTo(W-PAD,y);ctx.stroke();
+  y+=22;
+  ctx.font="11px Inter, sans-serif";ctx.fillStyle="#9ba4c0";
+  ctx.fillText("Privacy-first, offline analysis — nothing in this report was ever uploaded anywhere.",PAD,y);
+  canvas.toBlob(function(blob){
+    if(!blob){toast("Couldn't generate the image — try again.","warn");return;}
+    const url=URL.createObjectURL(blob);
+    const dl=document.createElement("a");
+    dl.href=url;
+    dl.download=(st.name||"student").replace(/[^\w\s-]/g,"").replace(/\s+/g,"_")+"_progress_report.png";
+    document.body.appendChild(dl);dl.click();document.body.removeChild(dl);
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    toast("Image downloaded — ready to share.","success");
+  },"image/png");
+}
+function generateWhatChangedSummary(st){
+  const a=st.analysis,name=st.name.split(" ")[0];
+  const tests=APP.setup.tests||[],subjects=APP.setup.subjects||[];
+  const validIdx=[];
+  (a.testAvgs||[]).forEach((v,i)=>{if(v!==null&&v!==undefined)validIdx.push(i);});
+  if(validIdx.length<2)return `Not enough test history yet to compare — need at least 2 scored tests (currently ${validIdx.length}).`;
+  const prevI=validIdx[validIdx.length-2],lastI=validIdx[validIdx.length-1];
+  const prevTest=tests[prevI],lastTest=tests[lastI];
+  const overallDelta=a.testAvgs[lastI]-a.testAvgs[prevI];
+  function subjPct(testIdx,subject){
+    const t=tests[testIdx],td=st.testData[t.name]||{marks:{}};
+    const m=td.marks[subject];if(m===null||m===undefined||m==="")return null;
+    const mx=(t.maxMarks&&t.maxMarks[subject])||100;
+    return Math.round((Math.min(parseFloat(m)||0,mx)/mx)*100);
+  }
+  let biggest=null;
+  subjects.forEach(s=>{
+    const p1=subjPct(prevI,s),p2=subjPct(lastI,s);
+    if(p1===null||p2===null)return;
+    const d=p2-p1;
+    if(!biggest||Math.abs(d)>Math.abs(biggest.d))biggest={subject:s,d};
+  });
+  const overallDir=overallDelta>0?"up":overallDelta<0?"down":"unchanged";
+  const overallBit=overallDelta===0?`stayed at ${a.testAvgs[lastI]}% overall`:`went ${overallDir} ${Math.abs(overallDelta)} point${Math.abs(overallDelta)===1?"":"s"} overall (${a.testAvgs[prevI]}% → ${a.testAvgs[lastI]}%)`;
+  const subjBit=(biggest&&biggest.d!==0)?`, mainly driven by ${biggest.subject} (${biggest.d>0?"+":""}${biggest.d})`:"";
+  return `Since ${prevTest.name}, ${name} has ${overallBit}${subjBit}.`;
+}
 function generateSchoolPlan(st){
   const a=st.analysis;
   const RISK_TYPES=["data-error","at-risk","first-below-pass","declining","sharp-drop","absent","volatile","burnout","data-gap"];
@@ -473,14 +590,16 @@ function renderBuckets(){
     subject:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
     help:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0z"/></svg>',
     top:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 6H4a2 2 0 0 0 2 2"/><path d="M17 6h3a2 2 0 0 1-2 2"/></svg>',
-    clusters:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/></svg>'
+    clusters:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/></svg>',
+    compare:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 3v18"/><path d="M16 3v18"/><path d="M3 8h5"/><path d="M16 8h5"/><path d="M3 16h5"/><path d="M16 16h5"/></svg>'
   };
   const buckets=[
     {id:"class",label:srT("bucket_class_label"),desc:srT("bucket_class_desc"),badge:null},
     {id:"student",label:srT("bucket_student_label"),desc:srT("bucket_student_desc"),badge:null},
     {id:"subject",label:srT("bucket_subject_label"),desc:srT("bucket_subject_desc"),badge:null},
     {id:"help",label:srT("bucket_help_label"),desc:srT("bucket_help_desc"),badge:helpCount},
-    {id:"top",label:srT("bucket_top_label"),desc:srT("bucket_top_desc"),badge:topCount}
+    {id:"top",label:srT("bucket_top_label"),desc:srT("bucket_top_desc"),badge:topCount},
+    {id:"compare",label:"Compare Two Students",desc:"Side-by-side stats for any two students in this class",badge:null}
   ];
   // Cohort clustering (k-means) only ever exists once the class is large
   // enough to be statistically meaningful — see computeCohortClusters()'s
@@ -590,9 +709,16 @@ function renderIndividualReportAnswer(st){
     <div class="bucket-answer-sub">Overall: ${esc(String(a.overallAvg))}% · Grade ${esc(a.grade||"-")} · Trend: ${esc(a.trend||"-")}</div>
     <div class="bucket-answer-body">
       <p>${esc(generateParentMessage(st))}</p>
+      <p>${esc(generateWhatChangedSummary(st))}</p>
       <p>${esc(generateTrendFacts(st))}</p>
     </div>
-    <div class="chart-container" style="margin-top:14px"><div class="card-title">Progress Trend</div><canvas id="bucket-chart-student-trend"></canvas></div>
+    <div class="chart-container" style="margin-top:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="card-title">Progress Trend</div>
+        <button class="btn btn-secondary btn-sm" onclick="shareInsightAsImage('${esc(st.id)}')"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 15V3'/><path d='M7 8l5-5 5 5'/><path d='M4 21h16'/></svg> Share as Image</button>
+      </div>
+      <canvas id="bucket-chart-student-trend"></canvas>
+    </div>
     <div class="card" id="target-score-card" style="padding:14px 16px;margin-top:14px"></div>
   `).addClass("screen-fade-in").show();
   renderBucketStudentTrendChart("bucket-chart-student-trend",st);
@@ -686,6 +812,62 @@ function openBucket(id){
   if(id==="help")return renderFilteredList("help");
   if(id==="top")return renderFilteredList("top");
   if(id==="clusters")return renderClusterGroups();
+  if(id==="compare")return renderComparePicker();
+}
+// TASK (Project Bible v2 §5a, "Student-vs-student comparison — scoped
+// correctly, Classic view"). Scope guard is implicit, not a separate
+// check: both dropdowns are populated only from APP.students (the one
+// currently-loaded roster), so a cross-file/cross-class comparison is
+// structurally impossible here — there is no second roster to pick from.
+// Smart Query v2's two-student question variant is not built here; that
+// depends on js/smart-query-v2.js, which does not exist yet.
+function renderComparePicker(){
+  const students=APP.students||[];
+  const opts=students.map(st=>`<option value="${esc(st.id)}">${esc(st.name)}</option>`).join("");
+  $("#bucket-list-screen").html(`
+    <button class="bucket-back-btn" onclick="backToBuckets()">${esc(srT("back"))}</button>
+    <div class="bucket-list-title">Compare Two Students</div>
+    <div class="bucket-picker-hint">Pick any two students from this class — comparison only ever uses this same roster, so it's always apples-to-apples.</div>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px">
+      <select id="compare-pick-a" style="flex:1;min-width:180px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:13px" onchange="renderCompareResult()"><option value="">Select student A…</option>${opts}</select>
+      <span style="color:var(--c-text3);font-weight:700">vs</span>
+      <select id="compare-pick-b" style="flex:1;min-width:180px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:13px" onchange="renderCompareResult()"><option value="">Select student B…</option>${opts}</select>
+    </div>
+    <div id="compare-result" style="margin-top:16px"></div>
+  `).addClass("screen-fade-in").show();
+  $("#bucket-screen").hide();
+}
+function renderCompareResult(){
+  const idA=$("#compare-pick-a").val(),idB=$("#compare-pick-b").val();
+  const el=$("#compare-result");
+  if(!idA||!idB){el.html("");return;}
+  if(idA===idB){el.html(`<div style="color:var(--c-text3);padding:10px">Pick two different students.</div>`);return;}
+  const stA=(APP.students||[]).find(s=>s.id===idA),stB=(APP.students||[]).find(s=>s.id===idB);
+  if(!stA||!stB)return;
+  const a=stA.analysis||{},b=stB.analysis||{};
+  const subjects=APP.setup.subjects||[];
+  function rowsFor(label,valA,valB,unit,lowerIsBetter){
+    let better=null;
+    if(valA!==valB&&typeof valA==="number"&&typeof valB==="number"){
+      better=(lowerIsBetter?valA<valB:valA>valB)?"A":"B";
+    }
+    return `<tr><td style="font-weight:600;color:var(--c-text2)">${esc(label)}</td>
+      <td style="text-align:center;${better==="A"?"font-weight:700;color:var(--c-success)":""}">${valA!==null&&valA!==undefined?esc(String(valA))+(unit||""):"—"}</td>
+      <td style="text-align:center;${better==="B"?"font-weight:700;color:var(--c-success)":""}">${valB!==null&&valB!==undefined?esc(String(valB))+(unit||""):"—"}</td></tr>`;
+  }
+  let rows="";
+  rows+=rowsFor("Overall Average",a.overallAvg,b.overallAvg,"%");
+  rows+=rowsFor("Grade",a.grade,b.grade,"");
+  rows+=rowsFor("Rank",a.rank,b.rank,"",true);
+  rows+=rowsFor("Trend",a.trend,b.trend,"");
+  rows+=rowsFor("Consistency",a.consistencyScore,b.consistencyScore,"");
+  rows+=rowsFor("Total Absences",a.totalAbsent,b.totalAbsent,typeof a.totalAbsent==="number"||typeof b.totalAbsent==="number"?" days":"",true);
+  subjects.forEach(s=>{
+    const va=(a.subjectAvgs||{})[s],vb=(b.subjectAvgs||{})[s];
+    rows+=rowsFor(s,va!==undefined?va:null,vb!==undefined?vb:null,"%");
+  });
+  el.html(`<div style="overflow-x:auto"><table class="data-table"><thead><tr><th></th><th style="text-align:center">${esc(stA.name)}</th><th style="text-align:center">${esc(stB.name)}</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div style="font-size:11px;color:var(--c-text3);margin-top:10px">Same class, same subjects, same tests, same max marks — this comparison is always apples-to-apples. Highlighted cell = better on that row.</div>`);
 }
 function backToBuckets(){
   $("#bucket-list-screen,#bucket-answer-screen").hide();
