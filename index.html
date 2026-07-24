@@ -574,6 +574,26 @@
 
 12. CHANGELOG — terse, append-only; full reasoning for pre-v2.0 items
     lived in an earlier PIB revision, ask if needed
+    v4.5 — i18n gap-fill (Project Bible v2 §4 review follow-up). A
+      systematic review of all 13 language files (placeholder/HTML-tag
+      integrity, invisible-character scan, length-ratio sanity, and a
+      byte-for-byte identical-to-English detector) found 35 keys that
+      were never actually translated in any of the 12 non-English
+      files — pre-existing from before this i18n system's later phases,
+      not something introduced along the way. Broke down as: entire
+      Smart Search screen (11 keys), FAQ section bold titles — the
+      "From the Principal" etc. headers, previously mixed with their
+      already-translated faq_cnt_* subtitle captions (9), Individual
+      mode's 4 bucket labels+descriptions (8), Home hero+upload (4),
+      About hero (2), "Back to Dashboard" (1). Translated fresh into
+      all 12 languages (420 strings) and merged in directly (overwrite,
+      not additive — these keys already existed as English stubs).
+      Re-ran the full structural/encoding/length review afterward:
+      zero placeholder or HTML-tag mismatches, zero suspicious
+      characters, zero remaining identical-to-English keys, one
+      length-ratio flag that turned out to be a correct short Hindi
+      word ("सुझाव" for "Recommendations") rather than a truncation —
+      confirmed by direct inspection before dismissing it.
     v4.4 — Target-score tracker (Project Bible v2 §5, "For parents").
       Individual mode's Progress Report bucket now has a target-%-for-
       next-test input, comparing against the existing (previously
