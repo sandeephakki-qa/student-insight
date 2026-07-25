@@ -1,4 +1,12 @@
 /* ============================================================
+   DISABLED PENDING REVIEW (vs-shell-plan-v2 Task 2) — this file's
+   original header below cited a non-existent spec section
+   ("Project Bible v2 §8.8"); the story-deck feature itself was never
+   actually requested or designed. Its <script> tag in index.html is
+   commented out, not removed. Re-enable only after an explicit
+   decision, not by default.
+   ============================================================
+
    Student Insight — Story-Deck-Run mode (Project Bible v2 §8.8)
    Classic-mode-only, presentation-layer walkthrough. First entry into
    a bucket this session shows a phase-wise slide deck built from

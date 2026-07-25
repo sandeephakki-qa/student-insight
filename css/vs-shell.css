@@ -1,0 +1,170 @@
+/* ============================================================
+   Student Insight — VS-Style Shell CSS (vs-shell-plan-v2.md Task 3)
+   Replaces the scrapped css/shell.css. Fixed-position left/right
+   panels (Toolbox / Solution-Explorer proportions), resizable by
+   dragging a divider, collapsible to a thin strip — NOT true
+   drag-to-anywhere docking (confirmed out of scope, see
+   vs-shell-plan-v2.md §2). Structure only in this task: panels ship
+   empty, real content is Tasks 4/5/6.
+
+   RTL: grid tracks are placed in the inline direction, so under
+   [dir="rtl"] on #app-shell-body (set in reapplyI18nStrings(), see
+   js/render-dashboard.js) the panel-start/core/panel-end columns
+   mirror automatically — no separate RTL override block needed for
+   the grid itself. inset-inline-start/end (not left/right) are used
+   throughout so the divider and collapse-toggle positions mirror too.
+   This covers the shell chrome only; a full-page RTL content audit is
+   Task 8's regression pass, not this task's.
+============================================================ */
+
+:root{
+  --panel-start-width:240px;
+  --panel-end-width:240px;
+  --panel-min-width:160px;
+  --panel-max-width:420px;
+  --panel-collapsed-width:28px;
+  --shell-divider-width:6px;
+  --footer-h:40px;
+}
+
+#app-shell-body{
+  display:grid;
+  grid-template-columns:
+    var(--panel-start-width) var(--shell-divider-width)
+    minmax(0,1fr)
+    var(--shell-divider-width) var(--panel-end-width);
+  grid-template-rows:auto minmax(0,1fr);
+  grid-template-areas:
+    "breadcrumb breadcrumb breadcrumb breadcrumb breadcrumb"
+    "start divstart core divend end";
+  margin-top:var(--content-top);
+  height:calc(100vh - var(--content-top));
+  transition:grid-template-columns .15s ease;
+}
+#app-shell-body.shell-no-anim{transition:none}
+
+#shell-breadcrumb{
+  grid-area:breadcrumb;
+}
+#shell-breadcrumb:empty{display:none}
+
+/* ---- side panels ---- */
+.shell-panel{
+  position:relative;
+  min-height:0;
+  overflow:hidden;
+  background:var(--c-surface);
+  border-inline-start:1px solid var(--c-border);
+  border-inline-end:1px solid var(--c-border);
+  display:flex;
+  flex-direction:column;
+}
+#shell-panel-start{grid-area:start}
+#shell-panel-end{grid-area:end}
+
+.shell-panel-toggle{
+  flex:0 0 auto;
+  width:100%;
+  height:28px;
+  border:none;
+  border-block-end:1px solid var(--c-border);
+  background:var(--c-surface2);
+  color:var(--c-text2);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:var(--transition);
+}
+.shell-panel-toggle:hover{background:var(--c-border);color:var(--c-text)}
+/* end-panel chevron points the opposite way visually via icon paths already
+   authored per-side in index.html — collapsed state below only spins them
+   180deg so the same two icons still mean "expand" once collapsed. */
+.shell-panel[data-collapsed="true"] .shell-panel-toggle svg{transform:rotate(180deg)}
+.shell-panel[data-collapsed="true"] .shell-panel-content{display:none}
+.shell-panel[data-collapsed="true"]{overflow:visible}
+
+.shell-panel-content{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  padding:12px;
+}
+.shell-panel-content:empty{padding:0}
+
+/* ---- resize dividers ---- */
+.shell-divider{
+  cursor:col-resize;
+  background:transparent;
+  position:relative;
+}
+#shell-divider-start{grid-area:divstart}
+#shell-divider-end{grid-area:divend}
+.shell-divider::after{
+  content:"";
+  position:absolute;
+  inset-block:0;
+  inset-inline-start:calc(50% - 1px);
+  width:2px;
+  background:var(--c-border);
+}
+.shell-divider:hover::after,
+.shell-divider.shell-divider-active::after{
+  background:var(--c-primary);
+}
+.shell-panel[data-collapsed="true"] + .shell-divider,
+.shell-divider:has(+ .shell-panel[data-collapsed="true"]){
+  cursor:default;
+  pointer-events:none;
+}
+
+/* ---- core (center, scrollable independent of the panels) ---- */
+#app-shell-body #main{
+  grid-area:core;
+  min-width:0;
+  height:100%;
+  margin-top:0;
+  max-width:none;
+  margin-left:0;
+  margin-right:0;
+  overflow-y:auto;
+}
+
+/* ---- whole-app viewport fit (correction, not part of original Task 3) ----
+   Only #main should scroll. Previously #app-shell-body's fixed height
+   only accounted for the header (--content-top), so #footer (a normal-
+   flow sibling after #app-shell-body) pushed the page taller than the
+   viewport and required a page-level scroll just to reach it. Header/
+   stepper stay exactly as before (position:fixed, untouched); footer now
+   gets a reserved height budget too, so header+shell+footer sum to
+   exactly 100dvh and the page itself never scrolls — all scrolling
+   happens inside #main. Scoped to the same >768px range as the grid
+   itself; the mobile fallback below already uses natural page scroll. */
+@media(min-width:769px){
+  html{height:100%}
+  body{height:100dvh;min-height:0;overflow:hidden}
+  #app-shell-body{
+    height:calc(100dvh - var(--content-top) - var(--footer-h));
+  }
+  #footer{
+    flex:0 0 var(--footer-h);
+    margin-top:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+}
+
+/* ---- mobile fallback placeholder ----
+   vs-shell-plan-v2.md Task 8 replaces this with the original mobile
+   pattern from shell-redesign-plan.md (info strip + bottom sheet).
+   Not implemented in Task 3 — flagged here, not silently deferred. */
+@media(max-width:768px){
+  #app-shell-body{
+    display:block;
+    height:auto;
+    margin-top:var(--content-top);
+  }
+  .shell-panel,.shell-divider{display:none}
+  #app-shell-body #main{height:auto;overflow-y:visible}
+}

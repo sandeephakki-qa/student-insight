@@ -424,7 +424,19 @@ window.SR_LANG = "en"; // default — see COUNTRY_LANGUAGES/applyCountryDefault(
 window.I18N_LOADING = false;
 
 function loadLanguage(code){
-  if(code==="en"||window.I18N_TABLES[code]){ // already have it (or it's English, always present inline)
+  // BUG FIX (vs-shell-plan-v2 Task 1): English used to short-circuit here
+  // ("already... it's English, always present inline") and never fetch
+  // i18n/en.json, while SR_STRINGS_EN above was a hand-maintained subset
+  // that had silently drifted out of sync with en.json (missing keys like
+  // smart_search_back/title/subtitle) — that drift, not a race condition,
+  // is why raw key names showed on screen. English now goes through the
+  // exact same fetch path as every other language: one code path for all
+  // 14 cases. SR_STRINGS_EN stays inline purely as the emergency fallback
+  // (per the original "English sits in html/JS only for emergencies"
+  // direction, see comment above) — it's still used below if the fetch
+  // fails, and it still pre-populates I18N_TABLES.en so the very first
+  // synchronous render (before this fetch resolves) isn't blank.
+  if(window.I18N_TABLES[code] && code!=="en"){ // already fetched (non-English only — English always refetches once, below)
     window.SR_LANG = code;
     reapplyI18nStrings();
     return Promise.resolve();
@@ -441,6 +453,14 @@ function loadLanguage(code){
     .catch(err=>{
       window.I18N_LOADING = false;
       console.error("loadLanguage failed for", code, err);
+      if(code==="en"){
+        // Emergency fallback: keep the inline SR_STRINGS_EN copy already
+        // sitting in window.I18N_TABLES.en so English still renders correctly
+        // even though i18n/en.json couldn't be fetched.
+        window.SR_LANG = "en";
+        reapplyI18nStrings();
+        return;
+      }
       toast("Couldn't load that language — staying on "+(SR_LANG_TABLES_LABEL(window.SR_LANG))+".","warn");
     });
 }
@@ -502,6 +522,11 @@ function reapplyI18nStrings(){
   $("#bucket-screen,#bucket-list-screen,#bucket-answer-screen,#smart-search-screen,#panel-ai")
     .attr("dir", isRtl ? "rtl" : "ltr")
     .toggleClass("rtl-screen", isRtl);
+  // vs-shell-plan-v2 Task 3: #app-shell-body gets dir only (no .rtl-screen
+  // class, which sets text-align:right) so the shell grid's own columns
+  // mirror without forcing text-align on the still-English-layout panels
+  // nested inside it. A full content-level RTL audit is Task 8's job.
+  $("#app-shell-body").attr("dir", isRtl ? "rtl" : "ltr");
   if($("#bucket-screen").is(":visible")){
     if(APP.setup.mode==="individual") renderIndividualBuckets(); else renderBuckets();
   }

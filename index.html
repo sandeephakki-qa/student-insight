@@ -238,6 +238,44 @@
 
 ════════════════════════════════════════════════════════════════════════
 
+6a. APP SHELL (vs-shell-plan-v2.md — supersedes the v4.7 shell scrapped
+    in Task 2; see §9 shell-scrapped-not-refactored)
+   Files: css/vs-shell.css, js/vs-shell.js. #app-shell-body (persists
+     across all 7 panels — never torn down on goStep()) is a 5-column
+     grid: panel-start | 6px divider | core (#main) | 6px divider |
+     panel-end, plus a full-width breadcrumb row (#shell-breadcrumb,
+     currently unpopulated — no owner yet, see §10).
+   Contract: setLeftRail(html) / setRightRail(html) (global fns,
+     js/vs-shell.js) — same names/signatures the old app-shell.js used,
+     write into #shell-rail-start / #shell-rail-end respectively. Call
+     these from panel render functions to populate the side panels —
+     Task 3 ships them empty; wiring real content per phase is Tasks 4/5/6.
+   Resize: pointer-drag on #shell-divider-start/#shell-divider-end
+     (also ArrowLeft/ArrowRight when focused, role="separator"), clamped
+     160-420px, written to --panel-start-width/--panel-end-width custom
+     properties on #app-shell-body. Backing state is APP.shellState
+     (js/vs-shell.js — Task 7, in-memory only, NO_PERSISTENCE), survives
+     Home->Setup->Dashboard navigation since #app-shell-body is never
+     torn down.
+   Collapse: chevron button per panel (vsShellToggle("start"|"end")),
+     hides .shell-panel-content, shrinks that column to 28px.
+   RTL: grid columns mirror via dir="rtl" on #app-shell-body itself
+     (set in reapplyI18nStrings(), js/render-dashboard.js — attribute
+     only, NOT the .rtl-screen class, which sets text-align:right and
+     would wrongly flip the still-English-layout panel content nested
+     inside). Content-level RTL is still scoped to the same elements as
+     before (§9 note above this one) — Task 8 does the full audit.
+   Mobile (<=768px): grid collapses to block layout, panels/dividers
+     hidden — a placeholder only. The real mobile pattern (info strip +
+     bottom sheet) from shell-redesign-plan.md is Task 8, not yet built.
+   Viewport fit (>768px only): #main is the only scrolling region.
+     header/#stepper stay position:fixed, unchanged; #app-shell-body's
+     height now also subtracts a reserved --footer-h so header + shell +
+     footer sum to exactly 100dvh — no page-level scrollbar. Below
+     768px this is skipped; the mobile fallback keeps natural page scroll.
+
+════════════════════════════════════════════════════════════════════════
+
 7. FUNCTION INDEX (name — ~line — one-line purpose)
    generateTemplate() 2539 — fresh blank .xlsx (SETUP+MARKS+CONTEXT
      sheets) from current Setup form; branches to
@@ -406,6 +444,12 @@
      header logo's src into this slot) was dead code after this change
      and has been removed (v2.1).
 
+   setLeftRail(html)/setRightRail(html) (js/vs-shell.js) — write into
+     #shell-rail-start/#shell-rail-end, the VS-shell side panels; see
+     §6a. Empty callers only as of Task 3.
+   vsShellToggle(side) (js/vs-shell.js) — collapse/expand a side panel
+     ("start"|"end"); see §6a.
+
 ════════════════════════════════════════════════════════════════════════
 
 8. CONSTANTS
@@ -511,6 +555,29 @@
      tryOneClickSample(). If sample data still looks "broken" after
      this, look for a live-hosting issue (file actually present at
      studin.in) before assuming the JS is at fault again.
+   en-i18n-was-never-fetched  loadLanguage() special-cased code==="en" to
+     never fetch i18n/en.json, treating the inline SR_STRINGS_EN as
+     always-sufficient — but SR_STRINGS_EN had silently drifted out of
+     sync with en.json (missing smart_search_back/title/subtitle and
+     ~100 other keys), so raw key names rendered on the Smart Search
+     screen. Deterministic, not a race condition. Fixed in vs-shell-
+     plan-v2 Task 1: English now fetches i18n/en.json like every other
+     language; SR_STRINGS_EN remains only as the emergency fallback if
+     that fetch itself fails.
+   shell-scrapped-not-refactored  css/shell.css and js/app-shell.js
+     (v4.7) were a literal wireframe trace shipped as real UI — box
+     captions like "Just plan data in bullet points" as live text,
+     hardcoded English with no srT(), a duplicate escapeHtml() instead
+     of esc(). Deleted outright in vs-shell-plan-v2 Task 2, not
+     repaired — the VS-style shell (css/vs-shell.css, js/vs-shell.js)
+     is a clean rebuild, see shell-redesign-plan.md / vs-shell-plan-v2.md.
+   story-deck-fabricated-citation  js/story-deck.js's header cited
+     "Project Bible v2 §8.8" — this section has never existed (this PIB
+     stops at §12, never had an §8.8) and the story-deck feature was
+     never requested or designed. Disabled (script tag commented out,
+     header annotated) in vs-shell-plan-v2 Task 2 rather than silently
+     kept or silently deleted. Do not re-enable without an explicit
+     decision and a real spec entry here.
 
 ════════════════════════════════════════════════════════════════════════
 
@@ -574,6 +641,45 @@
 
 12. CHANGELOG — terse, append-only; full reasoning for pre-v2.0 items
     lived in an earlier PIB revision, ask if needed
+    v4.11 — vs-shell-plan-v2.md Task 7 (session-persistent panel state).
+      js/vs-shell.js's resize/collapse state promoted from a closure-
+      local var to APP.shellState (in-memory only, NO_PERSISTENCE —
+      resets on reload, survives in-session navigation since #app-
+      shell-body is never torn down). role="region"+aria-label on both
+      side panels and #main were already added in Task 3, so that half
+      of Task 7's ask was already satisfied. Tasks 4/5/6/8 remain
+      not-started — blocked on the missing shell-redesign-plan.md.
+    v4.10 — Correction to Task 3 (user-requested, not in vs-shell-plan-
+      v2.md): whole app now fits the viewport on desktop (>768px) with
+      no page-level scroll — only #main scrolls internally. #app-shell-
+      body's height budget now also reserves --footer-h so header +
+      shell + footer sum to exactly 100dvh; header/#stepper unchanged
+      (still fixed). Mobile fallback (<=768px) untouched, still natural
+      page scroll.
+    v4.9 — vs-shell-plan-v2.md Task 3: VS-shell skeleton. New
+      css/vs-shell.css + js/vs-shell.js (clean rebuild, not the
+      scrapped v4.7 files). #app-shell-body is now a 5-col grid
+      (panel-start | divider | core | divider | panel-end), resizable
+      160-420px by drag or arrow keys, collapsible to 28px via chevron.
+      Core (#main) scrolls independently; panels stay full-height.
+      dir="rtl" on #app-shell-body mirrors the grid under Urdu (attribute
+      only, scoped separately from the existing .rtl-screen content
+      flip). Panels ship empty — see §6a. Mobile (<=768px) falls back to
+      block layout as a placeholder; real mobile pattern is Task 8.
+    v4.8 — vs-shell-plan-v2.md Tasks 1-2. (1) Fixed pre-existing i18n
+      bug: loadLanguage() no longer special-cases English — it fetches
+      i18n/en.json like every other language, fixing missing
+      smart_search_* (and ~100 other) keys that fell out of sync in
+      the inline SR_STRINGS_EN; SR_STRINGS_EN kept only as emergency
+      fallback if that fetch fails. (2) Deleted css/shell.css and
+      js/app-shell.js outright (wireframe-trace v4.7 shell, scrapped
+      not refactored). Commented out (not deleted) the script tags for
+      js/smart-query-v2-ui.js (floating bubble, superseded by the
+      planned right-panel wiring) and js/story-deck.js (fabricated
+      "§8.8" citation, feature never actually designed); story-deck.js
+      header annotated in place. App behaves exactly as pre-v4.7 until
+      the new VS-style shell (css/vs-shell.css, js/vs-shell.js) lands
+      in later tasks.
     v4.7 — App shell (Phases 1-3, shell-redesign-plan.md), Smart Query
       v2 core + UI (js/smart-query-v2.js, js/smart-query-v2-ui.js),
       Story-Deck-Run mode (js/story-deck.js), §5a student-vs-student
@@ -1038,7 +1144,7 @@
   TODO: pin SRI for xlsx, jspdf, jszip and Chart.js — see note above.
 -->
 <link rel="stylesheet" href="css/core.css">
-<link rel="stylesheet" href="css/shell.css">
+<link rel="stylesheet" href="css/vs-shell.css">
 </head>
 <body>
 <a href="#main" class="skip-link">Skip to main content</a>
@@ -1075,8 +1181,12 @@
 
 <div id="app-shell-body">
 <div id="shell-breadcrumb"></div>
-<div id="shell-rail-start"></div>
-<main id="main" tabindex="-1">
+<div class="shell-panel" id="shell-panel-start" data-collapsed="false">
+  <button type="button" class="shell-panel-toggle" id="shell-panel-start-toggle" aria-label="Collapse panel" aria-expanded="true" aria-controls="shell-rail-start" onclick="vsShellToggle('start')"><svg class="ic" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg></button>
+  <div class="shell-panel-content" id="shell-rail-start" role="region" aria-label="Details panel"></div>
+</div>
+<div class="shell-divider" id="shell-divider-start" role="separator" aria-orientation="vertical" aria-label="Resize details panel" tabindex="0"></div>
+<main id="main" tabindex="-1" role="region" aria-label="Main content">
 <!-- ════ PANEL: HOME ════ -->
 <div id="panel-home" class="panel active">
 
@@ -1885,7 +1995,11 @@
 </div>
 
 </main><!-- #main -->
-<div id="shell-rail-end"></div>
+<div class="shell-divider" id="shell-divider-end" role="separator" aria-orientation="vertical" aria-label="Resize actions panel" tabindex="0"></div>
+<div class="shell-panel" id="shell-panel-end" data-collapsed="false">
+  <button type="button" class="shell-panel-toggle" id="shell-panel-end-toggle" aria-label="Collapse panel" aria-expanded="true" aria-controls="shell-rail-end" onclick="vsShellToggle('end')"><svg class="ic" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 18l6-6-6-6"/></svg></button>
+  <div class="shell-panel-content" id="shell-rail-end" role="region" aria-label="Actions panel"></div>
+</div>
 </div><!-- #app-shell-body -->
 
 <!-- STUDENT MODAL -->
@@ -1920,9 +2034,17 @@
 <script src="js/smart-engine.js"></script>
 <script src="js/smart-engine-ui.js"></script>
 <script src="js/smart-query-v2.js"></script>
+<!-- vs-shell-plan-v2 Task 2: floating-bubble UI disabled, not deleted — superseded by
+     the right-panel Smart Query wiring in Task 6. Re-enable only if Task 6 is rolled back.
 <script src="js/smart-query-v2-ui.js"></script>
+-->
+<!-- vs-shell-plan-v2 Task 2: disabled pending review — this file's original header cited
+     a non-existent spec section ("Project Bible v2 §8.8"); the story-deck feature itself
+     was never actually requested or designed. Re-enable only after an explicit decision,
+     not by default.
 <script src="js/story-deck.js"></script>
-<script src="js/app-shell.js"></script>
+-->
 <script src="js/setup-wizard.js"></script>
+<script src="js/vs-shell.js"></script>
 </body>
 </html>
