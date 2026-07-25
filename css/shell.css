@@ -1,44 +1,90 @@
 /* ============================================================
-   Student Insight — App Shell (Project Bible v2 §6a)
-   Persistent left/right rail grid around #main. Uses CSS logical
-   properties (grid-template-areas with rail-start/rail-end, not
-   left/right) so the rails mirror automatically under .rtl-screen
-   (Urdu) without a hand-maintained second layout — do not hardcode
-   left/right here.
+   Student Insight — App Shell CSS, matching uploaded wireframes.
 ============================================================ */
+
+#shell-breadcrumb{
+  grid-column:1/-1;
+  background:var(--c-surface,#fff);
+  border:1px solid var(--c-border,#e2e5f1);
+  border-radius:8px;
+  padding:8px 14px;
+  font-size:12.5px;
+  color:var(--c-text2,#5a607a);
+  text-align:center;
+  margin-bottom:14px;
+}
 
 #app-shell-body{
   display:grid;
-  grid-template-columns:220px minmax(0,1fr) 260px;
-  grid-template-areas:"rail-start core rail-end";
-  gap:16px;
+  grid-template-columns:190px minmax(0,1fr) 190px;
+  grid-template-areas:
+    "crumb crumb crumb"
+    "rail-start core rail-end";
+  gap:14px;
   align-items:start;
 }
+#shell-breadcrumb{grid-area:crumb}
 #shell-rail-start{grid-area:rail-start}
 #shell-rail-end{grid-area:rail-end}
 #main{grid-area:core;min-width:0}
 
 .rtl-screen #app-shell-body{
-  grid-template-columns:260px minmax(0,1fr) 220px;
+  grid-template-columns:190px minmax(0,1fr) 190px;
 }
 
 #shell-rail-start,#shell-rail-end{
-  background:var(--c-surface,#fff);
-  border:1px solid var(--c-border,#e2e5f1);
-  border-radius:12px;
-  padding:14px;
-  font-size:12.5px;
-  color:var(--c-text2,#5a607a);
-  min-height:80px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
 }
 #shell-rail-start:empty,#shell-rail-end:empty{display:none}
 
-.shell-rail-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3,#9ba4c0);margin-bottom:8px}
-.shell-rail-row{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--c-border,#f0f2fa)}
-.shell-rail-row:last-child{border-bottom:none}
-.shell-rail-empty{color:var(--c-text3,#9ba4c0);font-size:12px}
+/* Left rail — plain bulleted data box, per wireframe */
+#shell-rail-start .shell-bullet-title{
+  font-size:12px;font-weight:700;color:var(--c-text2,#5a607a);
+  border:1px solid var(--c-border,#e2e5f1);border-radius:8px;
+  padding:8px 10px;background:var(--c-surface,#fff);
+}
+#shell-rail-start .shell-bullet{
+  font-size:11.5px;color:var(--c-text2,#5a607a);
+  border:1px solid var(--c-border,#e2e5f1);border-radius:8px;
+  padding:8px 10px;background:var(--c-surface,#fff);
+  line-height:1.5;
+}
+#shell-rail-start .shell-bullet span{
+  display:block;margin-top:3px;font-weight:700;color:var(--c-text,#1a1d2e);
+}
+
+/* Right rail — two stacked boxes, per wireframe */
+.shell-rail-box{
+  border:1px solid var(--c-border,#e2e5f1);border-radius:8px;
+  background:var(--c-surface,#fff);padding:14px 10px;
+}
+.shell-rail-box .shell-rail-title{
+  font-size:11.5px;font-weight:700;color:var(--c-text2,#5a607a);
+  text-align:center;margin-bottom:14px;line-height:1.4;
+}
+.shell-step{
+  display:flex;align-items:flex-start;gap:6px;
+  font-size:11.5px;color:var(--c-text,#1a1d2e);
+  padding:5px 2px;line-height:1.4;
+}
+.shell-step-num{
+  flex-shrink:0;width:16px;height:16px;border-radius:50%;
+  background:var(--c-primary,#4361ee);color:#fff;
+  font-size:9.5px;font-weight:700;display:flex;align-items:center;justify-content:center;
+}
+.shell-rail-links{text-align:center}
+.shell-rail-links .shell-link{
+  font-size:12.5px;color:var(--c-text,#1a1d2e);
+  padding:8px 0;cursor:pointer;
+}
+.shell-rail-links .shell-link:hover{color:var(--c-primary,#4361ee)}
 
 @media(max-width:900px){
-  #app-shell-body{grid-template-columns:1fr;grid-template-areas:"core";}
+  #app-shell-body{
+    grid-template-columns:1fr;
+    grid-template-areas:"crumb" "core";
+  }
   #shell-rail-start,#shell-rail-end{display:none}
 }

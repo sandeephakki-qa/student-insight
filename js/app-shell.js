@@ -1,10 +1,13 @@
 /* ============================================================
-   Student Insight — App Shell engine (Project Bible v2 §6a)
-   Phases 1-3: skeleton + left rail (context) + right rail
-   (actionable / Smart Query v2). Reads only existing APP.setup /
-   APP.students fields — no new state, no computation.
-   Scope freeze respected: does not touch compute-engine.js,
-   FROZEN_KEYS schema, or the export pipeline.
+   Student Insight — App Shell engine
+   Rebuilt to match uploaded wireframes exactly:
+   - Left rail: plain bullet list (uploaded file name, institute/
+     individual name, number of records, single/multiple files)
+   - Breadcrumb row, full width, above the 3-column body
+   - Right rail: two stacked boxes — numbered "Actionable items"
+     step list, and a Sample Files / About / FAQ's quick-link box
+   Persistent on every screen (matches all 4 wireframes showing the
+   same rail content regardless of which screen is centered).
 ============================================================ */
 
 (function(){
@@ -21,83 +24,107 @@
     const el=document.getElementById("shell-rail-end");
     if(el) el.innerHTML=html||"";
   }
+  function setBreadcrumb(html){
+    const el=document.getElementById("shell-breadcrumb");
+    if(el) el.innerHTML=html||"";
+  }
 
-  /* ── Left rail: same "what's loaded" context on every data-bearing
-     panel, duplicating exactly what Setup's own form already shows —
-     any mismatch means this is reading a stale field, not a new one. */
+  /* ── Left rail — wireframe: "Just plan data in bullet points"
+     - Uploaded file name
+     - Institute or individual and name of it
+     - Number of records
+     - Single file or multiple files ── */
   function leftRailContent(){
     const setup=(window.APP&&APP.setup)||{};
     const students=(window.APP&&APP.students)||[];
-    if(!students.length){
-      return '<div class="shell-rail-title">This session</div><div class="shell-rail-empty">No file uploaded yet.</div>';
-    }
-    const modeLabel=setup.mode==="individual"?"Individual":"Institution";
-    const nameLabel=setup.mode==="individual"?(students[0]&&students[0].name||""):(setup.institutionName||"");
-    const multi=(window.APP&&APP.compareMode)?"Multiple files":"Single file";
-    return '<div class="shell-rail-title">This session</div>'+
-      '<div class="shell-rail-row"><span>Mode</span><span>'+escapeHtml(modeLabel)+'</span></div>'+
-      (nameLabel?('<div class="shell-rail-row"><span>Name</span><span>'+escapeHtml(nameLabel)+'</span></div>'):'')+
-      '<div class="shell-rail-row"><span>Records</span><span>'+escapeHtml(students.length)+'</span></div>'+
-      '<div class="shell-rail-row"><span>Files</span><span>'+escapeHtml(multi)+'</span></div>'+
-      (setup.className?('<div class="shell-rail-row"><span>Class</span><span>'+escapeHtml(setup.className)+'</span></div>'):'');
+    const single=window.APP&&APP.homeSingleFile;
+    const sections=(window.APP&&APP.sections)||[];
+
+    let fileName="—";
+    if(single&&single.fileName) fileName=single.fileName;
+    else if(sections.length===1&&sections[0].fileName) fileName=sections[0].fileName;
+    else if(sections.length>1) fileName=sections.length+" files";
+
+    const nameLabel = setup.mode==="individual"
+      ? (students[0]&&students[0].name ? "Individual — "+students[0].name : "Individual")
+      : (setup.institutionName ? "Institution — "+setup.institutionName : "Institution");
+
+    const recordCount = students.length || "—";
+    const fileMode = sections.length>1 ? "Multiple files" : "Single file";
+
+    return '<div class="shell-bullet-title">Just plan data<br>in bullet points</div>'+
+      '<div class="shell-bullet">- Uploaded file name<br><span>'+escapeHtml(fileName)+'</span></div>'+
+      '<div class="shell-bullet">- Institute or individual<br>and name of it<br><span>'+escapeHtml(nameLabel)+'</span></div>'+
+      '<div class="shell-bullet">- Number of<br>records<br><span>'+escapeHtml(recordCount)+'</span></div>'+
+      '<div class="shell-bullet">- Single file or<br>multiple files<br><span>'+escapeHtml(fileMode)+'</span></div>';
   }
 
-  /* ── Right rail: general "what can I do" nav for non-Dashboard
-     phases; Dashboard phase gets the Smart Query v2 entry point
-     instead (the floating panel from smart-query-v2-ui.js is left as
-     the actual interaction surface — this rail just surfaces it inline
-     too, without duplicating any of that file's logic). */
+  /* ── Right rail — wireframe: numbered "Actionable items of
+     Dashboard in sequence/step by step flow" box, then a separate
+     Sample Files / About / FAQ's quick-link box underneath. ── */
+  const STEP_FLOW={
+    "panel-home":["Upload your filled sheet","Or try a sample file","Or build a new template"],
+    "panel-setup":["Choose how to start","Fill in institution/class","Add subjects and tests","Download the template","Upload it back on Home"],
+    "panel-ai":["Choose which AI features to include","Run the analysis"],
+    "panel-dashboard":["Review the class overview","Check flagged students","Use Smart Search for quick answers","Export the PDF reports"],
+    "panel-export":["Download the PDF report","Download the raw data"],
+    "panel-about":["Read how the app works"],
+    "panel-faq":["Search or browse by audience"]
+  };
+
   function rightRailContent(activePanel){
-    if(activePanel==="panel-dashboard"){
-      const ready=window.SmartQueryV2&&SmartQueryV2.isReady();
-      return '<div class="shell-rail-title">Ask a question</div>'+
-        '<div style="font-size:12.5px;margin-bottom:8px">Tap the 💬 button in the corner to ask anything about this class in plain language.</div>'+
-        (ready?'<div class="shell-rail-empty">Question bank loaded.</div>':'<div class="shell-rail-empty">Loading question bank…</div>');
-    }
-    const nav={
-      "panel-home":["Upload a file to get started"],
-      "panel-setup":["Fill in Institution/Class details","Add Subjects and Tests","Download the template"],
-      "panel-ai":["Choose which AI features to include","Run the analysis"],
-      "panel-export":["Download the PDF report","Download the raw data"],
-      "panel-about":["Read the FAQ for common questions"],
-      "panel-faq":["Search or browse by audience"]
-    };
-    const items=nav[activePanel];
-    if(!items) return "";
-    return '<div class="shell-rail-title">What you can do here</div>'+
-      items.map(t=>'<div class="shell-rail-row"><span>'+escapeHtml(t)+'</span></div>').join("");
+    const steps=STEP_FLOW[activePanel]||["Get started from Home"];
+    const stepsHtml=steps.map((s,i)=>'<div class="shell-step"><span class="shell-step-num">'+(i+1)+'</span>'+escapeHtml(s)+'</div>').join("");
+    return '<div class="shell-rail-box">'+
+        '<div class="shell-rail-title">Actionable items<br>of Dashboard in<br>sequence/<br>step by step<br>flow</div>'+
+        stepsHtml+
+      '</div>'+
+      '<div class="shell-rail-box shell-rail-links">'+
+        '<div class="shell-link" onclick="if(typeof showSampleFiles===\'function\')showSampleFiles();">Sample Files</div>'+
+        '<div class="shell-link" onclick="if(typeof goStep===\'function\')goStep(\'about\');">About</div>'+
+        '<div class="shell-link" onclick="if(typeof goStep===\'function\')goStep(\'faq\');">FAQ\'s</div>'+
+      '</div>';
   }
 
-  function refreshRails(){
+  /* ── Breadcrumb — wireframe: "Home > Dashboard > Export Reports",
+     full width, directly under the header, above the 3-column body. ── */
+  const CRUMB_LABEL={
+    "panel-home":"Home","panel-setup":"Setup","panel-ai":"AI Features",
+    "panel-dashboard":"Dashboard","panel-export":"Export Reports",
+    "panel-about":"About","panel-faq":"FAQ's"
+  };
+  function breadcrumbContent(activePanel){
+    const label=CRUMB_LABEL[activePanel]||"Home";
+    return activePanel==="panel-home"
+      ? "Home"
+      : "Home &gt; "+escapeHtml(label);
+  }
+
+  function refreshShell(){
     const activeEl=document.querySelector(".panel.active");
     const activeId=activeEl?activeEl.id:"panel-home";
     setLeftRail(leftRailContent());
     setRightRail(rightRailContent(activeId));
+    setBreadcrumb(breadcrumbContent(activeId));
   }
 
+  let _lastCount=0;
   function renderShellChrome(){
-    refreshRails();
-    // Re-populate on panel switch — goStep()/openBucket() toggle the
-    // "active" class on .panel elements; observe that instead of
-    // requiring a manual setLeftRail/setRightRail call added into every
-    // existing render function individually.
+    refreshShell();
     const main=document.getElementById("main");
     if(main && window.MutationObserver){
       const obs=new MutationObserver(function(muts){
-        if(muts.some(m=>m.attributeName==="class")) refreshRails();
+        if(muts.some(m=>m.attributeName==="class")) refreshShell();
       });
       document.querySelectorAll(".panel").forEach(function(p){
         obs.observe(p,{attributes:true,attributeFilter:["class"]});
       });
     }
-    // Also refresh whenever student data changes shape (upload/re-analyse)
-    // — cheap poll rather than hooking every mutation site individually.
     setInterval(function(){
       const students=(window.APP&&APP.students)||[];
-      if(students.length!==_lastCount){ _lastCount=students.length; refreshRails(); }
+      if(students.length!==_lastCount){ _lastCount=students.length; refreshShell(); }
     },1500);
   }
-  let _lastCount=0;
 
   window.renderShellChrome=renderShellChrome;
   window.setLeftRail=setLeftRail;
