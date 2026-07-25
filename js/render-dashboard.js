@@ -806,12 +806,26 @@ function renderIndividualWellbeingAnswer(st){
 function openBucket(id){
   window._bucketCurrent=id;
   APP._currentBucketId=id;
-  if(id==="class")return renderClassAnswer();
+  if(id==="class"){
+    if(window.StoryDeck)return StoryDeck.show("class",StoryDeck.classSlides(),renderClassAnswer);
+    return renderClassAnswer();
+  }
   if(id==="student")return renderStudentPicker();
   if(id==="subject")return renderSubjectPicker();
-  if(id==="help")return renderFilteredList("help");
-  if(id==="top")return renderFilteredList("top");
-  if(id==="clusters")return renderClusterGroups();
+  if(id==="help"){
+    const list=(APP.students||[]).filter(s=>s.analysis&&s.analysis.flags&&s.analysis.flags.length);
+    if(window.StoryDeck)return StoryDeck.show("help",StoryDeck.helpSlides(list),function(){renderFilteredList("help");});
+    return renderFilteredList("help");
+  }
+  if(id==="top"){
+    const list=(APP.students||[]).slice().sort((a,b)=>(b.analysis.overallAvg||0)-(a.analysis.overallAvg||0));
+    if(window.StoryDeck)return StoryDeck.show("top",StoryDeck.topSlides(list),function(){renderFilteredList("top");});
+    return renderFilteredList("top");
+  }
+  if(id==="clusters"){
+    if(window.StoryDeck)return StoryDeck.show("clusters",StoryDeck.genericSlides("Performance Groups"),renderClusterGroups);
+    return renderClusterGroups();
+  }
   if(id==="compare")return renderComparePicker();
 }
 // TASK (Project Bible v2 §5a, "Student-vs-student comparison — scoped
@@ -1183,6 +1197,7 @@ function renderClassAnswer(){
   const sts=APP.students||[];
   const chartsHtml=sts.length?`
     <div class="chart-container" style="margin-top:14px"><div class="card-title">Subject Averages</div><canvas id="bucket-chart-classsubj"></canvas></div>
+    <div class="chart-container" style="margin-top:14px"><div class="card-title">Class Trend Over Tests</div><canvas id="bucket-chart-classtrend"></canvas></div>
     <div class="card" style="margin-top:14px">
       <div class="card-title" style="margin-bottom:8px">Performance Heatmap — Student × Subject</div>
       <div class="heatmap-wrap" id="bucket-heatmap-wrap"></div>
@@ -1377,6 +1392,17 @@ function renderBucketClassCharts(){
   const {primaryColor}=configureChartDefaults();
   const subjAvgs=subjects.map(s=>{const avgs=sts.map(st=>st.analysis.subjectAvgs[s]||0);return avgs.length?Math.round(avgs.reduce((a,b)=>a+b,0)/avgs.length):0;});
   _bucketCharts.classSubj=new Chart($("#bucket-chart-classsubj")[0],{type:"bar",data:{labels:subjects,datasets:[{label:"Class Avg %",data:subjAvgs,backgroundColor:"rgba(67,97,238,.7)",borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:100}}}});
+  // Class trend-over-tests (§5 teacher/management): aggregates each
+  // student's existing cumAvgByTest (computed per-student in
+  // computeAnalysis(), compute-engine.js) into a class-level average per
+  // test index. Presentation only — no new per-student computation.
+  if($("#bucket-chart-classtrend").length){
+    const classTrend=tests.map((_,ti)=>{
+      const vals=sts.map(st=>st.analysis.cumAvgByTest&&st.analysis.cumAvgByTest[ti]).filter(v=>v!==null&&v!==undefined);
+      return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
+    });
+    _bucketCharts.classTrend=new Chart($("#bucket-chart-classtrend")[0],{type:"line",data:{labels:tests.map(t=>t.name),datasets:[{label:"Class Cumulative Avg %",data:classTrend,borderColor:primaryColor,backgroundColor:"rgba(67,97,238,.1)",tension:.3,fill:true}]},options:{responsive:true,scales:{y:{beginAtZero:true,max:100}}}});
+  }
   $("#bucket-heatmap-wrap").html(bucketHeatmapHtml(sts,subjects));
 }
 function renderBucketStudentTrendChart(canvasId,student){
