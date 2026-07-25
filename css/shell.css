@@ -1,0 +1,44 @@
+/* ============================================================
+   Student Insight — App Shell (Project Bible v2 §6a)
+   Persistent left/right rail grid around #main. Uses CSS logical
+   properties (grid-template-areas with rail-start/rail-end, not
+   left/right) so the rails mirror automatically under .rtl-screen
+   (Urdu) without a hand-maintained second layout — do not hardcode
+   left/right here.
+============================================================ */
+
+#app-shell-body{
+  display:grid;
+  grid-template-columns:220px minmax(0,1fr) 260px;
+  grid-template-areas:"rail-start core rail-end";
+  gap:16px;
+  align-items:start;
+}
+#shell-rail-start{grid-area:rail-start}
+#shell-rail-end{grid-area:rail-end}
+#main{grid-area:core;min-width:0}
+
+.rtl-screen #app-shell-body{
+  grid-template-columns:260px minmax(0,1fr) 220px;
+}
+
+#shell-rail-start,#shell-rail-end{
+  background:var(--c-surface,#fff);
+  border:1px solid var(--c-border,#e2e5f1);
+  border-radius:12px;
+  padding:14px;
+  font-size:12.5px;
+  color:var(--c-text2,#5a607a);
+  min-height:80px;
+}
+#shell-rail-start:empty,#shell-rail-end:empty{display:none}
+
+.shell-rail-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3,#9ba4c0);margin-bottom:8px}
+.shell-rail-row{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--c-border,#f0f2fa)}
+.shell-rail-row:last-child{border-bottom:none}
+.shell-rail-empty{color:var(--c-text3,#9ba4c0);font-size:12px}
+
+@media(max-width:900px){
+  #app-shell-body{grid-template-columns:1fr;grid-template-areas:"core";}
+  #shell-rail-start,#shell-rail-end{display:none}
+}

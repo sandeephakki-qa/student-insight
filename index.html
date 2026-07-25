@@ -574,6 +574,14 @@
 
 12. CHANGELOG — terse, append-only; full reasoning for pre-v2.0 items
     lived in an earlier PIB revision, ask if needed
+    v4.7 — App shell (Phases 1-3, shell-redesign-plan.md), Smart Query
+      v2 core + UI (js/smart-query-v2.js, js/smart-query-v2-ui.js),
+      Story-Deck-Run mode (js/story-deck.js), §5a student-vs-student
+      compare, §5 class trend-over-tests chart. Shell: css/shell.css +
+      js/app-shell.js, logical grid areas (rail-start/core/rail-end) so
+      Urdu mirrors automatically. Rails auto-populate via MutationObserver
+      on .panel active-class changes instead of a manual call added to
+      every render function.
     v4.6 — 2 remaining §5 parent features. (1) "What changed since last
       test" one-liner: the doc suggested reusing subjectDeltas — checked
       first and that field actually means "this student's subject
@@ -1030,6 +1038,7 @@
   TODO: pin SRI for xlsx, jspdf, jszip and Chart.js — see note above.
 -->
 <link rel="stylesheet" href="css/core.css">
+<link rel="stylesheet" href="css/shell.css">
 </head>
 <body>
 <a href="#main" class="skip-link">Skip to main content</a>
@@ -1064,6 +1073,8 @@
 
 </nav>
 
+<div id="app-shell-body">
+<div id="shell-rail-start"></div>
 <main id="main" tabindex="-1">
 <!-- ════ PANEL: HOME ════ -->
 <div id="panel-home" class="panel active">
@@ -1873,6 +1884,8 @@
 </div>
 
 </main><!-- #main -->
+<div id="shell-rail-end"></div>
+</div><!-- #app-shell-body -->
 
 <!-- STUDENT MODAL -->
 <div id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-content"><div class="modal-box" id="modal-box"><span class="modal-close" role="button" tabindex="0" aria-label="Close dialog" onclick="closeModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeModal();}">✕</span><div id="modal-content"></div></div></div>
@@ -1908,6 +1921,7 @@
 <script src="js/smart-query-v2.js"></script>
 <script src="js/smart-query-v2-ui.js"></script>
 <script src="js/story-deck.js"></script>
+<script src="js/app-shell.js"></script>
 <script src="js/setup-wizard.js"></script>
 </body>
 </html>
