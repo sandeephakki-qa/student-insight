@@ -73,14 +73,24 @@
   cursor:pointer;
   display:flex;
   align-items:center;
-  justify-content:center;
+  justify-content:space-between;
+  padding-inline:8px;
+  gap:6px;
   transition:var(--transition);
+}
+.shell-panel-title{
+  font-size:11px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  color:var(--c-text2);
 }
 .shell-panel-toggle:hover{background:var(--c-border);color:var(--c-text)}
 /* end-panel chevron points the opposite way visually via icon paths already
    authored per-side in index.html — collapsed state below only spins them
    180deg so the same two icons still mean "expand" once collapsed. */
 .shell-panel[data-collapsed="true"] .shell-panel-toggle svg{transform:rotate(180deg)}
+.shell-panel[data-collapsed="true"] .shell-panel-title{display:none}
 .shell-panel[data-collapsed="true"] .shell-panel-content{display:none}
 .shell-panel[data-collapsed="true"]{overflow:visible}
 
@@ -91,6 +101,89 @@
   padding:12px;
 }
 .shell-panel-content:empty{padding:0}
+
+/* ---- Task 4: left-panel key/value rows (VS Properties-panel style) ---- */
+.shell-kv-row{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  padding-block:6px;
+  border-block-end:1px solid var(--c-border);
+  font-size:12px;
+}
+.shell-kv-row:last-child{border-block-end:none}
+.shell-kv-label{color:var(--c-text2);font-size:11px}
+.shell-kv-value{color:var(--c-text);font-weight:600;word-break:break-word}
+.shell-empty-state{color:var(--c-text2);font-size:12px;text-align:center;padding:20px 8px}
+
+/* ---- ui-prompt-template.md item 3: Home rail pitch bullets ---- */
+.shell-pitch-list{
+  margin:0;
+  padding-inline-start:18px;
+  font-size:12px;
+  line-height:1.55;
+  color:var(--c-text);
+}
+.shell-pitch-list li{margin-block-end:8px}
+.shell-pitch-list li:last-child{margin-block-end:0}
+
+/* ---- item 6: "File details" collapsible (native <details>) ---- */
+.shell-details{border:none}
+.shell-details summary{
+  list-style:none;
+  padding-block-end:6px;
+  border-block-end:1px solid var(--c-border);
+  margin-block-end:6px;
+}
+.shell-details summary::-webkit-details-marker{display:none}
+.shell-details summary::before{
+  content:"▸";
+  display:inline-block;
+  margin-inline-end:5px;
+  transition:transform .15s;
+}
+.shell-details[open] summary::before{transform:rotate(90deg)}
+.shell-action-btn{display:block;width:100%;margin-block-end:8px;text-align:center}
+
+/* ---- Task 6: Smart Query v2 rail (chips + answer thread) ---- */
+.shell-chip-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-block-end:10px}
+
+/* ---- item 7/§6: .bucket-row/.bucket-list are reused inside the rail
+   (Dashboard controls list, Compare-mode export list) — that CSS (core.css)
+   was sized for the wide full-screen card grid it was originally built
+   for (16px bold labels, 64px rows, 16px padding, 14px icon gap). Scoped
+   override so it actually fits a 240-420px rail instead of overflowing/
+   wrapping awkwardly. */
+.shell-panel-content .bucket-list{gap:2px;margin-top:0}
+.shell-panel-content .bucket-row{
+  padding:8px;
+  min-height:auto;
+  gap:8px;
+  border-radius:var(--r-sm);
+}
+.shell-panel-content .bucket-icon svg{width:1em;height:1em}
+.shell-panel-content .bucket-label{font-size:12.5px;font-weight:600;overflow-wrap:anywhere}
+.shell-panel-content .bucket-desc{font-size:11px;overflow-wrap:anywhere}
+.shell-panel-content .bucket-badge{font-size:10.5px;padding:2px 7px}
+.shell-panel-content .bucket-row-active{background:var(--c-primary-soft,var(--c-surface2));border-color:var(--c-primary)}
+.shell-chip{
+  font-size:11.5px;
+  padding:5px 10px;
+  border-radius:999px;
+  border:1px solid var(--c-border);
+  background:var(--c-surface2);
+  color:var(--c-text);
+  cursor:pointer;
+}
+.shell-chip:hover{border-color:var(--c-primary);color:var(--c-primary)}
+.shell-answer-card{
+  background:var(--c-surface2);
+  border-radius:var(--r-sm);
+  padding:8px;
+  margin-block-end:6px;
+  border-block-end:none;
+}
+.shell-answer-card .shell-kv-value{font-weight:400;line-height:1.45}
 
 /* ---- resize dividers ---- */
 .shell-divider{
@@ -155,16 +248,67 @@
   }
 }
 
-/* ---- mobile fallback placeholder ----
-   vs-shell-plan-v2.md Task 8 replaces this with the original mobile
-   pattern from shell-redesign-plan.md (info strip + bottom sheet).
-   Not implemented in Task 3 — flagged here, not silently deferred. */
+/* ---- mobile fallback (Task 8) ----
+   shell-redesign-plan.md Phase 4's pattern (info strip + bottom sheet),
+   built on top of vs-shell.js's existing collapse mechanism instead of
+   new JS: "collapsed" on mobile means "shown as a slim strip/pill",
+   "expanded" means "shown as a full overlay sheet" — same
+   data-collapsed attribute and vsShellToggle() Task 3 already wired,
+   just restyled for this breakpoint. No duplicate markup, no new event
+   handlers.
+   #main gets no explicit width caps at this breakpoint — it fills the
+   the space below the fixed header, above the fixed bottom strip. */
 @media(max-width:768px){
   #app-shell-body{
     display:block;
     height:auto;
+    min-height:calc(100vh - var(--content-top));
     margin-top:var(--content-top);
+    padding-block-end:36px; /* room for the collapsed bottom strip */
   }
-  .shell-panel,.shell-divider{display:none}
-  #app-shell-body #main{height:auto;overflow-y:visible}
+  #app-shell-body #main{
+    height:auto;
+    overflow-y:visible;
+  }
+  .shell-divider{display:none} /* no resizing on touch */
+
+  .shell-panel{
+    position:fixed;
+    inset-inline:0;
+    z-index:400;
+    border-inline:none;
+    box-shadow:0 0 12px rgba(0,0,0,.18);
+    transition:height .18s ease;
+  }
+  /* start (left) panel -> top info strip, expands downward from under
+     the header/breadcrumb */
+  #shell-panel-start{
+    top:var(--content-top);
+    border-block-end:1px solid var(--c-border);
+  }
+  #shell-panel-start[data-collapsed="true"]{height:36px}
+  #shell-panel-start[data-collapsed="false"]{
+    height:min(70vh, calc(100vh - var(--content-top)));
+  }
+  /* end (right) panel -> bottom sheet, expands upward from the
+     bottom edge */
+  #shell-panel-end{
+    bottom:0;
+    top:auto;
+    border-block-start:1px solid var(--c-border);
+  }
+  #shell-panel-end[data-collapsed="true"]{height:36px}
+  #shell-panel-end[data-collapsed="false"]{
+    height:min(70vh, calc(100vh - var(--content-top)));
+  }
+
+  /* toggle bar becomes the full-width strip/pill itself on mobile,
+     not a slim 28px edge button */
+  .shell-panel-toggle{
+    height:36px;
+    font-size:11px;
+  }
+  .shell-panel[data-collapsed="true"] .shell-panel-title{display:inline} /* room for it here, unlike the 28px desktop column */
+  .shell-panel[data-collapsed="true"] .shell-panel-content{display:none}
+  .shell-panel[data-collapsed="false"] .shell-panel-content{display:block}
 }

@@ -540,6 +540,21 @@ function reapplyI18nStrings(){
   if($("#panel-ai").is(":visible") && typeof renderAICheckboxes==="function"){
     renderAICheckboxes();
   }
+  // vs-shell-plan-v2 Task 4/5: left-rail and right-rail content are
+  // JS-injected innerHTML too (same reason as the AI checkboxes above) —
+  // the data-i18n sweep can't reach them, re-render explicitly for
+  // whichever panel is current. Wrapped: see goStep()'s identical guard
+  // in js/state-nav.js for why.
+  try{
+    if(typeof renderShellLeftRail==="function" && APP.currentStep){
+      renderShellLeftRail(APP.currentStep);
+    }
+    if(typeof renderShellRightRail==="function" && APP.currentStep){
+      renderShellRightRail(APP.currentStep);
+    }
+  }catch(err){
+    console.error("Shell rail refresh failed on language switch:",err);
+  }
 }
 function srT(key,params,count){
   const table = window.I18N_TABLES[window.SR_LANG] || SR_STRINGS_EN;
@@ -591,6 +606,14 @@ function renderBuckets(){
     $("#legacy-back-to-smart").show();
     showScreen("#legacy-dashboard-body");
     renderDashboard();
+    // ui-prompt-batch2.md item 1: Classic Dashboard closes BOTH rails and
+    // clears their content (not just collapses width) — so stale Smart-
+    // dashboard content can't flash back if either panel is manually
+    // re-expanded while still in Classic mode. Keyed off this flag, not
+    // step==="dashboard" (both Classic and Smart share that step).
+    if(typeof setShellRailsOpen==="function") setShellRailsOpen(false);
+    if(typeof setLeftRail==="function") setLeftRail("");
+    if(typeof setRightRail==="function") setRightRail("");
     return;
   }
   if(APP.setup.mode==="individual"){
@@ -601,23 +624,52 @@ function renderBuckets(){
     renderIndividualBuckets();
     return;
   }
-  $("#bucket-list-screen,#bucket-answer-screen").hide();
+  // ui-prompt-template.md item 7: rail-driven, in-place Dashboard for
+  // Institution + non-Compare mode (per PIB §9 smart-reveal-scope — Compare
+  // and Individual mode are explicitly out of scope for this redesign, see
+  // the two early-return branches above, unchanged). #bucket-screen and
+  // #bucket-list-screen are retired for this mode — left empty/hidden —
+  // #bucket-answer-screen is now the single, persistent, always-visible
+  // center content area; the old full-screen bucket-grid moved to the left
+  // rail (buildDashboardControlsHtml(), called from renderShellLeftRail()),
+  // and the student/subject/help/Smart-Search pickers moved to the right
+  // rail (renderDashboardPropertiesRail(), called from renderShellRightRail()).
+  $("#bucket-screen,#bucket-list-screen").hide();
   $("#legacy-dashboard-body").hide();
-  showScreen("#bucket-screen");
+  $("#bucket-answer-screen").show();
+  // ui-prompt-batch2.md item 1: Smart (bucket) Dashboard, general — rails
+  // open. Also covers "reopen automatically when switching back from
+  // Classic to Smart," since this is the same code path either way.
+  if(typeof setShellRailsOpen==="function") setShellRailsOpen(true);
+  openBucket(APP._currentBucketId || "class");
+}
 
+// Icon set + control list shared by the left rail (buildDashboardControlsHtml,
+// js/vs-shell.js calls this) and, historically, the old #bucket-screen card
+// grid this replaced. badge counts (helpCount/topCount/cluster count) are
+// computed fresh every call — same values renderBuckets() always used, not a
+// new computation.
+const DASHBOARD_CONTROL_ICONS={
+  class:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
+  student:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 21a8 8 0 1 0-16 0"/><circle cx="12" cy="8" r="4"/></svg>',
+  subject:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  help:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0z"/></svg>',
+  top:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 6H4a2 2 0 0 0 2 2"/><path d="M17 6h3a2 2 0 0 1-2 2"/></svg>',
+  compare:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 3v18"/><path d="M16 3v18"/><path d="M3 8h5"/><path d="M16 8h5"/><path d="M3 16h5"/><path d="M16 16h5"/></svg>',
+  clusters:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/></svg>',
+  smart:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></svg>'
+};
+// item 7g/h (OPEN QUESTION, confirmed by user: one merged list): "Smart
+// Search" is listed here as an ordinary control alongside the others — its
+// right-rail content (search input + full question list) and center-panel
+// answer are wired in js/vs-shell.js's renderDashboardPropertiesRail() /
+// js/render-dashboard.js's onSmartQuestionPick(), both built on the real
+// SmartQueryV2 API (load/isReady/availableQuestions/answerQuestion), not
+// the older openSmartSearchScreen() flow, which item h asks to retire.
+function buildDashboardControlsHtml(){
   const students=APP.students||[];
   const helpCount=students.filter(bucketIsHelp).length;
   const topCount=students.filter(bucketIsTop).length;
-
-  const ICONS={
-    class:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
-    student:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 21a8 8 0 1 0-16 0"/><circle cx="12" cy="8" r="4"/></svg>',
-    subject:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-    help:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0z"/></svg>',
-    top:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 6H4a2 2 0 0 0 2 2"/><path d="M17 6h3a2 2 0 0 1-2 2"/></svg>',
-    clusters:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/></svg>',
-    compare:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 3v18"/><path d="M16 3v18"/><path d="M3 8h5"/><path d="M16 8h5"/><path d="M3 16h5"/><path d="M16 16h5"/></svg>'
-  };
   const buckets=[
     {id:"class",label:srT("bucket_class_label"),desc:srT("bucket_class_desc"),badge:null},
     {id:"student",label:srT("bucket_student_label"),desc:srT("bucket_student_desc"),badge:null},
@@ -626,33 +678,22 @@ function renderBuckets(){
     {id:"top",label:srT("bucket_top_label"),desc:srT("bucket_top_desc"),badge:topCount},
     {id:"compare",label:"Compare Two Students",desc:"Side-by-side stats for any two students in this class",badge:null}
   ];
-  // Cohort clustering (k-means) only ever exists once the class is large
-  // enough to be statistically meaningful — see computeCohortClusters()'s
-  // own n>=30 gate. Below that size the bucket simply doesn't appear,
-  // rather than showing a clustering result that's really just noise.
   if(APP.cohortClusters&&APP.cohortClusters.groups&&APP.cohortClusters.groups.length){
     buckets.push({id:"clusters",label:srT("bucket_clusters_label"),desc:srT("bucket_clusters_desc"),badge:APP.cohortClusters.groups.length});
   }
+  buckets.push({id:"smart",label:srT("bucket_smart_label"),desc:srT("bucket_smart_desc"),badge:null});
+  buckets.push({id:"export",label:srT("bucket_export_label"),desc:srT("bucket_export_desc"),badge:null});
+  const active=APP._currentBucketId||"class";
   const rows=buckets.map(b=>{
     const badgeHtml=(b.badge!==null)?`<span class="bucket-badge">${esc(srT("bucket_count_badge",{count:b.badge},b.badge))}</span>`:"";
-    return `<div class="bucket-row" role="button" tabindex="0" onclick="openBucket('${b.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openBucket('${b.id}');}">
-      <span class="bucket-icon" aria-hidden="true">${ICONS[b.id]}</span>
+    const activeClass=(!APP._forceLegacyView && b.id===active)?" bucket-row-active":"";
+    return `<div class="bucket-row${activeClass}" role="button" tabindex="0" onclick="openBucket('${b.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openBucket('${b.id}');}">
+      <span class="bucket-icon" aria-hidden="true">${DASHBOARD_CONTROL_ICONS[b.id]}</span>
       <span class="bucket-text"><span class="bucket-label">${esc(b.label)}</span><span class="bucket-desc">${esc(b.desc)}</span></span>
       ${badgeHtml}
     </div>`;
   }).join("");
-  $("#bucket-screen").html(`
-    ${APP._isSampleData?`<div class="card" style="padding:10px 14px;margin-bottom:10px;border-color:var(--c-warn,#f9a826);background:#fff8ec;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-      <div style="font-size:12.5px;color:#8a5a00"><strong>You're viewing sample data.</strong> This is a demo — set up your own class and import your real marks whenever you're ready.</div>
-      <div style="display:flex;gap:8px;flex-shrink:0">
-        <button type="button" class="btn btn-primary btn-sm" onclick="startNewSession()">Set Up My Own Class →</button>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="APP._isSampleData=false;renderBuckets();" aria-label="Dismiss">✕</button>
-      </div>
-    </div>`:""}
-    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
-      <a href="javascript:void(0)" onclick="showLegacyDashboard()" style="font-size:12px;color:var(--c-text2);text-decoration:underline">Switch to Detailed View →</a>
-    </div>
-    <div class="bucket-list">${rows}</div>`);
+  return `<div class="bucket-list">${rows}</div>`;
 }
 // Item #6 pair: swap between the 5-card Smart Reveal buckets and the
 // older, denser KPI/cards/heatmap/wellbeing/alerts-table view — both read
@@ -828,30 +869,95 @@ function renderIndividualWellbeingAnswer(st){
   `).addClass("screen-fade-in").show();
 }
 
+// item f: sample-data banner, text only — no "Set Up My Own Class" button
+// (that button called startNewSession(), which had an undiagnosed bug that
+// could break the app from this context; removing the button made root-
+// causing it moot — the same action is always reachable from Home anyway).
+function renderDashboardSampleBanner(){
+  const el=$("#dashboard-sample-banner");
+  if(!APP._isSampleData){ el.html(""); return; }
+  el.html(`<div class="card" style="padding:10px 14px;margin-bottom:14px;border-color:var(--c-warn,#f9a826);background:#fff8ec;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    <div style="font-size:12.5px;color:#8a5a00"><strong>You're viewing sample data.</strong> This is a demo — head to Home whenever you're ready to import your own class's marks.</div>
+    <button type="button" class="btn btn-secondary btn-sm" onclick="APP._isSampleData=false;renderDashboardSampleBanner();" aria-label="Dismiss">✕</button>
+  </div>`);
+}
+
+// item g/h: Smart Search as an ordinary rail control (OPEN QUESTION,
+// confirmed: one merged list) — right rail gets a live-filter search input
+// + the full question list (same picker pattern as (c)/(d), not Task 6's
+// chat-thread UI, which this supersedes — see PIB §9). Built on
+// SmartQueryV2's real API, loaded lazily on first use.
+function renderDashboardSmartSearch(){
+  if(typeof setShellRailsOpen==="function") setShellRailsOpen(true); // item g's "flagship" moment, ui-prompt-batch2.md item 1
+  if(typeof setRightRail!=="function")return;
+  if(!window.SmartQueryV2){ setRightRail(`<div class="shell-empty-state">Smart Search isn't available right now.</div>`); return; }
+  if(!SmartQueryV2.isReady()){
+    setRightRail(`<div class="shell-empty-state">Loading questions…</div>`);
+    SmartQueryV2.load().then(function(){
+      if(APP._currentBucketId==="smart") renderDashboardSmartSearch();
+    }).catch(function(){
+      setRightRail(`<div class="shell-empty-state">Couldn't load the question list.</div>`);
+    });
+    return;
+  }
+  const questions=SmartQueryV2.availableQuestions();
+  const rows=questions.map(q=>`<div class="bucket-picker-row" onclick="onSmartQuestionPick('${String(q.id).replace(/'/g,"\\'")}')">${esc(q.label)}</div>`).join("");
+  setRightRail(`
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="text" class="bucket-picker-input" placeholder="${esc(srT("smart_v2_input_placeholder"))}" oninput="filterPickerList('bucket-smart-results',this.value)" autocomplete="off" id="bucket-smart-input" style="flex:1">
+      <button type="button" onclick="document.getElementById('bucket-smart-input').value='';filterPickerList('bucket-smart-results','');" aria-label="Clear" title="Clear" style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:16px;line-height:1">×</button>
+    </div>
+    <div id="bucket-smart-results" class="bucket-picker-list">${rows||emptyStateHtml(srT("bucket_all_good"))}</div>`);
+  $("#bucket-answer-screen").html(`<div class="shell-empty-state">${esc(srT("smart_v2_deflection_hint"))}</div>`);
+}
+function onSmartQuestionPick(questionId){
+  if(!window.SmartQueryV2||!SmartQueryV2.isReady())return;
+  const res=SmartQueryV2.answerQuestion(questionId);
+  $("#bucket-answer-screen").html(`<div class="bucket-answer-body">${esc(res.text)}</div>`);
+}
+
+function emptyStateHtml(text){
+  return `<div class="bucket-empty">${esc(text)}</div>`;
+}
+
+function buildCompareExportControlsHtml(){
+  const rows=[
+    {label:srT("bucket_compare_report_label"),desc:srT("bucket_compare_report_desc")},
+    {label:srT("bucket_persection_label"),desc:srT("bucket_persection_desc")}
+  ].map(b=>`<div class="bucket-row" role="button" tabindex="0" onclick="goStep('export')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('export');}">
+    <span class="bucket-text"><span class="bucket-label">${esc(b.label)}</span><span class="bucket-desc">${esc(b.desc)}</span></span>
+  </div>`).join("");
+  return `<div class="bucket-list">${rows}</div>`;
+}
+
 function openBucket(id){
+  // §6: Export Reports navigates away via goStep('export') (see PIB §9
+  // dashboard-export-reuses-panel) — checked first, before any of the
+  // "currently selected control" state below, so it's never persisted as
+  // APP._currentBucketId and returning to Dashboard later doesn't
+  // re-trigger the navigation.
+  if(id==="export"){ goStep("export"); return; }
   window._bucketCurrent=id;
   APP._currentBucketId=id;
-  if(id==="class"){
-    if(window.StoryDeck)return StoryDeck.show("class",StoryDeck.classSlides(),renderClassAnswer);
-    return renderClassAnswer();
+  APP._forceLegacyView=false; // selecting any control leaves Classic Dashboard view, per item 8/f
+  $("#legacy-dashboard-body").hide();
+  $("#bucket-answer-screen").show();
+  renderDashboardSampleBanner();
+  try{
+    if(typeof renderShellLeftRail==="function") renderShellLeftRail("dashboard"); // refresh active-row highlight
+  }catch(err){
+    console.error("Shell left-rail refresh failed in openBucket:",id,err);
   }
+  if(id==="class")return renderClassAnswer();
   if(id==="student")return renderStudentPicker();
   if(id==="subject")return renderSubjectPicker();
-  if(id==="help"){
-    const list=(APP.students||[]).filter(s=>s.analysis&&s.analysis.flags&&s.analysis.flags.length);
-    if(window.StoryDeck)return StoryDeck.show("help",StoryDeck.helpSlides(list),function(){renderFilteredList("help");});
-    return renderFilteredList("help");
-  }
-  if(id==="top"){
-    const list=(APP.students||[]).slice().sort((a,b)=>(b.analysis.overallAvg||0)-(a.analysis.overallAvg||0));
-    if(window.StoryDeck)return StoryDeck.show("top",StoryDeck.topSlides(list),function(){renderFilteredList("top");});
-    return renderFilteredList("top");
-  }
+  if(id==="help")return renderFilteredList("help");
+  if(id==="top")return renderFilteredList("top");
   if(id==="clusters"){
-    if(window.StoryDeck)return StoryDeck.show("clusters",StoryDeck.genericSlides("Performance Groups"),renderClusterGroups);
     return renderClusterGroups();
   }
   if(id==="compare")return renderComparePicker();
+  if(id==="smart")return renderDashboardSmartSearch();
 }
 // TASK (Project Bible v2 §5a, "Student-vs-student comparison — scoped
 // correctly, Classic view"). Scope guard is implicit, not a separate
@@ -861,11 +967,11 @@ function openBucket(id){
 // Smart Query v2's two-student question variant is not built here; that
 // depends on js/smart-query-v2.js, which does not exist yet.
 function renderComparePicker(){
+  if(typeof setRightRail==="function") setRightRail(""); // item e: no properties for this control
   const students=APP.students||[];
   const opts=students.map(st=>`<option value="${esc(st.id)}">${esc(st.name)}</option>`).join("");
-  $("#bucket-list-screen").html(`
-    <button class="bucket-back-btn" onclick="backToBuckets()">${esc(srT("back"))}</button>
-    <div class="bucket-list-title">Compare Two Students</div>
+  $("#bucket-answer-screen").html(`
+    <div class="bucket-answer-title">Compare Two Students</div>
     <div class="bucket-picker-hint">Pick any two students from this class — comparison only ever uses this same roster, so it's always apples-to-apples.</div>
     <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px">
       <select id="compare-pick-a" style="flex:1;min-width:180px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:13px" onchange="renderCompareResult()"><option value="">Select student A…</option>${opts}</select>
@@ -873,8 +979,7 @@ function renderComparePicker(){
       <select id="compare-pick-b" style="flex:1;min-width:180px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:13px" onchange="renderCompareResult()"><option value="">Select student B…</option>${opts}</select>
     </div>
     <div id="compare-result" style="margin-top:16px"></div>
-  `).addClass("screen-fade-in").show();
-  $("#bucket-screen").hide();
+  `);
 }
 function renderCompareResult(){
   const idA=$("#compare-pick-a").val(),idB=$("#compare-pick-b").val();
@@ -1005,60 +1110,63 @@ function toggleHelpRow(studentId){
 }
 
 function renderFilteredList(kind){
-  $("#bucket-screen,#bucket-answer-screen").hide();
   const students=APP.students||[];
   const filterFn=kind==="help"?bucketIsHelp:bucketIsTop;
   const items=students.filter(filterFn).map(st=>({st,reason:bucketFindingReason(kind,st)})).filter(x=>x.reason);
-  const title=kind==="help"?srT("bucket_help_label"):srT("bucket_top_label");
-  let body;
-  if(!items.length){
-    body=`<div class="bucket-empty">${esc(srT("bucket_all_good"))}</div>`;
-  }else if(kind==="help"){
-    // Bug 6b: name made visually prominent, rows collapse into an inline
-    // accordion (only one open at a time) instead of always-expanded flat
-    // rows — needed once a class has 40-50+ flagged students.
-    _helpOpenId=null;
-    body=`<div class="finding-list">${items.map(x=>`
-      <div id="help-row-${esc(x.st.id)}" class="finding-row help-row" role="button" tabindex="0" onclick="toggleHelpRow('${esc(x.st.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleHelpRow('${esc(x.st.id)}');}">
-        <span class="bucket-text"><span class="bucket-student-name">${esc(x.st.name)}</span><span>${esc(x.reason)}</span></span>
-      </div>
-      <div id="help-body-${esc(x.st.id)}" class="help-row-body" data-rendered="false" style="display:none"></div>
-    `).join("")}</div>`;
-  }else{
-    // Bug 6c: richer, consistent card for Top Performers — rank badge +
-    // avg + best subject + trend, using only values already computed in
-    // st.analysis (overallAvg, subjectAvgs, trend, rank) — no new
-    // calculation, just a friendlier display of existing numbers. Same
-    // .finding-row base class/height/padding as "Who Needs Help" rows.
-    const trendLabel={improving:"↑ Improving",declining:"↓ Declining",stable:"→ Stable"};
-    body=`<div class="finding-list">${items.map(x=>{
-      const a=x.st.analysis||{};
-      const subjectAvgs=a.subjectAvgs||{};
-      const bestSubjectEntry=Object.entries(subjectAvgs).sort((p,q)=>q[1]-p[1])[0];
-      const rankClass=a.rank===1?"rank-gold":a.rank===2?"rank-silver":a.rank===3?"rank-bronze":"rank-other";
-      return `<div class="finding-row" role="button" tabindex="0" onclick="openFinding('top','${esc(x.st.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFinding('top','${esc(x.st.id)}');}">
-        <span class="rank-badge ${rankClass}" aria-hidden="true">#${esc(String(a.rank||"-"))}</span>
-        <span class="bucket-text">
-          <span class="bucket-student-name">${esc(x.st.name)}</span>
-          <span class="bucket-meta-row">
-            <span>Avg: ${esc(String(a.overallAvg))}%</span>
-            ${bestSubjectEntry?`<span>Top subject: ${esc(bestSubjectEntry[0])}</span>`:""}
-            <span>Trend: ${esc(trendLabel[a.trend]||a.trend||"-")}</span>
+  if(kind==="top"){
+    // item e: Top Performers keeps its existing rich list rendered
+    // directly in the center panel, unchanged — right rail stays empty
+    // (no per-item properties for this control).
+    if(typeof setRightRail==="function") setRightRail("");
+    const title=srT("bucket_top_label");
+    let body;
+    if(!items.length){
+      body=`<div class="bucket-empty">${esc(srT("bucket_all_good"))}</div>`;
+    }else{
+      // Bug 6c: richer, consistent card for Top Performers — rank badge +
+      // avg + best subject + trend, using only values already computed in
+      // st.analysis (overallAvg, subjectAvgs, trend, rank) — no new
+      // calculation, just a friendlier display of existing numbers.
+      const trendLabel={improving:"↑ Improving",declining:"↓ Declining",stable:"→ Stable"};
+      body=`<div class="finding-list">${items.map(x=>{
+        const a=x.st.analysis||{};
+        const subjectAvgs=a.subjectAvgs||{};
+        const bestSubjectEntry=Object.entries(subjectAvgs).sort((p,q)=>q[1]-p[1])[0];
+        const rankClass=a.rank===1?"rank-gold":a.rank===2?"rank-silver":a.rank===3?"rank-bronze":"rank-other";
+        return `<div class="finding-row" role="button" tabindex="0" onclick="openFinding('top','${esc(x.st.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFinding('top','${esc(x.st.id)}');}">
+          <span class="rank-badge ${rankClass}" aria-hidden="true">#${esc(String(a.rank||"-"))}</span>
+          <span class="bucket-text">
+            <span class="bucket-student-name">${esc(x.st.name)}</span>
+            <span class="bucket-meta-row">
+              <span>Avg: ${esc(String(a.overallAvg))}%</span>
+              ${bestSubjectEntry?`<span>Top subject: ${esc(bestSubjectEntry[0])}</span>`:""}
+              <span>Trend: ${esc(trendLabel[a.trend]||a.trend||"-")}</span>
+            </span>
           </span>
-        </span>
-      </div>`;
-    }).join("")}</div>`;
+        </div>`;
+      }).join("")}</div>`;
+    }
+    $("#bucket-answer-screen").html(`<div class="bucket-answer-title">${esc(title)}</div>${body}`);
+    return;
   }
-  $("#bucket-list-screen").html(`
-    <button class="bucket-back-btn" onclick="backToBuckets()">${esc(srT("back"))}</button>
-    <div class="bucket-list-title">${esc(title)}</div>
-    ${body}
-  `).addClass("screen-fade-in").show();
+  // kind==="help" — item d: right rail = search + scrollable list of this
+  // bucket's own filtered students (bucketIsHelp() matches), same pattern
+  // as (c)'s student picker; first match pre-selected and shown by default.
+  const rows=items.map(x=>`<div class="bucket-picker-row" onclick="openFinding('help','${esc(x.st.id)}')">${esc(x.st.name)}</div>`).join("");
+  const railHtml=`
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="text" class="bucket-picker-input" placeholder="Search by name…" oninput="filterPickerList('bucket-help-results',this.value)" autocomplete="off" id="bucket-help-input" style="flex:1">
+      <button type="button" onclick="document.getElementById('bucket-help-input').value='';filterPickerList('bucket-help-results','');" aria-label="Clear" title="Clear" style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:16px;line-height:1">×</button>
+    </div>
+    <div id="bucket-help-results" class="bucket-picker-list">${rows||emptyStateHtml(srT("bucket_all_good"))}</div>`;
+  if(typeof setRightRail==="function") setRightRail(railHtml);
+  if(items.length) openFinding("help",items[0].st.id);
+  else $("#bucket-answer-screen").html(`<div class="bucket-answer-body">${esc(srT("bucket_all_good"))}</div>`);
 }
 
 function openFinding(kind,studentId){
   const st=(APP.students||[]).find(s=>s.id===studentId);
-  if(!st){backToBuckets();return;}
+  if(!st)return;
   const a=st.analysis||{};
   const ew=(a.explainedWarnings||[]);
   const types=kind==="help"?BUCKET_HELP_FLAG_TYPES:BUCKET_TOP_FLAG_TYPES;
@@ -1067,14 +1175,12 @@ function openFinding(kind,studentId){
   if(kind==="top"&&a.competitiveReadiness==="High")reasons.push("Competitive readiness: High.");
   if(kind==="help"&&a.wellbeingFlag&&a.wellbeingFlag!=="low")reasons.push(`Wellbeing check: ${a.wellbeingFlag} stress indicators.`);
   const body=(reasons.length?reasons:[srT("bucket_all_good")]).map(r=>`<p>${esc(r)}</p>`).join("");
-  $("#bucket-list-screen").hide();
   $("#bucket-answer-screen").html(`
-    ${breadcrumbHtml()}
     <div class="bucket-answer-title">${esc(st.name)}</div>
     <div class="bucket-answer-sub">Overall: ${esc(String(a.overallAvg))}% · Rank #${esc(String(a.rank))} · Trend: ${esc(a.trend||"-")}</div>
     <div class="bucket-answer-body">${body}</div>
     <div class="chart-container" style="margin-top:14px"><div class="card-title">Progress Trend</div><canvas id="bucket-chart-finding-trend"></canvas></div>
-  `).addClass("screen-fade-in").show();
+  `);
   renderBucketStudentTrendChart("bucket-chart-finding-trend",st);
 }
 
@@ -1085,9 +1191,9 @@ function openFinding(kind,studentId){
 // standardized/z-scored — those are an internal computation detail, not
 // something a teacher should have to read).
 function renderClusterGroups(){
-  $("#bucket-screen,#bucket-answer-screen").hide();
+  if(typeof setRightRail==="function") setRightRail(""); // item e: no properties for this control
   const cc=APP.cohortClusters;
-  if(!cc||!cc.groups||!cc.groups.length){backToBuckets();return;}
+  if(!cc||!cc.groups||!cc.groups.length){ $("#bucket-answer-screen").html(`<div class="bucket-empty">${esc(srT("bucket_all_good"))}</div>`); return; }
   const rows=cc.groups.map(g=>{
     const avgTxt=g.centroid.overallAvg+"% avg";
     const consTxt=g.centroid.consistency+" consistency";
@@ -1095,23 +1201,20 @@ function renderClusterGroups(){
       <b>${esc(g.label)}</b> — ${g.students.length} student${g.students.length===1?"":"s"} · ${esc(avgTxt)} · ${esc(consTxt)}
     </div>`;
   }).join("");
-  $("#bucket-list-screen").html(`
-    <button class="bucket-back-btn" onclick="backToBuckets()">${esc(srT("back"))}</button>
-    <div class="bucket-list-title">${esc(srT("bucket_clusters_label"))}</div>
+  $("#bucket-answer-screen").html(`
+    <div class="bucket-answer-title">${esc(srT("bucket_clusters_label"))}</div>
     <div class="bucket-picker-hint">Found by grouping students on average, consistency, trend and attendance together — not a single-number ranking. Groups only appear once a class is large enough (30+) for the pattern to be meaningful.</div>
     <div class="finding-list">${rows}</div>
-  `).addClass("screen-fade-in").show();
+  `);
 }
 function openClusterGroup(clusterIndex){
   const cc=APP.cohortClusters;
   const g=cc&&cc.groups&&cc.groups.find(x=>x.clusterIndex===clusterIndex);
-  if(!g){backToBucketList();return;}
+  if(!g)return;
   const names=g.students.map(st=>`<div class="subject-row"><span>${esc(st.name)}</span><span>${esc(String(st.analysis.overallAvg))}% · Rank #${esc(String(st.analysis.rank))}</span></div>`).join("");
   const c=g.centroid;
   const summary=`<p>${esc(g.label)} — ${g.students.length} of ${(APP.students||[]).length} students. Group averages: ${c.overallAvg}% overall, consistency score ${c.consistency}, trend ${c.slope>=0?"+":""}${c.slope} pts/test, ${c.absenceRate.toFixed(2)} absence days per test.</p>`;
-  $("#bucket-list-screen").hide();
   $("#bucket-answer-screen").html(`
-    ${breadcrumbHtml()}
     <div class="bucket-answer-title">${esc(g.label)}</div>
     <div class="bucket-answer-body">${summary}
       <div class="subject-row-list" style="margin-top:14px">${names}</div>
@@ -1134,19 +1237,20 @@ function filterPickerList(listId,query){
 }
 
 function renderStudentPicker(){
-  $("#bucket-screen,#bucket-answer-screen").hide();
   const students=APP.students||[];
   const rows=students.map(st=>`<div class="bucket-picker-row" onclick="onBucketStudentPick('${esc(st.name)}')">${esc(st.name)}</div>`).join("");
-  $("#bucket-list-screen").html(`
-    <button class="bucket-back-btn" onclick="backToBuckets()">${esc(srT("back"))}</button>
-    <div class="bucket-list-title">${esc(srT("bucket_student_label"))}</div>
+  const railHtml=`
     <div class="bucket-picker-hint">${esc(srT("student_picker_prompt"))}</div>
     <div style="display:flex;gap:8px;align-items:center">
       <input type="text" class="bucket-picker-input" placeholder="Search by name…" oninput="filterPickerList('bucket-student-results',this.value)" autocomplete="off" id="bucket-student-input" style="flex:1">
       <button type="button" onclick="document.getElementById('bucket-student-input').value='';filterPickerList('bucket-student-results','');" aria-label="Clear" title="Clear" style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:16px;line-height:1">×</button>
     </div>
-    <div id="bucket-student-results" class="bucket-picker-list">${rows||emptyStateHtml(srT("bucket_all_good"))}</div>
-  `).addClass("screen-fade-in").show();
+    <div id="bucket-student-results" class="bucket-picker-list">${rows||emptyStateHtml(srT("bucket_all_good"))}</div>`;
+  if(typeof setRightRail==="function") setRightRail(railHtml);
+  // item c: first student pre-selected and shown as soon as the control
+  // opens — no click required to see something.
+  if(students.length) onBucketStudentPick(students[0].name);
+  else if(typeof setLeftRail==="function") $("#bucket-answer-screen").html(`<div class="bucket-answer-body">${esc(srT("bucket_all_good"))}</div>`);
 }
 function onBucketStudentPick(name){
   const st=(APP.students||[]).find(s=>(s.name||"").trim().toLowerCase()===String(name).trim().toLowerCase());
@@ -1155,30 +1259,28 @@ function onBucketStudentPick(name){
   const ew=(a.explainedWarnings||[]);
   const body=ew.length?ew.map(f=>`<p>${esc(f.reason+flagChapterSuffix(st,f.type))}</p>`).join(""):`<p>${esc(srT("bucket_all_good"))}</p>`;
   $("#bucket-answer-screen").html(`
-    ${breadcrumbHtml()}
     <div class="bucket-answer-title">${esc(st.name)}</div>
     <div class="bucket-answer-sub">Overall: ${esc(String(a.overallAvg))}% · Rank #${esc(String(a.rank))} · Grade ${esc(a.grade||"-")} · Trend: ${esc(a.trend||"-")}</div>
     <div class="bucket-answer-body">${body}</div>
     <div class="chart-container" style="margin-top:14px"><div class="card-title">Progress Trend</div><canvas id="bucket-chart-student-trend"></canvas></div>
-  `).addClass("screen-fade-in").show();
-  $("#bucket-list-screen").hide();
+  `);
   renderBucketStudentTrendChart("bucket-chart-student-trend",st);
 }
 
 function renderSubjectPicker(){
-  $("#bucket-screen,#bucket-answer-screen").hide();
   const subjects=(APP.setup&&APP.setup.subjects)||[];
   const rows=subjects.map(s=>`<div class="bucket-picker-row" onclick="onBucketSubjectPick('${esc(s)}')">${esc(s)}</div>`).join("");
-  $("#bucket-list-screen").html(`
-    <button class="bucket-back-btn" onclick="backToBuckets()">${esc(srT("back"))}</button>
-    <div class="bucket-list-title">${esc(srT("bucket_subject_label"))}</div>
+  const railHtml=`
     <div class="bucket-picker-hint">${esc(srT("subject_picker_prompt"))}</div>
     <div style="display:flex;gap:8px;align-items:center">
       <input type="text" class="bucket-picker-input" placeholder="Search by subject…" oninput="filterPickerList('bucket-subject-results',this.value)" autocomplete="off" id="bucket-subject-input" style="flex:1">
       <button type="button" onclick="document.getElementById('bucket-subject-input').value='';filterPickerList('bucket-subject-results','');" aria-label="Clear" title="Clear" style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:16px;line-height:1">×</button>
     </div>
-    <div id="bucket-subject-results" class="bucket-picker-list">${rows||emptyStateHtml(srT("bucket_all_good"))}</div>
-  `).addClass("screen-fade-in").show();
+    <div id="bucket-subject-results" class="bucket-picker-list">${rows||emptyStateHtml(srT("bucket_all_good"))}</div>`;
+  if(typeof setRightRail==="function") setRightRail(railHtml);
+  // item c: first subject pre-selected and shown by default, same rule as students.
+  if(subjects.length) onBucketSubjectPick(subjects[0]);
+  else $("#bucket-answer-screen").html(`<div class="bucket-answer-body">${esc(srT("bucket_all_good"))}</div>`);
 }
 function onBucketSubjectPick(name){
   const subjects=(APP.setup&&APP.setup.subjects)||[];
@@ -1191,19 +1293,17 @@ function onBucketSubjectPick(name){
   const rows=students.map(st=>({name:st.name,avg:(st.analysis&&st.analysis.subjectAvgs&&st.analysis.subjectAvgs[subject])||0})).sort((a,b)=>a.avg-b.avg);
   const rowsHtml=rows.map(r=>`<div class="subject-row"><span>${esc(r.name)}</span><span>${esc(String(r.avg))}%</span></div>`).join("");
   $("#bucket-answer-screen").html(`
-    ${breadcrumbHtml()}
     <div class="bucket-answer-title">${esc(subject)}</div>
     <div class="bucket-answer-body">${summary}
       <div class="chart-container" style="margin-top:14px"><div class="card-title">${esc(subject)} — Distribution</div><canvas id="bucket-chart-subjectdist"></canvas></div>
       <div class="subject-row-list" style="margin-top:14px">${rowsHtml}</div>
     </div>
-  `).addClass("screen-fade-in").show();
-  $("#bucket-list-screen").hide();
+  `);
   renderBucketSubjectDistChart("bucket-chart-subjectdist",rows);
 }
 
 function renderClassAnswer(){
-  $("#bucket-screen,#bucket-list-screen").hide();
+  if(typeof setRightRail==="function") setRightRail(""); // item 7a: no properties for this control
   const cs=APP.classStats||{};
   const parts=[];
   if(cs.mean!==undefined&&cs.mean!==null)parts.push(`<p>Class average: ${esc(String(cs.mean))}% (median ${esc(String(cs.median))}%). Range: ${esc(String(cs.min))}%–${esc(String(cs.max))}%.</p>`);
@@ -1228,11 +1328,10 @@ function renderClassAnswer(){
       <div class="heatmap-wrap" id="bucket-heatmap-wrap"></div>
     </div>`:"";
   $("#bucket-answer-screen").html(`
-    <button class="bucket-back-btn" onclick="backToBuckets()">${esc(srT("back"))}</button>
     <div class="bucket-answer-title">${esc(srT("bucket_class_label"))}</div>
     <div class="bucket-answer-body">${parts.join("")}</div>
     ${chartsHtml}
-  `).addClass("screen-fade-in").show();
+  `);
   if(sts.length)renderBucketClassCharts();
 }
 
@@ -1293,6 +1392,10 @@ function updateExportGate(){
     if(hasIssues){exportTab.classList.add("locked");exportTab.setAttribute("title",reason);}
     else{exportTab.classList.remove("locked");exportTab.removeAttribute("title");}
   }
+  // vs-shell-plan-v2 Task 5: right-rail export-ready status, re-derived
+  // every time this function runs — same EXPORT_GATE invariant as the
+  // rest of this function, not cached separately.
+  if(typeof renderShellRightRail==="function" && APP.currentStep==="export") renderShellRightRail("export");
 }
 function renderKPIs(){
   const isIndividual=APP.setup.mode==="individual";
@@ -1648,7 +1751,19 @@ ${a.explainedWarnings&&a.explainedWarnings.length?`<div style="margin-bottom:12p
   <div class="kpi-card"><div class="kpi-label">Best Test</div><div class="kpi-val" style="font-size:14px">${a.bestTest?esc(a.bestTest.name)+" ("+a.bestTest.pct+"%)":"—"}</div></div>
   <div class="kpi-card"><div class="kpi-label">Weakest Test</div><div class="kpi-val" style="font-size:14px">${a.worstTest?esc(a.worstTest.name)+" ("+a.worstTest.pct+"%)":"—"}</div></div>
 </div>
-${!isIndividual&&a.subjectDeltas&&Object.keys(a.subjectDeltas).length?`<div class="card" style="padding:12px;margin-bottom:14px"><div class="card-title" style="margin-bottom:6px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><line x1='6' y1='20' x2='6' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='18' y1='20' x2='18' y2='14'/></svg> vs. Class Average, by Subject</div><div style="display:flex;flex-wrap:wrap;gap:6px">${Object.entries(a.subjectDeltas).map(([s,d])=>`<span class="badge" style="background:${d>=0?'var(--c-success)':'var(--c-danger)'}18;color:${d>=0?'var(--c-success)':'var(--c-danger)'}" title="${esc(s)}: ${d>=0?'above':'below'} the class average by ${Math.abs(d)} points">${esc(s)} ${d>=0?"+":""}${d}</span>`).join("")}</div></div>`:""}</div><div style="display:flex;flex-direction:column;gap:10px">${narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l1.8-3.7A8.5 8.5 0 1 1 21 11.5z'/></svg>","The Bottom Line","parentMessage",a.parentMessage,st.id)}<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polyline points='3 17 9 11 13 15 21 6'/><polyline points='15 6 21 6 21 12'/></svg> What's Changed <span style="font-weight:400;color:var(--c-text3);font-size:11px">(computed from the marks table — not editable)</span></div><div style="font-size:13px">${esc(a.trendFacts||"")}</div></div>${a.strengthsLetter?narrativeCard("⭐","Strengths","strengthsLetter",a.strengthsLetter,st.id):""}${narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z'/><path d='M9 22V12h6v10'/></svg>","At Home This Week","homePlan",a.homePlan,st.id)}${!isIndividual&&a.schoolPlan?narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg>","At School","schoolPlan",a.schoolPlan,st.id):""}${remarkCardsHtml(st)}</div>`);
+${!isIndividual&&a.subjectDeltas&&Object.keys(a.subjectDeltas).length?`<div class="card" style="padding:12px;margin-bottom:14px"><div class="card-title" style="margin-bottom:6px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><line x1='6' y1='20' x2='6' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='18' y1='20' x2='18' y2='14'/></svg> vs. Class Average, by Subject</div><div style="display:flex;flex-wrap:wrap;gap:6px">${Object.entries(a.subjectDeltas).map(([s,d])=>`<span class="badge" style="background:${d>=0?'var(--c-success)':'var(--c-danger)'}18;color:${d>=0?'var(--c-success)':'var(--c-danger)'}" title="${esc(s)}: ${d>=0?'above':'below'} the class average by ${Math.abs(d)} points">${esc(s)} ${d>=0?"+":""}${d}</span>`).join("")}</div></div>`:""}</div><div style="display:flex;flex-direction:column;gap:10px">${/* STUDIN-PRO: "The Bottom Line" gated per §8.
+narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l1.8-3.7A8.5 8.5 0 1 1 21 11.5z'/></svg>","The Bottom Line","parentMessage",a.parentMessage,st.id)
+*/ ""}${/* STUDIN-PRO: "What's Changed" gated per §8.
+<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polyline points='3 17 9 11 13 15 21 6'/><polyline points='15 6 21 6 21 12'/></svg> What's Changed <span style="font-weight:400;color:var(--c-text3);font-size:11px">(computed from the marks table — not editable)</span></div><div style="font-size:13px">${esc(a.trendFacts||"")}</div></div>
+*/ ""}${/* STUDIN-PRO: "Strengths" gated per §8 (modal — unchanged by
+ui-prompt-batch2.md item 3, which only reversed Strengths' PDF status;
+the modal already had it gated from the start).
+${a.strengthsLetter?narrativeCard("⭐","Strengths","strengthsLetter",a.strengthsLetter,st.id):""}
+*/ ""}${/* STUDIN-PRO: "At Home This Week" gated per §8.
+narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z'/><path d='M9 22V12h6v10'/></svg>","At Home This Week","homePlan",a.homePlan,st.id)
+*/ ""}${!isIndividual&&a.schoolPlan?narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg>","At School","schoolPlan",a.schoolPlan,st.id):""}${/* STUDIN-PRO: Teacher Remarks (per-test) gated per §8.
+remarkCardsHtml(st)
+*/ ""}</div>`);
   $("#modal-overlay").addClass("open");
   _modalLastFocus=document.activeElement;
   setTimeout(()=>{const f=document.querySelector('#modal-overlay.open .modal-close');if(f)f.focus();},0);

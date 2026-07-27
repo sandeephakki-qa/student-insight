@@ -14,6 +14,9 @@ function swGoto(n){
   if(panel) panel.scrollTop=0;
   window.scrollTo(0,0);
   swRefresh();
+  // vs-shell-plan-v2 Task 5: keep the right-rail step-progress in sync
+  // (goStep() only fires once on entering Setup, not on every internal step).
+  if(typeof renderShellRightRail==="function" && APP.currentStep==="setup") renderShellRightRail("setup");
 }
 
 function swNext(){

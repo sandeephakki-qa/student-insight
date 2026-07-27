@@ -28,8 +28,22 @@ async function generateAllPDFs(){
   if((APP.dataIssues||[]).length){toast("Fix the "+APP.dataIssues.length+" data quality issue(s) on the Dashboard before exporting.","warn");goStep("dashboard");return;}
   const doS=$("#exp-student").is(":checked"),doT=$("#exp-teacher").is(":checked"),doM=$("#exp-mgmt").is(":checked"),doZ=$("#exp-zip").is(":checked");
   if(!doS&&!doT&&!doM){toast("Select at least one report type to export.","warn");return;}
+  // ui-prompt-batch2.md item 2: per-student selection, genuinely new (no
+  // prior equivalent) — .exp-student-cb checkboxes live in the Export
+  // rail (js/vs-shell.js renderShellRightRail, step==="export"). Falls
+  // back to ALL students if the checkboxes aren't found in the DOM at
+  // all (vs. found-but-none-checked, which is a real, honored "export
+  // nobody" choice) — goStep() always renders the rail before this can
+  // be called, so the fallback is a safety net, not the normal path.
+  const studentCbs=$(".exp-student-cb");
+  const selectedStudents=studentCbs.length
+    ? (function(){
+        const ids=new Set(studentCbs.filter(":checked").map((i,el)=>el.getAttribute("data-id")).get());
+        return APP.students.filter(st=>ids.has(String(st.id)));
+      })()
+    : APP.students;
   const {jsPDF}=window.jspdf;
-  const total=(doS?APP.students.length:0)+(doT?1:0)+(doM?1:0);let done=0;
+  const total=(doS?selectedStudents.length:0)+(doT?1:0)+(doM?1:0);let done=0;
   $("#export-loader").show();
   $("#btn-generate-pdfs").prop("disabled",true).removeClass("btn-glow");
   function prog(msg,pct){$("#export-loader-msg").text(msg);$("#export-prog").css("width",pct+"%");}
@@ -39,7 +53,7 @@ async function generateAllPDFs(){
   try{
     if(doZ){
       const zip=new JSZip();
-      if(doS){for(const st of APP.students){prog("Generating: "+st.name+" ("+done+"/"+APP.students.length+")",Math.round(done/total*100));await sleep(20);const doc=sanitizePdfDoc(new jsPDF("p","mm","a4"));buildStudentPDF(doc,st);zip.file("Students/"+safeName(st.name)+"_"+safeName(st.id)+".pdf",doc.output("blob"));done++;}}
+      if(doS){for(const st of selectedStudents){prog("Generating: "+st.name+" ("+done+"/"+selectedStudents.length+")",Math.round(done/total*100));await sleep(20);const doc=sanitizePdfDoc(new jsPDF("p","mm","a4"));buildStudentPDF(doc,st);zip.file("Students/"+safeName(st.name)+"_"+safeName(st.id)+".pdf",doc.output("blob"));done++;}}
       if(doT){prog("Generating Teacher Report…",Math.round(done/total*100));await sleep(20);const doc=sanitizePdfDoc(new jsPDF("p","mm","a4"));buildTeacherPDF(doc);zip.file("Teacher_Report.pdf",doc.output("blob"));done++;}
       if(doM){prog("Generating Management Report…",Math.round(done/total*100));await sleep(20);const doc=sanitizePdfDoc(new jsPDF("p","mm","a4"));buildMgmtPDF(doc);zip.file("Management_Report.pdf",doc.output("blob"));done++;}
       prog("Building ZIP…",95);
@@ -49,7 +63,7 @@ async function generateAllPDFs(){
       toast("ZIP downloaded: "+fname,"success");
     } else {
       // ZIP unchecked — download each selected PDF individually
-      if(doS){for(const st of APP.students){prog("Generating: "+st.name+" ("+done+"/"+APP.students.length+")",Math.round(done/total*100));await sleep(20);const doc=sanitizePdfDoc(new jsPDF("p","mm","a4"));buildStudentPDF(doc,st);downloadBlob(doc.output("blob"),safeName(st.name)+"_"+safeName(st.id)+".pdf");done++;}}
+      if(doS){for(const st of selectedStudents){prog("Generating: "+st.name+" ("+done+"/"+selectedStudents.length+")",Math.round(done/total*100));await sleep(20);const doc=sanitizePdfDoc(new jsPDF("p","mm","a4"));buildStudentPDF(doc,st);downloadBlob(doc.output("blob"),safeName(st.name)+"_"+safeName(st.id)+".pdf");done++;}}
       if(doT){prog("Generating Teacher Report…",Math.round(done/total*100));await sleep(20);const doc=sanitizePdfDoc(new jsPDF("p","mm","a4"));buildTeacherPDF(doc);downloadBlob(doc.output("blob"),"Teacher_Report.pdf");done++;}
       if(doM){prog("Generating Management Report…",Math.round(done/total*100));await sleep(20);const doc=sanitizePdfDoc(new jsPDF("p","mm","a4"));buildMgmtPDF(doc);downloadBlob(doc.output("blob"),"Management_Report.pdf");done++;}
       toast(done+" PDF(s) downloaded individually.","success");
@@ -150,8 +164,12 @@ function buildStudentPDF(doc,st){
     {key:"trend",label:"Trend",exists:a.testAvgs.filter(v=>v!==null).length>=2&&s.tests&&s.tests.length>=2},
     {key:"flags",label:"Alerts",exists:!!(st.flags&&st.flags.length)},
     {key:"remark",label:"Remarks",exists:(s.tests||[]).some(t=>(st.testData[t.name]||{}).remark)},
-    {key:"messages",label:"Messages",exists:[a.parentMessage,a.strengthsLetter,a.trendFacts].some(Boolean)},
-    {key:"studyPlan",label:"Plan",exists:!!(a.homePlan||a.schoolPlan)},
+    // STUDIN-PRO: "Messages" chip pointed at Bottom Line/What's Changed/
+    // Strengths, all gated below — nothing left for it to link to.
+    // {key:"messages",label:"Messages",exists:[a.parentMessage,a.strengthsLetter,a.trendFacts].some(Boolean)},
+    // STUDIN-PRO: "Plan" chip pointed at At Home This Week, gated below —
+    // nothing left for it to link to.
+    // {key:"studyPlan",label:"Plan",exists:!!(a.homePlan||a.schoolPlan)},
   ].filter(c=>c.exists);
   const navBarY=y;
   doc.setFillColor(242,244,252);doc.roundedRect(8,y,W-16,9,2,2,"F");
@@ -384,17 +402,18 @@ function buildStudentPDF(doc,st){
     });
     y+=4;
   }
-  // ── CHAPTERS COVERED (Task 1/2a: only if at least one test has one) ──
-  const chapterEntries=(s.tests||[]).map(t=>({test:t.name,chapter:(st.testData[t.name]||{}).chapter})).filter(c=>c.chapter);
-  if(chapterEntries.length){
-    if(y>258){doc.addPage();y=20;}
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text("Chapters Covered",10,y);y+=5;
-    doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(90,96,122);
-    const chLine=chapterEntries.map(c=>c.test+": "+c.chapter).join("  ·  ");
-    const chWrapped=doc.splitTextToSize(chLine,W-20);
-    doc.text(chWrapped,10,y);
-    y+=chWrapped.length*4+6;
-  }
+  // STUDIN-PRO: Chapters Covered — gated per ui-prompt-batch2.md item 3,
+  // wrapped not deleted (comment-block convention per §8).
+  // const chapterEntries=(s.tests||[]).map(t=>({test:t.name,chapter:(st.testData[t.name]||{}).chapter})).filter(c=>c.chapter);
+  // if(chapterEntries.length){
+  //   if(y>258){doc.addPage();y=20;}
+  //   doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text("Chapters Covered",10,y);y+=5;
+  //   doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(90,96,122);
+  //   const chLine=chapterEntries.map(c=>c.test+": "+c.chapter).join("  ·  ");
+  //   const chWrapped=doc.splitTextToSize(chLine,W-20);
+  //   doc.text(chWrapped,10,y);
+  //   y+=chWrapped.length*4+6;
+  // }
   // ── NARRATIVE SECTIONS (visually boxed) ──
   // Redesigned: one merged "The Bottom Line" message (was three overlapping
   // cards — Report Card Comment / For Parents / Motivation — repeating the
@@ -402,49 +421,50 @@ function buildStudentPDF(doc,st){
   // and Strengths only when a genuine one exists (previously always
   // printed, falling back to filler text like "is working hard to build
   // strengths" when nothing qualified).
-  const sections=[
-    {title:"The Bottom Line",text:a.parentMessage,bg:[238,240,253],border:[67,97,238]},
-    {title:"What's Changed",text:a.trendFacts,bg:[244,246,251],border:[140,148,180]},
-    {title:"Strengths",text:a.strengthsLetter,bg:[230,249,247],border:[46,196,182]},
-  ];
-  sections.filter(s=>s.text).forEach((sec,idx)=>{
-    if(y>255){doc.addPage();y=20;}
-    if(idx===0)nav.messages=doc.internal.getCurrentPageInfo().pageNumber;
-    // Measuring wrap width must use the exact font/size the body text will
-    // actually render at — otherwise splitTextToSize() borrows whatever
-    // font was left active by the previous drawing call (e.g. the smaller
-    // bold flag-badge font just above), under-wraps, and the rendered
-    // text spills past the right edge of the box.
-    doc.setFont("helvetica","normal");doc.setFontSize(8.5);
-    const lines=doc.splitTextToSize(sec.text,W-28);const bh=lines.length*4.5+11;
-    doc.setFillColor(...sec.bg);doc.setDrawColor(...sec.border);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
-    doc.setFillColor(...sec.border);doc.rect(8,y,3,bh,"F");
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...sec.border);doc.text(sec.title,14,y+7);
-    doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(26,29,46);
-    doc.text(lines,14,y+13);y+=bh+5;
-  });
-  // ── AT HOME (always on its own visual block) ──
-  if(a.homePlan){
-    if(y>240){doc.addPage();y=20;}
-    nav.studyPlan=doc.internal.getCurrentPageInfo().pageNumber;
-    doc.setFont("helvetica","normal");doc.setFontSize(8.5);
-    const lines=doc.splitTextToSize(a.homePlan,W-28);const bh=lines.length*4.5+13;
-    doc.setFillColor(255,240,214);doc.setDrawColor(249,168,38);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
-    doc.setFillColor(249,168,38);doc.rect(8,y,3,bh,"F");
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(122,82,0);doc.text("At Home This Week",14,y+7);
-    doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(26,29,46);doc.text(lines,14,y+13);
-    y+=bh+5;
-  }
-  // ── AT SCHOOL (Institution mode only, and only if there's something to say) ──
-  if(!isIndividual&&a.schoolPlan){
-    if(y>252){doc.addPage();y=20;}
-    doc.setFont("helvetica","normal");doc.setFontSize(8.5);
-    const lines=doc.splitTextToSize(a.schoolPlan,W-28);const bh=lines.length*4.5+12;
-    doc.setFillColor(253,236,234);doc.setDrawColor(242,92,84);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
-    doc.setFillColor(242,92,84);doc.rect(8,y,3,bh,"F");
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(139,26,26);doc.text("At School",14,y+7);
-    doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(26,29,46);doc.text(lines,14,y+13);y+=bh+5;
-  }
+  // STUDIN-PRO: The Bottom Line / What's Changed / Strengths — all three
+  // gated (Strengths per ui-prompt-batch2.md item 3, reversing §8's
+  // original "Strengths stays in the PDF" decision). Wrapped, not
+  // deleted.
+  // const sections=[
+  //   {title:"The Bottom Line",text:a.parentMessage,bg:[238,240,253],border:[67,97,238]},
+  //   {title:"What's Changed",text:a.trendFacts,bg:[244,246,251],border:[140,148,180]},
+  //   {title:"Strengths",text:a.strengthsLetter,bg:[230,249,247],border:[46,196,182]},
+  // ];
+  // sections.filter(s=>s.text).forEach((sec,idx)=>{
+  //   if(y>255){doc.addPage();y=20;}
+  //   if(idx===0)nav.messages=doc.internal.getCurrentPageInfo().pageNumber;
+  //   doc.setFont("helvetica","normal");doc.setFontSize(8.5);
+  //   const lines=doc.splitTextToSize(sec.text,W-28);const bh=lines.length*4.5+11;
+  //   doc.setFillColor(...sec.bg);doc.setDrawColor(...sec.border);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
+  //   doc.setFillColor(...sec.border);doc.rect(8,y,3,bh,"F");
+  //   doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...sec.border);doc.text(sec.title,14,y+7);
+  //   doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(26,29,46);
+  //   doc.text(lines,14,y+13);y+=bh+5;
+  // });
+  // STUDIN-PRO: At Home This Week — gated per §8. Wrapped, not deleted.
+  // if(a.homePlan){
+  //   if(y>240){doc.addPage();y=20;}
+  //   nav.studyPlan=doc.internal.getCurrentPageInfo().pageNumber;
+  //   doc.setFont("helvetica","normal");doc.setFontSize(8.5);
+  //   const lines=doc.splitTextToSize(a.homePlan,W-28);const bh=lines.length*4.5+13;
+  //   doc.setFillColor(255,240,214);doc.setDrawColor(249,168,38);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
+  //   doc.setFillColor(249,168,38);doc.rect(8,y,3,bh,"F");
+  //   doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(122,82,0);doc.text("At Home This Week",14,y+7);
+  //   doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(26,29,46);doc.text(lines,14,y+13);
+  //   y+=bh+5;
+  // }
+  // STUDIN-PRO: At School — gated per §8 (stays in the modal, gated only
+  // in the PDF — deliberate asymmetry, not an oversight). Wrapped, not
+  // deleted.
+  // if(!isIndividual&&a.schoolPlan){
+  //   if(y>252){doc.addPage();y=20;}
+  //   doc.setFont("helvetica","normal");doc.setFontSize(8.5);
+  //   const lines=doc.splitTextToSize(a.schoolPlan,W-28);const bh=lines.length*4.5+12;
+  //   doc.setFillColor(253,236,234);doc.setDrawColor(242,92,84);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
+  //   doc.setFillColor(242,92,84);doc.rect(8,y,3,bh,"F");
+  //   doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(139,26,26);doc.text("At School",14,y+7);
+  //   doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(26,29,46);doc.text(lines,14,y+13);y+=bh+5;
+  // }
   // ── WIRE UP QUICK NAVIGATION LINKS ──
   // The nav chips were drawn on page 1; now that every section has been
   // rendered we know which page each landed on, so go back and lay real

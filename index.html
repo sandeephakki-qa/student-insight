@@ -248,8 +248,39 @@
    Contract: setLeftRail(html) / setRightRail(html) (global fns,
      js/vs-shell.js) — same names/signatures the old app-shell.js used,
      write into #shell-rail-start / #shell-rail-end respectively. Call
-     these from panel render functions to populate the side panels —
-     Task 3 ships them empty; wiring real content per phase is Tasks 4/5/6.
+     these from panel render functions to populate the side panels.
+     Left panel (Task 4, done): renderShellLeftRail(step), hooked once
+     inside goStep() (single choke point for all 7 panels, plus boot's
+     goStep("home")) and again in reapplyI18nStrings() (JS-injected
+     innerHTML, same reason renderAICheckboxes() needs re-firing on a
+     language switch). Setup/AI/Dashboard/Export show file/org/records
+     key-value rows (APP.setup.instName, APP.students.length,
+     APP.homeSingleFile/APP.sections for single-vs-multi-file); Home/
+     About/FAQ show the empty state; Dashboard adds the class/section
+     row. Live two-way sync while typing in Setup's form is NOT wired —
+     the rail only refreshes on navigation/language-switch, see §9.
+     Right panel (Task 5, done — non-Dashboard phases): renderShellRightRail(step),
+     hooked at the same choke points as the left rail, plus three extra
+     ones for state that changes mid-panel: swGoto() (setup step),
+     updateAICount() (AI feature count), updateExportGate() (export
+     gate, re-derived not cached — same EXPORT_GATE rule as elsewhere).
+     Home: Try Sample/Build Template/Sample Files links. Setup: step
+     progress + Download Template. AI: selected-features count only —
+     no Continue button, see §9. Export: ready/blocked status + ZIP
+     button, gated on APP.dataIssues exactly like the core Export panel.
+     About/FAQ: Sample Files + Home links. Dashboard (Task 6, done):
+     renderShellDashboardRail() — input+mic (data-voice, initVoiceInput()
+     re-run safely, it self-guards against double-wiring) + Ask button,
+     suggestion chips from SmartQueryV2.availableQuestions(), answers
+     appended as cards in a scrollable thread, legacy Smart Search link
+     (openSmartSearchScreen()) and Compare-students link
+     (openBucket('compare'), institution mode only). Built against
+     SmartQueryV2's REAL shipped API (load/isReady/availableQuestions/
+     answerQuestion/match/ask) — NOT composeVerdict()/suggest()/
+     matchAndAnswer(), which both planning docs describe but which do
+     not exist anywhere in this repo. See §9 GOTCHAS for the full
+     deviation list (also: no fuse.min.js needed, and two of §4.3's six
+     i18n keys deliberately not added).
    Resize: pointer-drag on #shell-divider-start/#shell-divider-end
      (also ArrowLeft/ArrowRight when focused, role="separator"), clamped
      160-420px, written to --panel-start-width/--panel-end-width custom
@@ -265,14 +296,180 @@
      would wrongly flip the still-English-layout panel content nested
      inside). Content-level RTL is still scoped to the same elements as
      before (§9 note above this one) — Task 8 does the full audit.
-   Mobile (<=768px): grid collapses to block layout, panels/dividers
-     hidden — a placeholder only. The real mobile pattern (info strip +
-     bottom sheet) from shell-redesign-plan.md is Task 8, not yet built.
+   Mobile (<=768px, Task 8, done): #shell-panel-start becomes a fixed
+     top strip under the header (36px collapsed, up to 70vh expanded,
+     downward); #shell-panel-end becomes a fixed bottom sheet (36px
+     collapsed pill, up to 70vh expanded, upward). Same DOM/JS as
+     desktop — vsShellToggle()/data-collapsed — only the CSS meaning of
+     "collapsed" changes (strip vs 28px column). Panels default
+     collapsed on first load at this breakpoint (checked once at boot
+     via window.innerWidth) so the sheet doesn't cover the screen;
+     desktop's default (expanded) is unchanged. Dividers hidden (no
+     resize on touch). Header (#topbar selects) not reworked for
+     mobile — see §10.
    Viewport fit (>768px only): #main is the only scrolling region.
      header/#stepper stay position:fixed, unchanged; #app-shell-body's
      height now also subtracts a reserved --footer-h so header + shell +
      footer sum to exactly 100dvh — no page-level scrollbar. Below
      768px this is skipped; the mobile fallback keeps natural page scroll.
+
+════════════════════════════════════════════════════════════════════════
+
+6b. DASHBOARD IDE REDESIGN (ui-prompt-template.md §4 items 1-8 — Home
+    rail content + Dashboard "Smart Reveal" redesign; supersedes the
+    screen-based bucket UI §6a/Task 6 originally shipped it with)
+   Home rail (items 1-6): rail toggle buttons now carry a visible
+     "Features"/"Properties" label (shell_rail_features_title/
+     shell_rail_properties_title) — confirmed not swapped: left =
+     Features (below Home), right = Properties (below FAQ). Both rails
+     get real content the moment vs-shell.js loads (item 2 fix — see
+     §9). Home shows 6 pitch bullets each side instead of the old
+     Try-Sample/Build-Template/Sample-Files buttons (removed — same
+     actions already exist in #home-paths-grid, nothing lost). Setup/
+     AI/Dashboard/Export's key-value rows are now wrapped in a
+     collapsed-by-default <details>"File details" section (item 6).
+   Dashboard (item 7): Institution + non-Compare mode only (PIB §9
+     smart-reveal-scope, unchanged) is now fully rail-driven and
+     in-place — no more screen-hopping. #bucket-screen/#bucket-list-
+     screen are retired for this mode (left permanently empty/hidden,
+     not deleted — Individual mode's renderIndividualBuckets() still
+     uses #bucket-screen). #bucket-answer-screen is the single,
+     always-visible center container.
+     Left rail: buildDashboardControlsHtml() (render-dashboard.js) —
+       same control list the old #bucket-screen card grid had (class/
+       student/subject/help/top/compare/clusters), reusing the exact
+       same .bucket-row/.bucket-list CSS (already a vertical stack,
+       needed zero new CSS to fit the narrower rail), plus a new
+       "Smart Search" control (item g) and an active-row highlight
+       (.bucket-row-active) for whichever control is selected. Appended
+       after File details in renderShellLeftRail() for this mode only.
+     Right rail ("Properties" of the selected control): owned entirely
+       by whichever function openBucket(id) dispatches to, NOT by
+       js/vs-shell.js's renderShellRightRail() (which now no-ops for
+       step==="dashboard" — see §9). class/top/compare/clusters clear
+       it (item a/e — no properties); student/subject/help/smart set
+       it to a live-filter search + scrollable list (item c/d/g),
+       reusing the pre-existing filterPickerList()/.bucket-picker-*
+       CSS unchanged. student/subject/help auto-select and show their
+       first match with no click required (item c/d); "top" and
+       "clusters" keep their existing list rendered directly in the
+       center panel instead (item e — deliberately NOT a picker).
+     Smart Search (item g/h, OPEN QUESTION confirmed: one merged
+       list): renderDashboardSmartSearch()/onSmartQuestionPick(),
+       built on SmartQueryV2's real API (load/isReady/
+       availableQuestions/answerQuestion) — supersedes Task 6's
+       chat-thread rail entirely, see §9.
+     No back buttons/breadcrumbs anywhere in this flow (explicit DON'T
+       in the spec) — backToBuckets()/backToBucketList()/breadcrumbHtml()/
+       toggleHelpRow() are now dead code, left defined but uncalled.
+     Classic Dashboard (item 8): #btn-classic-dashboard button in the
+       actionbar calls the pre-existing showLegacyDashboard() — no new
+       mechanism, reuses APP._forceLegacyView exactly as before.
+       Selecting any rail control clears that flag again (openBucket()).
+     Sample-data banner (item f): renderDashboardSampleBanner(), text
+       only, no "Set Up My Own Class" button — populates a persistent
+       #dashboard-sample-banner slot instead of being rebuilt inline
+       inside the old #bucket-screen HTML.
+     Bug fix (item b, found while implementing it): .phase-actionbar's
+       sticky top:var(--content-top) predates #main becoming its own
+       scroll container (Task 3) and left a stray ~96px gap before it
+       stuck; changed to top:0. Affects Setup/Dashboard/Export alike
+       (all three use .phase-actionbar).
+   Export folding (ui-prompt-template.md §6, resolved via
+     open-questions-resolved.md): the Export stepper item is display:none
+     (not deleted) — goStep('export')/#panel-export are fully intact and
+     still the mechanism underneath. Institution+non-Compare mode gets an
+     "Export Reports" rail control (buildDashboardControlsHtml()) that
+     calls goStep('export') directly, bypassing the "current control"
+     state entirely (checked first in openBucket(), before
+     APP._currentBucketId is touched — otherwise returning to Dashboard
+     later would immediately re-trigger the navigation). Compare Mode
+     gets its own two-item rail (buildCompareExportControlsHtml(),
+     resolved: kept separate, not folded into one button) — both entries
+     also just call goStep('export'), where the existing
+     #compare-export-card/#compare-per-section-export-card are already
+     shown via APP.compareMode (js/compute-engine.js, untouched). The
+     4 export checkboxes stay in the DOM, checked, hidden — smallest-diff
+     per the spec, so generateAllPDFs() needs zero changes.
+     DELIBERATE DEVIATION from the literal spec (see §9
+     dashboard-export-reuses-panel): the spec asked for the single-
+     button experience to render inside #panel-dashboard itself; this
+     instead reuses the existing #panel-export screen/panel wholesale.
+     Documented tradeoff, not an oversight.
+
+════════════════════════════════════════════════════════════════════════
+
+6c. RAIL BEHAVIOR + EXPORT CHECKBOXES (ui-prompt-batch2.md items 1-2 —
+    reverses parts of §6b/§6, see §9 for what specifically)
+   Item 1 (shell open/close tied to dashboard mode, not step): both rails
+     are a single "car-mirror" behavior keyed off APP._forceLegacyView,
+     not step==="dashboard" (Classic and Smart share that step — see §9
+     dashboard-mode-not-step). setShellRailsOpen(open) (js/vs-shell.js) —
+     explicit set for both sides at once, reuses vsShellToggle()'s exact
+     state/DOM/transition, doesn't replace it. Classic Dashboard
+     (renderBuckets()'s APP._forceLegacyView branch): closes + clears
+     both rails (setLeftRail("")/setRightRail("") — not just collapsed
+     width, so stale content can't flash back on manual re-expand). Smart
+     bucket dashboard (renderBuckets()'s Institution+non-Compare tail):
+     opens both. Smart Search control specifically
+     (renderDashboardSmartSearch()): re-opens too, even if manually
+     collapsed while already in Smart mode — the "flagship" moment.
+     Compare Mode and Individual mode: unaffected, unchanged from §6b/6c.
+   Item 2 (Export Reports rail gets real checkboxes back): §6's "no
+     choice" rule is superseded for the RIGHT RAIL only — the center-
+     panel button and left-rail placement are unchanged. renderShellRightRail()'s
+     step==="export" branch now renders a "Students" <details> (checkbox
+     per student, class="exp-student-cb", Select All/Unselect All,
+     default all checked) and a "Report Types" <details> (reuses
+     #exp-teacher/#exp-mgmt/#exp-zip — MOVED here from the now-empty
+     hidden card in #panel-export, not duplicated: duplicate IDs would
+     have broken generateAllPDFs()'s $("#exp-teacher") lookups). #exp-student
+     stays in the hidden card as the master "any student PDFs" gate,
+     unchanged. Report Types omits Teacher/Management for Individual mode
+     (baked into the rail HTML generation directly, since setRightRail()
+     rebuilds it fresh every render — a jQuery .toggle() call, which is
+     how project-setup.js used to do this against the old hidden card,
+     wouldn't survive that rebuild).
+     Per-student filtering in generateAllPDFs() (js/export-pdf.js) is
+     genuinely NEW logic (confirmed via the spec's own open question,
+     not a restoration) — selectedStudents reads .exp-student-cb:checked
+     from the DOM, falls back to ALL students only if no such checkboxes
+     exist at all (vs. found-but-none-checked, a real "export nobody"
+     choice). "Compare" (mentioned in the spec's checklist alongside
+     Teacher/Management/Zip) was NOT added — no existing wiring connects
+     a comparison PDF to generateAllPDFs()'s ZIP output, and the spec
+     doesn't specify what including it should actually generate; see §9.
+
+════════════════════════════════════════════════════════════════════════
+
+6d. STUDIN-PRO TIER GATE (§8 of ui-prompt-template.md + ui-prompt-
+    batch2.md item 3 amendments) — IMPLEMENTED NOW, not "already done"
+   §8 claimed this gate was already implemented directly (not staged as
+     a request) — VERIFIED FALSE: grepped the repo for "STUDIN-PRO"
+     before starting this work and got zero hits. Building it for real
+     now, incorporating batch2's amendments directly into the first
+     implementation rather than building the old version first — see §9
+     studin-pro-was-never-built.
+   Modal (openStudentModal(), js/render-dashboard.js): The Bottom Line,
+     What's Changed, Strengths, At Home This Week, Teacher Remarks
+     (per-test, remarkCardsHtml()) all wrapped in ${/* ... */ ""} —
+     valid JS inside the template literal, evaluates to empty string,
+     original code left inside the comment untouched. At School stays
+     live (deliberate asymmetry, not an oversight).
+   Student PDF (buildStudentPDF(), js/export-pdf.js): The Bottom Line,
+     What's Changed, Strengths (batch2 reversal — §8 originally kept
+     Strengths in the PDF only, now gated there too), At Home This Week,
+     At School, and Chapters Covered (batch2 addition, never gated
+     before) — all block-commented with STUDIN-PRO markers. Teacher
+     Remarks (per-test) STAYS in the PDF — confirmed it's a real,
+     separate section (~line 385) from the modal's version; §8's own
+     table said "n/a, was never in the PDF" for this row, which batch2
+     correctly flagged as a documentation error, now fixed here rather
+     than left to repeat.
+   PDF "Jump To" nav chips: "Messages" and "Plan" both commented out
+     entirely (both chips' target sections are now fully gated — nothing
+     left to link to). nav.messages/nav.studyPlan are simply never set
+     now; the wire-up loop's `if(target)` guard already no-ops safely.
 
 ════════════════════════════════════════════════════════════════════════
 
@@ -449,6 +646,13 @@
      §6a. Empty callers only as of Task 3.
    vsShellToggle(side) (js/vs-shell.js) — collapse/expand a side panel
      ("start"|"end"); see §6a.
+   renderShellLeftRail(step) (js/vs-shell.js) — Task 4, builds the left
+     panel's key/value rows from APP.setup/APP.students; see §6a.
+   renderShellRightRail(step) (js/vs-shell.js) — Task 5, builds the
+     right panel's actions/status for the 6 non-Dashboard phases; see §6a.
+   renderShellDashboardRail()/smartQueryRailAsk()/smartQueryRailAnswer(id)
+     (js/vs-shell.js) — Task 6, Dashboard right panel Smart Query v2
+     wiring against the real SmartQueryV2 API; see §6a and §9.
 
 ════════════════════════════════════════════════════════════════════════
 
@@ -501,14 +705,80 @@
      all readers start in parallel. Rarely matters (most real comparison
      sets share one schema anyway) but don't assume drop order = schema
      source.
-   smart-reveal-scope  renderBuckets() only builds Screens A/B/C for
-     Institution+non-Compare mode; Compare Mode and Individual mode
+   smart-reveal-scope  renderBuckets() only rail-drives Institution+
+     non-Compare mode (ui-prompt-template.md item 7, supersedes the old
+     Screens A/B/C description below); Compare Mode and Individual mode
      still go straight to the old full renderDashboard() body — don't
-     assume #bucket-screen is populated/relevant in those two modes.
-   smart-reveal-modal  Screen C (#bucket-answer-screen) is a full-screen
-     replace, NOT the #modal-overlay dialog used by openStudentModal()
+     assume #bucket-answer-screen is populated/relevant in those two
+     modes, and don't assume #bucket-screen/#bucket-list-screen are
+     populated in Institution mode anymore either (retired, see §6b).
+   smart-reveal-modal  #bucket-answer-screen is a persistent in-place
+     panel, NOT the #modal-overlay dialog used by openStudentModal()
      elsewhere — this was an explicit, locked design decision (modals
      rejected for this feature), don't "simplify" it back to a modal.
+   dashboard-rail-superseded-task6  ui-prompt-template.md item 7g/h
+     superseded vs-shell-plan-v2 Task 6's chat-thread Smart Query rail
+     (renderShellDashboardRail()/smartQueryRailAsk()/
+     smartQueryRailAnswer(), js/vs-shell.js) with a picker-list pattern
+     (renderDashboardSmartSearch()/onSmartQuestionPick(),
+     render-dashboard.js) matching items c/d's student/subject/help
+     UI. The Task 6 functions are left defined but are no longer called
+     from anywhere — don't assume they're live, and don't "fix" them,
+     fix the item-7 versions instead. js/vs-shell.js's
+     renderShellRightRail() now explicitly no-ops for step==="dashboard"
+     — render-dashboard.js's openBucket()-dispatched functions own that
+     rail directly via setRightRail() calls.
+   dashboard-no-back-navigation  ui-prompt-template.md item 7's core
+     rule ("no navigating away, no back button, no screen-hopping")
+     removed backToBuckets()/backToBucketList()/breadcrumbHtml()/
+     toggleHelpRow() from every call site — all four functions are
+     still defined (harmless dead code) but nothing calls them anymore.
+     The left rail's control list is the only way to switch views now;
+     re-clicking the same control just re-renders it.
+   emptyStateHtml-was-undefined  emptyStateHtml() was called in
+     renderStudentPicker()/renderSubjectPicker() (empty-list edge case)
+     but never defined anywhere in the codebase — a pre-existing
+     ReferenceError waiting to happen, not introduced by item 7. Defined
+     now (render-dashboard.js, right before openBucket()) since item
+     7's rewrite added two more call sites (help/Smart Search pickers)
+     using the same pattern.
+   dashboard-export-reuses-panel  ui-prompt-template.md §6 literally asked
+     for the single-button export experience to render inside
+     #panel-dashboard (in place, like every other rail control). Instead,
+     openBucket("export") and both compare-mode rail entries navigate via
+     goStep("export") to the pre-existing #panel-export screen — a
+     deliberate choice: that screen's loader/progress-bar/EXPORT_GATE
+     gating/compare-card logic already works correctly, and relocating
+     the DOM elements those functions reference by ID
+     (#export-loader/#export-prog/etc.) into a JS-rebuilt rail target
+     without breaking generateAllPDFs()/updateExportGate() was assessed
+     as high-risk with no way to visually verify the result in this
+     environment. If a truly in-place experience is wanted later, that's
+     a separate, scoped follow-up — not a bug in what's here.
+   dashboard-mode-not-step  Classic Dashboard and Smart (bucket) Dashboard
+     are BOTH step==="dashboard" — they're distinguished by
+     APP._forceLegacyView, not the step name. Any future rail/panel
+     behavior that needs to differ between the two (like ui-prompt-
+     batch2.md item 1's open/close) must check that flag, not step —
+     confirmed this the hard way once already, don't re-derive it.
+   export-rail-compare-checkbox-not-built  ui-prompt-batch2.md item 2's
+     Report Types checklist mentions a "Compare (only if Compare Mode/
+     session exists)" item alongside Teacher/Management/Zip. NOT built —
+     there's no existing code path connecting a comparison PDF
+     (exportComparisonReportPDF(), a separate function entirely) to
+     generateAllPDFs()'s ZIP output, and the spec doesn't say what
+     "including" it should actually produce. Building it would mean
+     inventing that behavior, not restoring or relocating existing logic
+     — flagged rather than guessed at. Ask before building this one.
+   studin-pro-was-never-built  ui-prompt-template.md §8 claimed the
+     StudIn-Pro gate was "already implemented directly" — verified false
+     (zero "STUDIN-PRO" hits in the repo before this work). Built for
+     real now (§6d), folding in ui-prompt-batch2.md item 3's amendments
+     directly rather than building the stale version first. If any other
+     document claims something is "already done," verify against the
+     actual code before trusting it — this is the second time that's
+     turned out to be false in this project (see also the smart-query-v2
+     API-mismatch gotcha above).
    data-error-exclusion  "Data Error" flags are deliberately never
      surfaced in the Who Needs Help bucket — they're a data-quality
      problem (already shown via the EXPORT_GATE banner), not a student-
@@ -578,6 +848,45 @@
      header annotated) in vs-shell-plan-v2 Task 2 rather than silently
      kept or silently deleted. Do not re-enable without an explicit
      decision and a real spec entry here.
+   shell-left-rail-not-live  renderShellLeftRail() (Task 4) only
+     re-renders on goStep() navigation and on a language switch — NOT
+     on every Setup-form keystroke (instName, class name, etc.). If the
+     left rail ever needs to mirror the Setup form live while the user
+     is still typing on it, that's new wiring, not a bug in what's here.
+   shell-right-ai-no-continue  shell-redesign-plan.md §4.2's
+     shell_right_continue key assumed AI Features was still an
+     interactive picker; v3.2 converted it to a passive progress screen
+     (analysis always runs from Home's Run Analysis button instead) —
+     so Task 5 does not add that key or a Continue button, only the
+     real "Selected features" count. Not an oversight if it's ever
+     asked about again.
+   smart-query-v2-api-mismatch  Both vs-shell-plan-v2.md Task 6 and
+     shell-redesign-plan.md §4.3/Phase 3 describe js/smart-query-v2.js
+     as exposing composeVerdict()/suggest()/matchAndAnswer(), a
+     hardcoded "verdict" string to migrate into i18n, and a js/vendor/
+     fuse.min.js dependency to add before this phase. None of that
+     exists in the actual shipped file (grepped, zero hits) — its real
+     API is load()/isReady()/availableQuestions()/answerQuestion(id)/
+     match(text,limit)/ask(text), and its own header explicitly says it
+     does NOT use fuse.js (lightweight token-overlap scorer instead).
+     Task 6 was built against the real API, not the stale plan
+     language — do not "fix" js/vs-shell.js to call the planned-but-
+     nonexistent names, and do not add a fuse.min.js script tag, it
+     isn't needed and the file doesn't exist in this repo.
+     shell_v2_verdict_no_data and smart_v2_export_log from §4.3 were
+     deliberately NOT added to i18n: the first has no composeVerdict()
+     to pair with; the second (prompt.md §8.5's session-log export) has
+     no existing implementation anywhere and prompt.md itself was never
+     supplied, so there is nothing safe to wire without inventing new
+     business logic outside this task's scope.
+   shell-mobile-default-collapsed  Task 8's mobile strip/sheet panels
+     default to collapsed on first load (checked once via
+     window.innerWidth<=768 at boot, stored in APP.shellState same as
+     everything else) so they don't cover the screen — this is a new
+     default that only applies at that breakpoint; desktop's default
+     (expanded) from Task 3 is untouched. If mobile ever needs to
+     remember a per-visit choice instead of always defaulting collapsed,
+     that's new work, not a bug in what's here.
 
 ════════════════════════════════════════════════════════════════════════
 
@@ -597,6 +906,23 @@
     Any shipped automated test harness for the merge feature (removed;
       verify manually against a real file before trusting a code read)
     Dark mode toggle — SHIPPED v2.2, not missing; see the theme-preload
+    Story-deck-run mode as a real feature — js/story-deck.js exists but
+      is disabled (script tag commented out, vs-shell-plan-v2 Task 2),
+      its header cited a spec section that never existed. Don't assume
+      this feature is live just because the file is present.
+    Floating-bubble Smart Search UI — js/smart-query-v2-ui.js exists but
+      is disabled (Task 2), superseded by the Dashboard right-panel
+      wiring (Task 6). Its logic was reused there, its own DOM/CSS
+      wasn't.
+    Mobile info-strip preview text — the Task 8 mobile strip/pill shows
+      only the collapse-toggle chevron, not a one-line content summary
+      inside the collapsed bar itself (shell-redesign-plan.md Phase 4
+      implied a preview). Building that needs new markup + a re-render
+      hook every time rail content changes; out of scope for this pass.
+    Hamburger consolidation of the mobile header (country/language
+      selects) — Task 8 only reworked the two side panels into a strip/
+      sheet; the header itself (#topbar selects) was left as-is,
+      unreviewed for narrow widths. Flagged, not fixed.
       <script> at the top of <head> and CSS vars in §3 TECH.
     Multi-language / i18n — SHIPPED as scaffolding only (v2.3): srT()/
       SR_STRINGS_EN in the SMART REVEAL module (§7) is a real tag-key
@@ -641,6 +967,132 @@
 
 12. CHANGELOG — terse, append-only; full reasoning for pre-v2.0 items
     lived in an earlier PIB revision, ask if needed
+    v4.19 — ui-prompt-batch2.md items 1-3. (1) Shell open/close tied to
+      dashboard mode (APP._forceLegacyView), not step — setShellRailsOpen()
+      added to js/vs-shell.js; Classic closes+clears both rails, Smart
+      bucket dashboard opens them, Smart Search control re-opens as the
+      flagship moment. (2) Export Reports rail gets real, interactive
+      checkboxes back (§6's "no choice" superseded for the right rail
+      only) — per-student list (new) + Teacher/Management/Zip (moved
+      from the now-empty hidden card, same IDs, generateAllPDFs()
+      untouched for that part). Per-student filtering IS new logic in
+      generateAllPDFs(), confirmed per the spec's own open question.
+      "Compare" checkbox NOT built — no existing wiring, flagged in §9,
+      needs a decision before building. (3) §8's StudIn-Pro gate — turned
+      out to have never actually been built despite an earlier document
+      claiming otherwise (verified: zero STUDIN-PRO hits before this
+      work) — built for real now, folding in batch2's amendments
+      directly (Strengths + Chapters Covered also gated in the PDF,
+      Messages/Plan nav chips removed, Teacher-Remarks-in-PDF doc error
+      fixed). See PIB §6c/§6d/§9 for full detail.
+    v4.18 — Bug report: "most Shell-left/right headers not rendering."
+      Couldn't reproduce/pin the exact root cause via code reading alone
+      (no browser in this environment) — two things fixed regardless:
+      (1) real bug found: .bucket-row/.bucket-label (core.css) were sized
+      for the wide full-screen card grid (16px bold, 64px rows) and are
+      now also used inside the 240-420px rail (Dashboard controls,
+      Compare-mode export list) since v4.16/v4.17 — scoped-down override
+      added (css/vs-shell.css) so rows actually fit instead of
+      overflowing/wrapping badly. (2) defensive hardening: every call to
+      renderShellLeftRail()/renderShellRightRail() (goStep(),
+      openBucket(), reapplyI18nStrings()) now wrapped in try/catch with
+      console.error — previously an uncaught throw in either would
+      silently abort the rest of goStep() too (panel switching/nav-
+      highlight/dashboard render all sit after those calls), which could
+      explain "most" panels looking broken at once. If the report
+      persists, check the browser console — it'll now name the exact
+      failing step instead of failing silently.
+    v4.17 — ui-prompt-template.md §6 (Export folds into Dashboard),
+      resolved via open-questions-resolved.md. Export stepper item
+      display:none (not deleted); the 4 export checkboxes hidden,
+      checked, in the DOM (generateAllPDFs() untouched). "Export
+      Reports" added to the Institution-mode rail control list; Compare
+      Mode gets its own 2-item rail (kept separate per the resolved
+      question, not folded into one button). All 3 new rail entries
+      navigate via goStep('export') to the existing #panel-export
+      screen — a deliberate deviation from "render in #panel-dashboard,"
+      see PIB §9 dashboard-export-reuses-panel. 6 new i18n keys across
+      all 13 files; also re-sorted every i18n/*.json alphabetically
+      while there (fixes earlier out-of-order insertions from v4.16).
+      §5 (Classic Dashboard rails) and §7 (edit-then-export) not started.
+    v4.16 — ui-prompt-template.md §4 items 1-8 (Home rail + Dashboard
+      IDE redesign, in progress — items 1-8 done, §5/§6/§7 of the
+      wider ui-prompt-template-2.md not started, open questions
+      pending). Home rail: visible Features/Properties labels, load-
+      order render fix, pitch-bullet default content, File-details
+      collapsible. Dashboard: fully rail-driven for Institution+non-
+      Compare mode — #bucket-screen/#bucket-list-screen retired for
+      that mode, #bucket-answer-screen is the single persistent center
+      panel, left rail = control list (buildDashboardControlsHtml(),
+      now including Smart Search), right rail = the selected control's
+      properties (owned by openBucket()'s dispatch target, not
+      js/vs-shell.js anymore for this step). No back buttons anywhere
+      in the new flow — all 4 old navigation helpers now dead code.
+      Classic Dashboard button added (reuses showLegacyDashboard()
+      unchanged). Fixed 2 pre-existing bugs found along the way:
+      emptyStateHtml() was called but never defined; .phase-actionbar's
+      sticky offset was wrong for the post-Task-3 scroll model. 12 new
+      i18n keys across all 13 files. See PIB §6b/§9 for full detail.
+    v4.15 — vs-shell-plan-v2.md Task 8 (mobile fallback + regression
+      review) — LAST task, vs-shell-plan-v2.md now fully implemented.
+      Mobile (<=768px): #shell-panel-start -> fixed top strip (36px
+      collapsed / up to 70vh expanded downward), #shell-panel-end ->
+      fixed bottom sheet (36px pill / up to 70vh expanded upward), same
+      vsShellToggle()/data-collapsed as desktop, just restyled. Defaults
+      to collapsed on first load at this breakpoint only (desktop
+      default unchanged). Dividers hidden (no resize on touch). Header
+      selects and a strip-preview-text affordance were NOT reworked —
+      see §10. Regression pass was a code-level audit (no browser
+      available in this environment): esc()/XSS discipline confirmed
+      across all Task 4/5/6 rail-building code (row()/actionBtn() both
+      escape); EXPORT_GATE re-derivation confirmed in the export rail
+      (matches updateExportGate() exactly, not cached); RTL confirmed
+      via dir="rtl" attribute path only (§6a). Live visual/manual QA
+      across breakpoints x languages x modes per the plan's matrix is
+      still outstanding and should be done in a browser before ship.
+      SUMMARY (Tasks 1-8): i18n en.json fetch bug fixed; scrapped v4.7
+      shell deleted and floating-bubble/story-deck quarantined; new
+      VS-style resizable/collapsible grid shell built and wired with
+      real content for all 7 panels including Smart Query v2 (built
+      against its real API, not the stale plan text); session state and
+      ARIA added; mobile strip/sheet fallback added; whole-app-fits-
+      viewport correction applied per user request along the way.
+    v4.14 — vs-shell-plan-v2.md Task 6 (Dashboard right panel, Smart
+      Query v2 — last of the content tasks). Built against
+      js/smart-query-v2.js's REAL API (load/isReady/availableQuestions/
+      answerQuestion/match/ask), not the composeVerdict()/suggest()/
+      matchAndAnswer() names both planning docs describe — those don't
+      exist in this repo, see §9 smart-query-v2-api-mismatch for the
+      full deviation (also: no fuse.min.js needed; 2 of §4.3's 6 i18n
+      keys not added, no existing feature to pair them with). Ask/
+      fallback logic ported from the quarantined js/smart-query-v2-ui.js
+      (Task 2) rather than re-derived. Input+mic, suggestion chips,
+      answers-as-cards thread, legacy Smart Search link
+      (openSmartSearchScreen()), Compare-students link
+      (openBucket('compare'), institution mode only). 4 new i18n keys
+      across all 13 files. All 6 content tasks (Tasks 1-6) now done;
+      remaining: Task 7 polish already done (v4.11), Task 8 (mobile +
+      full regression) not started.
+    v4.13 — vs-shell-plan-v2.md Task 5 (right panel, non-Dashboard
+      phases), using shell-redesign-plan.md §4.2's key list minus
+      shell_right_continue (stale — AI panel has no Continue action
+      since v3.2, see §9). 7 new i18n keys across all 13 files.
+      renderShellRightRail() (js/vs-shell.js) wired to existing
+      functions only: showSampleFiles(), goStep(), generateTemplate(),
+      generateAllPDFs(). Refreshes on goStep()/language-switch plus
+      three mid-panel hooks (swGoto(), updateAICount(),
+      updateExportGate()) for state that changes without a nav event.
+      Dashboard right panel (Task 6) not started.
+    v4.12 — vs-shell-plan-v2.md Task 4 (left panel content), using the
+      key list from shell-redesign-plan.md §4.1. New i18n keys
+      (shell_left_file_label/org_label/records_label/single_file/
+      multi_file/no_file) added to all 13 i18n/*.json files — en.json
+      reviewed:true, the other 12 AI-drafted/reviewed:false per the
+      existing convention. renderShellLeftRail() (js/vs-shell.js) reads
+      APP.setup.instName/className/section, APP.students.length,
+      APP.homeSingleFile/APP.sections/APP.compareMode — all pre-
+      existing fields, no new state. Hooked once in goStep() and once
+      in reapplyI18nStrings(). Right panel (Tasks 5/6) not started.
     v4.11 — vs-shell-plan-v2.md Task 7 (session-persistent panel state).
       js/vs-shell.js's resize/collapse state promoted from a closure-
       local var to APP.shellState (in-memory only, NO_PERSISTENCE —
@@ -1170,7 +1622,12 @@
   <span class="step-sep" aria-hidden="true">›</span>
   <div class="step-item locked" data-step="dashboard" role="button" tabindex="0" onclick="goStep('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('dashboard');}"><div class="step-num" aria-hidden="true">1</div><span>Dashboard</span></div>
   <span class="step-sep" aria-hidden="true">›</span>
-  <div class="step-item locked" data-step="export" role="button" tabindex="0" onclick="goStep('export')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('export');}"><div class="step-num" aria-hidden="true">2</div><span>Export PDFs</span></div>
+  <div class="step-item locked" data-step="export" role="button" tabindex="0" onclick="goStep('export')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('export');}" style="display:none"><div class="step-num" aria-hidden="true">2</div><span>Export PDFs</span></div>
+  <!-- ui-prompt-template.md §6: Export is no longer a numbered stepper step
+       (display:none, not deleted — goStep('export') and #panel-export
+       still work exactly as before; the Dashboard rail's "Export Reports"
+       control and the actionbar's "Generate & Download ZIP" button both
+       still call goStep('export') under the hood, see PIB §9). -->
   <div style="flex:1"></div>
   <div class="step-item step-cta nav-setup-tab" data-step="setup" role="button" tabindex="0" onclick="goStep('setup')" style="border-left:1px solid var(--c-border);margin-left:8px" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('setup');}" aria-label="Setup — build your own template"><div class="step-num" style="background:none;border:none;font-size:15px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z'/><rect x='5' y='5' width='14' height='16' rx='2'/></svg></div><span>Setup</span></div>
   <div class="step-item step-cta nav-home-only" data-step="samplefiles" onclick="showSampleFiles()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showSampleFiles();}" aria-label="Sample Files — try without downloading"><div class="step-num" style="background:none;border:none;font-size:15px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path d='M14 2v6h6'/><path d='M8 13h8M8 17h8M8 9h2'/></svg></div><span>Sample Files</span></div>
@@ -1182,7 +1639,7 @@
 <div id="app-shell-body">
 <div id="shell-breadcrumb"></div>
 <div class="shell-panel" id="shell-panel-start" data-collapsed="false">
-  <button type="button" class="shell-panel-toggle" id="shell-panel-start-toggle" aria-label="Collapse panel" aria-expanded="true" aria-controls="shell-rail-start" onclick="vsShellToggle('start')"><svg class="ic" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg></button>
+  <button type="button" class="shell-panel-toggle" id="shell-panel-start-toggle" aria-label="Collapse panel" aria-expanded="true" aria-controls="shell-rail-start" onclick="vsShellToggle('start')"><span class="shell-panel-title" data-i18n="shell_rail_features_title">Features</span><svg class="ic" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg></button>
   <div class="shell-panel-content" id="shell-rail-start" role="region" aria-label="Details panel"></div>
 </div>
 <div class="shell-divider" id="shell-divider-start" role="separator" aria-orientation="vertical" aria-label="Resize details panel" tabindex="0"></div>
@@ -1467,26 +1924,30 @@
       <div class="db-title"><span id="db-class-label">Class Dashboard</span> <span id="db-mode-badge" style="font-size:.65em;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--c-primary-light,#e8edfb);color:var(--c-primary,#1a56db);vertical-align:middle;margin-left:6px"></span></div>
       <div class="db-subtitle" id="db-meta-label"></div>
     </div>
-    <button class="btn btn-primary btn-sm btn-glow" id="btn-goto-export-dash" onclick="goStep('export')" style="flex-shrink:0">Export PDFs →</button>
+    <div style="display:flex;gap:8px;flex-shrink:0">
+      <button class="btn btn-secondary btn-sm" id="btn-classic-dashboard" onclick="showLegacyDashboard()" data-i18n="classic_dashboard_btn">Classic Dashboard</button>
+      <button class="btn btn-primary btn-sm btn-glow" id="btn-goto-export-dash" onclick="goStep('export')" style="flex-shrink:0">Export PDFs →</button>
+    </div>
   </div>
   <div style="font-size:12px;color:var(--c-text2);margin:-6px 0 12px;line-height:1.5">View comprehensive insights into student, class and subject performance. Identify trends, learning gaps and students requiring additional academic support.</div>
 
-  <!-- SMART SEARCH — persistent entry point, visible in EVERY dashboard
-       mode (bucket view, legacy/tile view, compare view) since it sits
-       above the mode-specific branching below, not inside it. Fixes the
-       earlier bug where Smart Search only lived inside the tab-based
-       (#single-view-dashboard-body) view and was invisible to Institution-
-       mode users, who default to the bucket view instead. See PIB
-       smart-reveal-scope gotcha for why those two views exist separately. -->
-  <button class="btn btn-secondary btn-sm" id="btn-open-smart-search" onclick="openSmartSearchScreen()" style="margin-bottom:14px;display:inline-flex;align-items:center;gap:6px">
-    <svg class="ic" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-    Smart Search
-  </button>
+  <!-- ui-prompt-template.md item f: sample-data banner, text only — the
+       "Set Up My Own Class →" button that used to sit here is removed
+       (startNewSession() had an undiagnosed bug breaking the app when
+       called from this context; button removal made the root-causing
+       moot, see PIB §9). Populated by renderBuckets()/openBucket(), not
+       static markup, since it only shows when APP._isSampleData is true. -->
+  <div id="dashboard-sample-banner"></div>
 
-  <!-- SMART REVEAL — Screen A (buckets), B (filtered list), C (full answer).
-       Institution, non-Compare mode only (see BUCKETS_SCOPE in PIB §7/§10) —
-       Compare Mode and Individual mode fall straight through to the pre-
-       existing full dashboard body below (#legacy-dashboard-body), unchanged. -->
+  <!-- SMART REVEAL — Institution, non-Compare mode only (see
+       smart-reveal-scope in PIB §9) — Compare Mode and Individual mode
+       fall straight through to the pre-existing full dashboard body below
+       (#legacy-dashboard-body), unchanged. Rail-driven in-place rendering
+       since ui-prompt-template.md item 7 — #bucket-screen/#bucket-list-
+       screen are retired for this mode (left permanently empty/hidden,
+       not deleted — Individual mode's renderIndividualBuckets() still
+       uses #bucket-screen, untouched, out of item 7's stated scope),
+       #bucket-answer-screen is the single persistent center container. -->
   <div id="bucket-screen"></div>
   <div id="bucket-list-screen" style="display:none"></div>
   <div id="bucket-answer-screen" style="display:none"></div>
@@ -1643,13 +2104,15 @@
         <div style="padding:14px;background:var(--c-surface2);border-radius:var(--r-sm);border-left:3px solid var(--c-warn)"><div style="font-weight:700;margin-bottom:4px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 8l-9-5-9 5v8l9 5 9-5V8z'/><path d='M3.3 8.5l8.7 4.5 8.7-4.5'/><path d='M12 22V13'/></svg> ZIP Bundle</div><div style="font-size:12px;color:var(--c-text2)">All reports in a single download — ready to save or share with authorised stakeholders.</div></div>
       </div>
     </div>
-    <div class="card">
+    <div class="card" style="display:none" aria-hidden="true">
+      <!-- ui-prompt-template.md §6: "one button, no choice" — this card's
+           checkboxes stay in the DOM, checked, purely so
+           generateAllPDFs() (js/export-pdf.js ~line 29, reads
+           $("#exp-student").is(":checked") etc.) needs zero changes. Not
+           shown to the user anymore. -->
       <div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z'/></svg></span> Export Options</div>
       <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center">
         <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px"><input type="checkbox" id="exp-student" checked style="accent-color:var(--c-primary)"/> <span id="exp-student-label">Student PDFs</span> (×<span id="exp-count">0</span>)</label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px" id="exp-teacher-option"><input type="checkbox" id="exp-teacher" checked style="accent-color:var(--c-primary)"/> Teacher Report</label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px" id="exp-mgmt-option"><input type="checkbox" id="exp-mgmt" checked style="accent-color:var(--c-primary)"/> Management Report</label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px"><input type="checkbox" id="exp-zip" checked style="accent-color:var(--c-primary)"/> Bundle as ZIP</label>
       </div>
     </div>
 
@@ -1997,7 +2460,7 @@
 </main><!-- #main -->
 <div class="shell-divider" id="shell-divider-end" role="separator" aria-orientation="vertical" aria-label="Resize actions panel" tabindex="0"></div>
 <div class="shell-panel" id="shell-panel-end" data-collapsed="false">
-  <button type="button" class="shell-panel-toggle" id="shell-panel-end-toggle" aria-label="Collapse panel" aria-expanded="true" aria-controls="shell-rail-end" onclick="vsShellToggle('end')"><svg class="ic" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 18l6-6-6-6"/></svg></button>
+  <button type="button" class="shell-panel-toggle" id="shell-panel-end-toggle" aria-label="Collapse panel" aria-expanded="true" aria-controls="shell-rail-end" onclick="vsShellToggle('end')"><span class="shell-panel-title" data-i18n="shell_rail_properties_title">Properties</span><svg class="ic" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 18l6-6-6-6"/></svg></button>
   <div class="shell-panel-content" id="shell-rail-end" role="region" aria-label="Actions panel"></div>
 </div>
 </div><!-- #app-shell-body -->

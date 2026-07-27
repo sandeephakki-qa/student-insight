@@ -902,5 +902,9 @@ function renderAICheckboxes(){
 function toggleAI(id,el){if(APP.aiFeatures.has(id))APP.aiFeatures.delete(id);else APP.aiFeatures.add(id);$(el).toggleClass("selected",APP.aiFeatures.has(id));$(el).find("input[type=checkbox]").prop("checked",APP.aiFeatures.has(id));updateAICount();}
 function selectAllAI(){Object.values(AI_FEATURES).flat().forEach(f=>APP.aiFeatures.add(f.id));renderAICheckboxes();toast("All "+APP.aiFeatures.size+" AI features selected.","success");}
 function clearAllAI(){APP.aiFeatures.clear();renderAICheckboxes();}
-function updateAICount(){$("#ai-selected-count").text(APP.aiFeatures.size+" features selected");}
+function updateAICount(){$("#ai-selected-count").text(APP.aiFeatures.size+" features selected");
+  // vs-shell-plan-v2 Task 5: right-rail "Selected features" count, same
+  // trigger point as the existing #ai-selected-count text above.
+  if(typeof renderShellRightRail==="function" && APP.currentStep==="ai") renderShellRightRail("ai");
+}
 

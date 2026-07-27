@@ -78,6 +78,18 @@ function goStep(step){
   if((step==="dashboard"||step==="export")&&!APP.compareMode&&!APP.students.length){toast("Run Analysis first.","warn");return;}
   if((step==="dashboard"||step==="export")&&APP.compareMode&&!APP.sections.some(s=>s.valid&&s.students&&s.students.length)){toast("Run Analysis first.","warn");return;}
   APP.currentStep=step;
+  // vs-shell-plan-v2 Task 4/5: single hook for all 7 panels instead of one
+  // call added per render function — same effect, smaller diff.
+  // Wrapped in try/catch: if either ever throws, don't let it silently
+  // abort the rest of goStep() (panel switching/nav-highlight/dashboard
+  // render all sit below this) — log the real error instead so a rail
+  // bug is visible in devtools rather than looking like "nothing renders."
+  try{
+    if(typeof renderShellLeftRail==="function") renderShellLeftRail(step);
+    if(typeof renderShellRightRail==="function") renderShellRightRail(step);
+  }catch(err){
+    console.error("Shell rail render failed for step:",step,err);
+  }
   $(".panel").removeClass("active");$("#panel-"+step).addClass("active");
   $(".step-item").removeClass("active").removeAttr("aria-current");$("[data-step='"+step+"']").addClass("active").removeClass("locked").attr("aria-current","step");
   updateNavHomeOnlyState();
