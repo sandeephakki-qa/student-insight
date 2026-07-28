@@ -233,6 +233,16 @@ function renderDataIssueBanner(){
 // as raw key names on screen the moment the fetch can't complete. Keep
 // this block and i18n/en.json in sync on every string change — regenerate
 // with: python3 scripts/sync-sr-strings-en.py (see that file).
+// AUTO-SYNCED from i18n/en.json (root-cause fix for the raw-key-name bug —
+// see loadLanguage() below: this inline copy is what actually renders on
+// the very first synchronous paint, AND is the only thing that renders at
+// all when fetch(i18n/en.json) fails outright (e.g. opened as a local
+// file:// page — a first-class supported use case, see About §2 'A local
+// HTML file' — file:// blocks fetch() of sibling files in most browsers).
+// A hand-curated *subset* here silently drifts from en.json and reappears
+// as raw key names on screen the moment the fetch can't complete. Keep
+// this block and i18n/en.json in sync on every string change — regenerate
+// with: python3 scripts/sync-sr-strings-en.py (see that file).
 const SR_STRINGS_EN={
   _comment:"English string table — the authoritative source for translation. This is the SAME content kept inline in js/render-dashboard.js (SR_STRINGS_EN) as an emergency fallback per PIB SPLIT_STATIC/i18n rules — if this file fails to fetch, the app still works in English using the inline copy. Do not let the two drift: this file mirrors SR_STRINGS_EN exactly. SCOPE NOTE: this covers only the ~18 pre-existing Smart Reveal bucket strings plus the newer Smart Search strings added in Phase 2/3 — it is NOT a full extraction of every user-facing string in the app (setup forms, FAQ, export screens, etc. are still hardcoded English throughout index.html/js/*.js). Full extraction is future work, not done here — see handoff doc.",
   about_bio_desc:"Educator and builder based in India, working on free, privacy-first tools that give teachers, institutions, and parents back control of their own data — Student Insight is one of them, built as a social cause rather than a product.",
@@ -392,6 +402,7 @@ const SR_STRINGS_EN={
   back:"← Back",
   insights_nav_label:"Insights",
   export_section_title:"Generate &amp; Export Reports",
+  shell_right_generate_zip:"Generate & Download ZIP",
   bucket_all_good:"All good — no concerns here right now.",
   bucket_back_to_dashboard:"← Insights",
   bucket_class_desc:"Overall average, trend, and class-wide patterns",
@@ -744,7 +755,7 @@ function renderBuckets(){
   $("#individual-student-switcher").css("display", APP.setup.mode==="individual" ? "flex" : "none");
   if(APP.compareMode){
     $("#bucket-screen,#bucket-list-screen,#bucket-answer-screen").hide();
-    hideExportSection();
+    $("#panel-export").hide();
     showScreen("#legacy-dashboard-body");
     renderDashboard();
     return;
@@ -760,7 +771,7 @@ function renderBuckets(){
     populateIndividualSwitcher();
     $("#legacy-dashboard-body").hide();
     $("#bucket-list-screen,#bucket-answer-screen").hide();
-    hideExportSection();
+    $("#panel-export").hide();
     showScreen("#bucket-screen");
     renderIndividualBuckets();
     return;
@@ -1055,39 +1066,23 @@ function emptyStateHtml(text){
   return `<div class="bucket-empty">${esc(text)}</div>`;
 }
 
-function hideExportSection(){
-  $("#panel-export").hide();
-}
-function revealExportSection(){
-  updateExportGate();
-  if(APP.compareMode && typeof populateExportSectionPicker==="function") populateExportSectionPicker();
-  else $("#exp-count").text((APP.students||[]).length);
-  const el=document.getElementById("panel-export");
-  if(el){ el.style.display="block"; el.scrollIntoView({behavior:"smooth",block:"start"}); }
-}
-
 function buildCompareExportControlsHtml(){
   const rows=[
     {label:srT("bucket_compare_report_label"),desc:srT("bucket_compare_report_desc")},
     {label:srT("bucket_persection_label"),desc:srT("bucket_persection_desc")}
-  ].map(b=>`<div class="bucket-row" role="button" tabindex="0" onclick="revealExportSection()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();revealExportSection();}">
+  ].map(b=>`<div class="bucket-row" role="button" tabindex="0" onclick="openBucket('export')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openBucket('export');}">
     <span class="bucket-text"><span class="bucket-label">${esc(b.label)}</span><span class="bucket-desc">${esc(b.desc)}</span></span>
   </div>`).join("");
   return `<div class="bucket-list">${rows}</div>`;
 }
 
 function openBucket(id){
-  // §6: Export Reports navigates away via goStep('export') (see PIB §9
-  // dashboard-export-reuses-panel) — checked first, before any of the
-  // "currently selected control" state below, so it's never persisted as
-  // APP._currentBucketId and returning to Dashboard later doesn't
-  // re-trigger the navigation.
-  // prompt-v4.20 §1xii: Export Reports is now the final section of
-  // Insights itself, not a separate screen — reveal it in place (scroll
-  // it into view) instead of goStep('export'), so neither rail resets nor
-  // any step transition happens. updateExportGate()/populateExportSectionPicker()
-  // still need their one-time setup the same way goStep('export') used to
-  // trigger it, since #panel-export is no longer a step goStep() visits.
+  // prompt-v4.20 §1xii follow-up fix: Export used to be a special-cased
+  // early-return (scroll the always-rendered #panel-export into view) —
+  // that's what caused its content to visually stack underneath whatever
+  // bucket was previously open instead of replacing it, and it never set
+  // APP._currentBucketId so the rail never highlighted it either. It's
+  // handled as a normal bucket switch below now (see id==="export").
   window._bucketCurrent=id;
   APP._currentBucketId=id;
   APP._forceLegacyView=false; // selecting any control leaves Classic Dashboard view, per item 8/f
@@ -1095,6 +1090,17 @@ function openBucket(id){
     if(typeof renderShellLeftRail==="function") renderShellLeftRail("dashboard"); // refresh active-row highlight
   }catch(err){
     console.error("Shell left-rail refresh failed in openBucket:",id,err);
+  }
+  // v4.20-bugfixes §2b/§2c: My Whole Class/Top Performers/Compare Two
+  // Students/Performance Groups have no per-item right-rail content, so
+  // collapse #shell-rail-end (animated, same transition as Setup/About/
+  // FAQ's both-rails collapse); One Student/One Subject/Who Needs Help/
+  // Smart Search/Export Reports DO populate real right-rail content, so
+  // make sure it's re-opened in case a previous bucket had closed it.
+  // #shell-rail-start (left rail) is untouched either way.
+  if(typeof setShellRailOpen==="function"){
+    const RAIL_END_CLOSED_FOR = {class:1,top:1,compare:1,clusters:1};
+    setShellRailOpen("end", !RAIL_END_CLOSED_FOR[id]);
   }
   // prompt-v4.20 §1iii: "My Whole Class" IS the rich KPI/tabs/student-card
   // dashboard (renderDashboard() into #legacy-dashboard-body) — not a
@@ -1105,6 +1111,7 @@ function openBucket(id){
     $("#bucket-answer-screen,#panel-export").hide();
     $("#legacy-dashboard-body").show();
     renderDashboardSampleBanner();
+    if(typeof setRightRail==="function") setRightRail("");
     renderDashboard();
     return;
   }
@@ -1118,6 +1125,8 @@ function openBucket(id){
     $("#legacy-dashboard-body,#bucket-answer-screen").hide();
     $("#panel-export").show();
     renderDashboardSampleBanner();
+    $("#exp-count").text((APP.students||[]).length);
+    if(APP.compareMode && typeof populateExportSectionPicker==="function") populateExportSectionPicker();
     if(typeof renderExportPropertiesRail==="function") renderExportPropertiesRail();
     return;
   }
@@ -1308,7 +1317,7 @@ function renderFilteredList(kind){
         const subjectAvgs=a.subjectAvgs||{};
         const bestSubjectEntry=Object.entries(subjectAvgs).sort((p,q)=>q[1]-p[1])[0];
         const rankClass=a.rank===1?"rank-gold":a.rank===2?"rank-silver":a.rank===3?"rank-bronze":"rank-other";
-        return `<div class="finding-row" role="button" tabindex="0" onclick="openFinding('top','${esc(x.st.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFinding('top','${esc(x.st.id)}');}">
+        return `<div class="finding-row">
           <span class="rank-badge ${rankClass}" aria-hidden="true">#${esc(String(a.rank||"-"))}</span>
           <span class="bucket-text">
             <span class="bucket-student-name">${esc(x.st.name)}</span>
@@ -1379,7 +1388,7 @@ function renderClusterGroups(){
   const cards=cc.groups.map((g,i)=>{
     const c=g.centroid;
     const names=g.students.map(st=>`<div class="subject-row"><span>${esc(st.name)}</span><span>${esc(String(st.analysis.overallAvg))}% · Rank #${esc(String(st.analysis.rank))}</span></div>`).join("");
-    return `<details class="shell-details cluster-group-card"${i===0?" open":""}>
+    return `<details class="shell-details cluster-group-card" name="cluster-group-accordion"${i===0?" open":""}>
       <summary class="shell-panel-title" style="cursor:pointer"><b>${esc(g.label)}</b> — ${g.students.length} student${g.students.length===1?"":"s"} · ${c.overallAvg}% avg · ${c.consistency} consistency</summary>
       <p style="font-size:12px;color:var(--c-text2);margin:8px 0">Group averages: ${c.overallAvg}% overall, trend ${c.slope>=0?"+":""}${c.slope} pts/test, ${c.absenceRate.toFixed(2)} absence days per test.</p>
       <div class="subject-row-list cluster-group-scroll">${names}</div>

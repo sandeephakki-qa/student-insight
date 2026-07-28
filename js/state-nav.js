@@ -87,10 +87,12 @@ function goStep(step){
   try{
     if(typeof renderShellLeftRail==="function") renderShellLeftRail(step);
     if(typeof renderShellRightRail==="function") renderShellRightRail(step);
-    // prompt-v4.19 §2a: rails auto-collapse entering Setup, auto-restore
-    // leaving it — reuses the same setShellRailsOpen() car-mirror already
-    // wired for Classic Dashboard, just keyed off step==="setup" instead.
-    if(typeof setShellRailsOpen==="function") setShellRailsOpen(step!=="setup");
+    // prompt-v4.19 §2a + v4.20-bugfixes §2a: rails auto-collapse entering
+    // Setup, About, or FAQ, auto-restore leaving them — reuses the exact
+    // same setShellRailsOpen() car-mirror, just keyed off three steps now
+    // instead of one.
+    const railsCollapseOnThisStep = (step==="setup"||step==="about"||step==="faq");
+    if(typeof setShellRailsOpen==="function") setShellRailsOpen(!railsCollapseOnThisStep);
   }catch(err){
     console.error("Shell rail render failed for step:",step,err);
   }

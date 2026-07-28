@@ -97,6 +97,9 @@
     }
   }
 
+  function isMobileViewport(){
+    return typeof window !== "undefined" && window.innerWidth <= 768;
+  }
   function vsShellToggle(side){
     const s = state[side];
     s.collapsed = !s.collapsed;
@@ -109,7 +112,16 @@
   // dashboard mode (Smart bucket dashboard vs Classic), not a third
   // mechanism. Reuses the exact same state/transition, just sets rather
   // than flips.
+  //
+  // Mobile fix: on <=768px the panels render as fixed full-width overlay
+  // sheets (top strip / bottom sheet, up to 70vh — see css/vs-shell.css
+  // Task 8 block), not side columns. Programmatically forcing one open
+  // there means a 70vh sheet slams over the screen with no tap from the
+  // user — closing is still always safe (it's the mobile default anyway),
+  // so only the "open" direction is skipped on mobile; the sheet only
+  // expands from an explicit vsShellToggle() tap.
   function setShellRailsOpen(open){
+    if(open && isMobileViewport()) return;
     ["start","end"].forEach(function(side){
       state[side].collapsed = !open;
       syncPanelDOM(side);
@@ -117,6 +129,17 @@
     });
   }
   window.setShellRailsOpen = setShellRailsOpen;
+  // v4.20-bugfixes §2b/2c: per-side variant, same internals as above —
+  // needed so an Insights bucket can close/open just #shell-rail-end
+  // without touching #shell-rail-start (which stays open throughout).
+  // Same mobile guard as setShellRailsOpen() above, for the same reason.
+  function setShellRailOpen(side, open){
+    if(open && isMobileViewport()) return;
+    state[side].collapsed = !open;
+    syncPanelDOM(side);
+    applyWidth(side);
+  }
+  window.setShellRailOpen = setShellRailOpen;
   // exposed for the onclick="" handlers in index.html
   window.vsShellToggle = vsShellToggle;
   window.setLeftRail = setLeftRail;
@@ -239,9 +262,10 @@
           return pitchRow(HOME_LEFT_ICONS[i], srT("shell_home_left_pitch_" + n));
         }).join("");
         setLeftRail('<div class="pitch-rows">' + rows + '</div>');
-      } else if(step === "setup"){
-        // prompt-v4.19 §2a: Setup gets no rail content at all (car-mirror
-        // pattern in goStep() collapses/restores the panel itself).
+      } else if(step === "setup" || step === "about" || step === "faq"){
+        // prompt-v4.19 §2a + v4.20-bugfixes §2a: these three steps get no
+        // rail content at all (car-mirror pattern in goStep() collapses/
+        // restores the panel itself).
         setLeftRail("");
       } else {
         setLeftRail('<div class="shell-empty-state">' + esc(srT("shell_left_no_file")) + '</div>');
@@ -333,10 +357,11 @@
     // is a rail-selected bucket within step "dashboard", not its own
     // step). See renderExportPropertiesRail() below, called directly from
     // openBucket("export")/buildCompareExportControlsHtml() instead.
-    else if(step === "about" || step === "faq"){
-      html += actionBtn(srT("shell_right_link_sample_files"), "showSampleFiles()");
-      html += actionBtn("Home", "goStep('home')");
-    }
+    // prompt-v4.19 §2a + v4.20-bugfixes §2a: About/FAQ render no right-
+    // rail content either — "Try Sample Files"/"Home" used to live here,
+    // but both are already reachable from the persistent top-level nav
+    // bar (visible on every step, About/FAQ included), so this isn't the
+    // only path to either destination.
     // item 7 (ui-prompt-template.md §4.2) superseded Task 6's chat-thread
     // Smart Query rail: for step==="dashboard", the right rail is now
     // built by whichever render-dashboard.js function openBucket() just
