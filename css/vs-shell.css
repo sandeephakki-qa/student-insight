@@ -117,15 +117,34 @@
 .shell-empty-state{color:var(--c-text2);font-size:12px;text-align:center;padding:20px 8px}
 
 /* ---- ui-prompt-template.md item 3: Home rail pitch bullets ---- */
-.shell-pitch-list{
-  margin:0;
-  padding-inline-start:18px;
-  font-size:12px;
-  line-height:1.55;
-  color:var(--c-text);
+/* ---- Home rail pitch rows: icon-chip rows, not a bullet list ---- */
+.pitch-rows{
+  display:flex;
+  flex-direction:column;
+  min-height:100%;
+  justify-content:space-between;
+  gap:2px;
 }
-.shell-pitch-list li{margin-block-end:8px}
-.shell-pitch-list li:last-child{margin-block-end:0}
+.pitch-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 6px;
+  border-radius:var(--r-sm);
+  transition:background-color .12s,color .12s,transform .12s;
+}
+.pitch-row:hover{background-color:var(--c-primary-soft);color:var(--c-primary);transform:translateX(2px)}
+.pitch-icon{
+  flex:0 0 auto;
+  width:26px;height:26px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  background:var(--c-primary-soft);
+  color:var(--c-primary);
+}
+.pitch-row:hover .pitch-icon{background:var(--c-primary);color:#fff}
+.pitch-icon svg{width:14px;height:14px}
+.pitch-text{font-size:12px;line-height:1.4;color:inherit}
 
 /* ---- item 6: "File details" collapsible (native <details>) ---- */
 .shell-details{border:none}

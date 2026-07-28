@@ -39,6 +39,34 @@
     end:   { width: 240, collapsed: false }
   };
 
+  // Small inline icon set for the Home rail's pitch rows (prompt-v4.19
+  // follow-up: replace the plain <li> bullet wall with something that
+  // actually looks designed). Same stroke style as every other icon in
+  // the app (viewBox 0 0 24 24, stroke=currentColor, stroke-width 2) so
+  // nothing here introduces a new visual language, just applies the
+  // existing one to a spot that never had icons at all.
+  const PITCH_ICONS = {
+    doc:    '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+    shield: '<path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5z"/>',
+    target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+    users:  '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    globe:  '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 0 0 20"/><path d="M12 2a15 15 0 0 1 0 20"/>',
+    chat:   '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4A8.9 8.9 0 0 1 3 15.5 8.4 8.4 0 0 1 11 3a8.9 8.9 0 0 1 8.6 6.1c.27.8.4 1.6.4 2.4Z"/>',
+    trend:  '<path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/>',
+    gauge:  '<path d="M12 20a8 8 0 1 0-8-8"/><path d="M12 12 16 8"/>',
+    grid:   '<path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/>',
+    flag:   '<path d="M4 22V4"/><path d="M4 4h13l-2 4 2 4H4"/>',
+    trophy: '<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4a2 2 0 0 0 2 4h1"/><path d="M17 5h3a2 2 0 0 1-2 4h-1"/>',
+    heart:  '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/>',
+    layers: '<path d="m12 2 9 5-9 5-9-5 9-5"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/>'
+  };
+  const HOME_LEFT_ICONS  = ["doc","shield","target","users","globe","chat","trend"];
+  const HOME_RIGHT_ICONS = ["gauge","grid","flag","trophy","heart","layers"];
+  function pitchRow(iconKey, text){
+    const inner = PITCH_ICONS[iconKey] || PITCH_ICONS.doc;
+    return '<div class="pitch-row"><span class="pitch-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + inner + '</svg></span><span class="pitch-text">' + esc(text) + '</span></div>';
+  }
+
   function root(){ return document.getElementById("app-shell-body"); }
 
   function applyWidth(side){
@@ -204,10 +232,17 @@
       // other non-context step) keep the original empty state unchanged —
       // item 3 is scoped to Home only.
       if(step === "home"){
-        const bullets = [1,2,3,4,5,6].map(function(n){
-          return "<li>" + esc(srT("shell_home_left_pitch_" + n)) + "</li>";
+        // prompt-v4.19 §1a/§1b + follow-up visual fix: 6 concrete pitch
+        // rows + the "marks generated" row, each with its own icon chip
+        // instead of a plain bullet — see PITCH_ICONS/pitchRow() above.
+        const rows = [1,2,3,4,5,6,7].map(function(n,i){
+          return pitchRow(HOME_LEFT_ICONS[i], srT("shell_home_left_pitch_" + n));
         }).join("");
-        setLeftRail('<ul class="shell-pitch-list">' + bullets + '</ul>');
+        setLeftRail('<div class="pitch-rows">' + rows + '</div>');
+      } else if(step === "setup"){
+        // prompt-v4.19 §2a: Setup gets no rail content at all (car-mirror
+        // pattern in goStep() collapses/restores the panel itself).
+        setLeftRail("");
       } else {
         setLeftRail('<div class="shell-empty-state">' + esc(srT("shell_left_no_file")) + '</div>');
       }
@@ -281,60 +316,23 @@
     if(typeof srT !== "function" || typeof APP === "undefined"){ return; }
     let html = "";
     if(step === "home"){
-      const bullets = [1,2,3,4,5,6].map(function(n){
-        return "<li>" + esc(srT("shell_home_right_pitch_" + n)) + "</li>";
+      const rows = [1,2,3,4,5,6].map(function(n,i){
+        return pitchRow(HOME_RIGHT_ICONS[i], srT("shell_home_right_pitch_" + n));
       }).join("");
-      html += '<ul class="shell-pitch-list">' + bullets + '</ul>';
+      html += '<div class="pitch-rows">' + rows + '</div>';
     }
-    else if(step === "setup"){
-      const n = APP.setupWizardStep || 1;
-      html += row(srT("shell_right_step_progress", {n: n}), "");
-      html += actionBtn(srT("shell_right_download_template"), "generateTemplate()");
-    }
+    // prompt-v4.19 §2a/§2c: Setup renders no right-rail content (step
+    // progress + Download Template removed) — the rail collapses via
+    // goStep()'s car-mirror setShellRailsOpen(false) call instead.
     else if(step === "ai"){
       const count = (APP.aiFeatures && APP.aiFeatures.size) || 0;
       html += row(srT("shell_right_selected_features"), count);
     }
-    else if(step === "export"){
-      // hasIssues mirrors updateExportGate() exactly (render-dashboard.js
-      // ~1292) — re-derived here too, not cached, same EXPORT_GATE rule.
-      const hasIssues = !!(APP.dataIssues && APP.dataIssues.length);
-      html += row(srT("shell_right_exports_ready"), hasIssues ? "—" : String(APP.students ? APP.students.length : 0));
-      if(hasIssues){
-        // Same wording as updateExportGate()'s "reason" var — kept in
-        // English there today (pre-existing, not an i18n gap this task
-        // introduced), duplicated verbatim here rather than invented.
-        html += '<div class="shell-empty-state">Fix the data quality issues shown on the Dashboard, then re-import, before exporting.</div>';
-      } else {
-        // ui-prompt-batch2.md item 2: choices are back, in the rail
-        // specifically (§6's "no choice" rule superseded for this control
-        // only — the center-panel button/left-rail placement from §6 are
-        // unaffected). Per-student selection is genuinely new (no prior
-        // equivalent existed) — see js/export-pdf.js generateAllPDFs()
-        // for the filtering this feeds.
-        const students = APP.students || [];
-        const isIndividual = APP.setup && APP.setup.mode === "individual";
-        const studentRows = students.map(function(st){
-          return '<label class="bucket-picker-row" style="display:flex;align-items:center;gap:8px;cursor:pointer">'
-            + '<input type="checkbox" class="exp-student-cb" data-id="' + esc(st.id) + '" checked style="accent-color:var(--c-primary)"> '
-            + esc(st.name) + '</label>';
-        }).join("");
-        html += '<details class="shell-details" open><summary class="shell-panel-title" style="cursor:pointer">Students</summary>'
-          + '<div style="display:flex;gap:8px;margin-block-end:8px">'
-          + '<button type="button" class="btn btn-secondary btn-sm" onclick="$(\'.exp-student-cb\').prop(\'checked\',true)">Select All</button>'
-          + '<button type="button" class="btn btn-secondary btn-sm" onclick="$(\'.exp-student-cb\').prop(\'checked\',false)">Unselect All</button>'
-          + '</div>'
-          + '<div class="bucket-picker-list" style="max-height:220px">' + (studentRows || emptyStateHtml("No students")) + '</div>'
-          + '</details>';
-        html += '<details class="shell-details" open><summary class="shell-panel-title" style="cursor:pointer">Report Types</summary>'
-          + (isIndividual ? '' :
-              '<label class="bucket-picker-row" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="exp-teacher" checked style="accent-color:var(--c-primary)"> Teacher Report</label>'
-            + '<label class="bucket-picker-row" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="exp-mgmt" checked style="accent-color:var(--c-primary)"> Management Report</label>')
-          + '<label class="bucket-picker-row" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="exp-zip" checked style="accent-color:var(--c-primary)"> Bundle as ZIP</label>'
-          + '</details>';
-        html += actionBtn("Generate & Download ZIP", "generateAllPDFs()");
-      }
-    }
+    // prompt-v4.20 §1xii follow-up: the old step==="export" branch here
+    // was dead code — step is never literally "export" anymore (Export
+    // is a rail-selected bucket within step "dashboard", not its own
+    // step). See renderExportPropertiesRail() below, called directly from
+    // openBucket("export")/buildCompareExportControlsHtml() instead.
     else if(step === "about" || step === "faq"){
       html += actionBtn(srT("shell_right_link_sample_files"), "showSampleFiles()");
       html += actionBtn("Home", "goStep('home')");
@@ -352,6 +350,47 @@
     setRightRail(html);
   }
   window.renderShellRightRail = renderShellRightRail;
+
+  // prompt-v4.20 §1xii follow-up fix: Export is a rail-selected bucket
+  // (like My Whole Class/One Student/etc), not its own step, so its
+  // right-rail content is built directly here and called from
+  // openBucket("export") — same picker/checkboxes content the old
+  // step==="export" branch built, just actually reachable now. The
+  // Generate button reuses id="btn-generate-pdfs" so updateExportGate()'s
+  // existing enable/disable logic keeps working unchanged, and gets
+  // .btn-glow so it reads as the obvious final action.
+  function renderExportPropertiesRail(){
+    const hasIssues = !!(APP.dataIssues && APP.dataIssues.length);
+    let html = row(srT("shell_right_exports_ready"), hasIssues ? "—" : String(APP.students ? APP.students.length : 0));
+    if(hasIssues){
+      html += '<div class="shell-empty-state">Fix the data quality issues shown on the Dashboard, then re-import, before exporting.</div>';
+    } else {
+      const students = APP.students || [];
+      const isIndividual = APP.setup && APP.setup.mode === "individual";
+      const studentRows = students.map(function(st){
+        return '<label class="bucket-picker-row" style="display:flex;align-items:center;gap:8px;cursor:pointer">'
+          + '<input type="checkbox" class="exp-student-cb" data-id="' + esc(st.id) + '" checked style="accent-color:var(--c-primary)"> '
+          + esc(st.name) + '</label>';
+      }).join("");
+      html += '<details class="shell-details" open><summary class="shell-panel-title" style="cursor:pointer">Students</summary>'
+        + '<div style="display:flex;gap:8px;margin-block-end:8px">'
+        + '<button type="button" class="btn btn-secondary btn-sm" onclick="$(\'.exp-student-cb\').prop(\'checked\',true)">Select All</button>'
+        + '<button type="button" class="btn btn-secondary btn-sm" onclick="$(\'.exp-student-cb\').prop(\'checked\',false)">Unselect All</button>'
+        + '</div>'
+        + '<div class="bucket-picker-list" style="max-height:220px">' + (studentRows || emptyStateHtml("No students")) + '</div>'
+        + '</details>';
+      html += '<details class="shell-details" open><summary class="shell-panel-title" style="cursor:pointer">Report Types</summary>'
+        + (isIndividual ? '' :
+            '<label class="bucket-picker-row" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="exp-teacher" checked style="accent-color:var(--c-primary)"> Teacher Report</label>'
+          + '<label class="bucket-picker-row" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="exp-mgmt" checked style="accent-color:var(--c-primary)"> Management Report</label>')
+        + '<label class="bucket-picker-row" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="exp-zip" checked style="accent-color:var(--c-primary)"> Bundle as ZIP</label>'
+        + '</details>'
+        + '<button type="button" class="btn btn-success btn-glow shell-action-btn" id="btn-generate-pdfs" onclick="generateAllPDFs()">' + esc(srT("shell_right_generate_zip")) + '</button>';
+    }
+    setRightRail(html);
+    if(typeof updateExportGate === "function") updateExportGate();
+  }
+  window.renderExportPropertiesRail = renderExportPropertiesRail;
 
   /* ==========================================================
      Task 6 — Right panel: Dashboard phase, Smart Query v2.
@@ -466,7 +505,7 @@
     const canCompare = window.APP && APP.setup && APP.setup.mode !== "individual" && !APP.compareMode;
     let html = '<div id="sqv2-rail-thread" class="shell-panel-content" style="max-height:220px;overflow-y:auto;padding:0"></div>'
       + '<div style="display:flex;gap:6px;margin:8px 0">'
-      + '<input id="sqv2-rail-input" type="text" data-voice="true" autocomplete="off" placeholder="'
+      + '<input id="sqv2-rail-input" type="text" autocomplete="off" placeholder="'
       + esc(srT("smart_v2_input_placeholder"))
       + '" style="flex:1;min-width:0;padding:7px 9px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:12.5px;font-family:inherit" onkeydown="if(event.key===\'Enter\'){smartQueryRailAsk()}"/>'
       + '<button type="button" class="btn btn-primary btn-sm" onclick="smartQueryRailAsk()">Ask</button>'
@@ -475,7 +514,6 @@
       + actionBtn(srT("smart_v2_legacy_link"), "openSmartSearchScreen()");
     if(canCompare) html += actionBtn(srT("smart_v2_compare_link"), "openBucket('compare')");
     setRightRail(html);
-    if(typeof initVoiceInput === "function") initVoiceInput();
     ensureSmartQueryLoaded(renderSmartQueryChips);
     renderSmartQueryChips();
   }

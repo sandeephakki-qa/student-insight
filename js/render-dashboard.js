@@ -223,190 +223,343 @@ function renderDataIssueBanner(){
 // tag-key lookup through srT(), never concatenated, even though only an
 // English table is populated now — this is Phase 5 scaffolding done
 // up-front rather than retrofitted later.
+// AUTO-SYNCED from i18n/en.json (root-cause fix for the raw-key-name bug —
+// see loadLanguage() below: this inline copy is what actually renders on
+// the very first synchronous paint, AND is the only thing that renders at
+// all when fetch(i18n/en.json) fails outright (e.g. opened as a local
+// file:// page — a first-class supported use case, see About §2 'A local
+// HTML file' — file:// blocks fetch() of sibling files in most browsers).
+// A hand-curated *subset* here silently drifts from en.json and reappears
+// as raw key names on screen the moment the fetch can't complete. Keep
+// this block and i18n/en.json in sync on every string change — regenerate
+// with: python3 scripts/sync-sr-strings-en.py (see that file).
 const SR_STRINGS_EN={
-  bucket_class_label:"My Whole Class",
+  _comment:"English string table — the authoritative source for translation. This is the SAME content kept inline in js/render-dashboard.js (SR_STRINGS_EN) as an emergency fallback per PIB SPLIT_STATIC/i18n rules — if this file fails to fetch, the app still works in English using the inline copy. Do not let the two drift: this file mirrors SR_STRINGS_EN exactly. SCOPE NOTE: this covers only the ~18 pre-existing Smart Reveal bucket strings plus the newer Smart Search strings added in Phase 2/3 — it is NOT a full extraction of every user-facing string in the app (setup forms, FAQ, export screens, etc. are still hardcoded English throughout index.html/js/*.js). Full extraction is future work, not done here — see handoff doc.",
+  about_bio_desc:"Educator and builder based in India, working on free, privacy-first tools that give teachers, institutions, and parents back control of their own data — Student Insight is one of them, built as a social cause rather than a product.",
+  about_bio_email_btn:"sandeep@hakki.in",
+  about_bio_kicker:"Who built this",
+  about_bio_name:"Sandeep S Hakki",
+  about_bio_projectpage_btn:"Project Page",
+  about_builtby:"Built by Sandeep Hakki",
+  about_eyebrow:"Student Insight — About",
+  about_formulas_btn:"See Exact Formulas →",
+  about_formulas_desc:"Every average, rank, percentile, trend and composite score, written out as exact formulas — for the maths/statistics/analytics people your institute will ask.",
+  about_formulas_title:"Want to verify the maths yourself?",
+  about_hero_sub:"Student Insight is the StudIn analytic tool that turns a spreadsheet of marks into ranks, trends, at-risk flags, and plain-language findings — without ever asking you to hand your data to a server first. Unlike traditional web applications that require user accounts, cloud storage, or centralized databases, Student Insight is designed as a completely stateless, privacy-first analytics platform. The application itself never becomes the owner of your data. Instead, it serves as an intelligent processing engine that transforms your spreadsheets into meaningful educational insights while keeping complete control in your hands.",
+  about_hero_title:"You have students' marks. <span style=\"color:#2ec4b6\">Let's build meaningful insight from them.</span>",
+  about_philosophy_cite:"Our Philosophy",
+  about_philosophy_quote:"Student Insight is a privacy-first, offline education analytics platform where educators own their data, projects live in user-controlled files, and the application serves only as an intelligent analysis engine.",
+  about_sec1_p1:"Student Insight never treats the browser as permanent storage.",
+  about_sec1_p2:"Your data is stored only in files that you own.",
+  about_sec1_p3:"Every project can be imported, analyzed, updated, exported, shared, archived, or backed up without depending on an online account or remote server.",
+  about_sec1_p4:"If you move to another computer, your project moves with you. If you disconnect from the internet, your project continues to work.",
+  about_sec1_p5:"<strong>Your data remains yours.</strong>",
+  about_sec1_title:"Your Data Always Belongs to You",
+  about_sec2_host1:"GitHub Pages",
+  about_sec2_host2:"A local HTML file",
+  about_sec2_host3:"A USB drive",
+  about_sec2_host4:"A school intranet",
+  about_sec2_host5:"An offline classroom computer",
+  about_sec2_p1:"Student Insight is intentionally designed to run from a single static website. It works equally well whether it is opened from:",
+  about_sec2_p2:"No installation. No server. No database. No subscriptions. No vendor lock-in.",
+  about_sec2_title:"Built for GitHub Pages and Static Hosting",
+  about_sec3_no1:"User accounts",
+  about_sec3_no2:"Cloud synchronization",
+  about_sec3_no3:"Remote databases",
+  about_sec3_no4:"Cookies or fingerprinting",
+  about_sec3_no5:"Personal data collection",
+  about_sec3_no6:"Background uploads of your files",
+  about_sec3_p1:"Educational records are among the most sensitive types of information.",
+  about_sec3_p2:"Student Insight is designed so that student information never needs to leave the educator's device. The application does not require:",
+  about_sec3_p3:"The browser simply processes the data that you choose to open — your uploaded spreadsheets and student records never leave your device.",
+  about_sec3_p4:"To understand how many people use Student Insight, the site uses <strong>Cloudflare Web Analytics</strong> — a cookieless, aggregate-only visit counter that does not use fingerprinting and collects no personal data. It only ever sees anonymous page-view counts, never anything from the files you upload or analyze.",
+  about_sec3_title:"Privacy by Design",
+  about_sec4_p1:"Traditional systems store information inside databases. Student Insight stores knowledge inside educator-owned project files.",
+  about_sec4_p2:"The application can always reconstruct the complete working environment from those files.",
+  about_sec4_p3:"Nothing important depends on browser memory. Nothing important depends on server storage.",
+  about_sec4_p4:"This carries through the whole academic year, not just a single test. As Test 2 and Test 3 come in, the same file grows to hold them — the Setup step can load an already-filled sheet and add the next test's columns onto it directly, so nothing already recorded is ever re-entered or discarded along the way.",
+  about_sec4_p5:"<strong>Your project remains portable, transparent, and future-proof.</strong>",
+  about_sec4_title:"Your Spreadsheet is the Source of Truth",
+  about_sec5_chip1:"Schools",
+  about_sec5_chip2:"Colleges",
+  about_sec5_chip3:"Universities",
+  about_sec5_chip4:"Coaching Centres",
+  about_sec5_chip5:"Individual Tutors",
+  about_sec5_chip6:"Training Institutes",
+  about_sec5_chip7:"Online Learning Programs",
+  about_sec5_chip8:"Parents",
+  about_sec5_chip9:"Self-Prep Aspirants",
+  about_sec5_p1:"Its architecture is designed to support:",
+  about_sec5_title:"Designed for Every Educational Institution — and Individuals",
+  about_sec6_p1:"Student Insight is not another student management system. Its purpose is to help educators understand learning.",
+  about_sec6_p2:"The goal is not simply to collect data.",
+  about_sec6_p3:"<strong>The goal is to transform educational data into educational intelligence.</strong>",
+  about_sec6_title:"Beyond Marks and Attendance",
+  about_sec7_col1:"Every educator or parent accesses the same application.<br>Every user owns their own data.<br>Every project remains independent.",
+  about_sec7_col2:"No shared sessions.<br>No shared storage.<br>No hidden cloud dependency.",
+  about_sec7_col3:"The application is temporary.<br><br>Your project is permanent.",
+  about_sec7_title:"Offline First. Stateless by Design.",
+  about_sec8_p1:"Because Student Insight is built around open file formats and user-owned data, everyone remains free to archive, migrate, or extend their projects without being tied to proprietary infrastructure.",
+  about_sec8_title:"Open, Portable and Future Ready",
+  about_stat_cost:"Cost, forever",
+  about_stat_license_label:"Open source licence",
+  about_stat_offline:"Offline capable",
+  about_stat_servers:"Servers involved",
+  ai_anxiety_flag_label:"Anxiety Flag",
+  ai_anxiety_flag_sub:"Pattern of consistent underperformance suggesting anxiety",
+  ai_at_risk_label:"At-Risk Detection",
+  ai_at_risk_sub:"Scored below pass threshold in any subject",
+  ai_avg_label:"Subject-wise Average",
+  ai_avg_sub:"Mean marks per subject per test",
+  ai_burnout_risk_label:"Burnout Risk",
+  ai_burnout_risk_sub:"Declining performance after previous high scores",
+  ai_chronic_absent_label:"Chronic Absenteeism",
+  ai_chronic_absent_sub:"Exceeds absence threshold near test dates",
+  ai_class_difficulty_label:"Class Difficulty Flag",
+  ai_class_difficulty_sub:"Subject where >40% of class is struggling",
+  ai_class_health_label:"Class Health Score",
+  ai_class_health_sub:"Overall class performance index 0–100",
+  ai_competitive_readiness_label:"Competitive Readiness",
+  ai_competitive_readiness_sub:"Readiness signal for entrance exams (JEE/NEET/IAS)",
+  ai_consistency_label:"Consistency Score",
+  ai_consistency_sub:"Low variance = consistent; high = unpredictable",
+  ai_cumulative_label:"Cumulative Average",
+  ai_cumulative_sub:"Running average across all tests to date",
+  ai_diversity_analysis_label:"Gender & Group Analysis",
+  ai_diversity_analysis_sub:"Performance patterns across gender groups",
+  ai_early_warning_label:"Early Warning Score",
+  ai_early_warning_sub:"Composite risk score for proactive intervention",
+  ai_engagement_index_label:"Engagement Index",
+  ai_engagement_index_sub:"Proxy for class engagement via attendance + trend",
+  ai_grade_label:"Grade Assignment",
+  ai_grade_sub:"A/B/C/D/F by percentage bands",
+  ai_growth_rate_label:"Growth Rate",
+  ai_growth_rate_sub:"Score velocity — how fast improving or declining",
+  ai_intervention_label:"Intervention Note",
+  ai_intervention_priority_label:"Intervention Priority List",
+  ai_intervention_priority_sub:"Ranked list of students needing immediate support",
+  ai_intervention_sub:"Teacher guidance for at-risk students",
+  ai_motivation_label:"Motivational Message",
+  ai_motivation_sub:"Personalised encouragement based on trend",
+  ai_multiple_fails_label:"Multiple Subject Failures",
+  ai_multiple_fails_sub:"Failing in 2 or more subjects simultaneously",
+  ai_parent_summary_label:"Parent-Friendly Summary",
+  ai_parent_summary_sub:"Plain-language progress narrative for parents",
+  ai_pct_label:"Percentage Calculation",
+  ai_pct_sub:"% score per subject and overall",
+  ai_peer_outlier_label:"Peer Outlier",
+  ai_peer_outlier_sub:"Performing unusually above or below peer group",
+  ai_percentile_label:"Percentile Calculation",
+  ai_percentile_sub:"Where student stands within the class",
+  ai_plateau_label:"Plateau Detection",
+  ai_plateau_sub:"No improvement across 3+ consecutive tests",
+  ai_prediction_label:"Next Test Prediction",
+  ai_prediction_sub:"Projected score from trend (2+ tests)",
+  ai_progress_narrative_label:"Progress Narrative",
+  ai_progress_narrative_sub:"Story of the student's journey across all tests",
+  ai_rank_label:"Class Ranking",
+  ai_rank_sub:"Rank 1–N by overall average",
+  ai_resilience_score_label:"Resilience Score",
+  ai_resilience_score_sub:"Ability to recover after a drop — positive rebound",
+  ai_sharp_drop_label:"Sharp Drop Alert",
+  ai_sharp_drop_sub:"Sudden marks drop ≥ configurable % between tests",
+  ai_strengths_letter_label:"Strengths Letter",
+  ai_strengths_letter_sub:"Highlight what the student excels at",
+  ai_stress_score_label:"Stress Indicator",
+  ai_stress_score_sub:"Composite score from volatility, absences & trend",
+  ai_study_plan_label:"Study Plan",
+  ai_study_plan_sub:"Targeted recommendations for weak subjects",
+  ai_subject_audit_label:"Subject Audit",
+  ai_subject_audit_sub:"Which subjects need curriculum or teaching review",
+  ai_subject_collapse_label:"Subject Collapse",
+  ai_subject_collapse_sub:"Was strong, now suddenly failing in a subject",
+  ai_subject_strength_label:"Subject Strength & Weakness",
+  ai_subject_strength_sub:"Best and weakest subject per student",
+  ai_teacher_remarks_ai_label:"AI Remark Sentiment",
+  ai_teacher_remarks_ai_sub:"Classify teacher remarks as positive / neutral / concern",
+  ai_test_difficulty_label:"Test Difficulty Analysis",
+  ai_test_difficulty_sub:"Was the test too hard or too easy vs class history",
+  ai_topper_gap_label:"Topper Gap Analysis",
+  ai_topper_gap_sub:"How far each student is from class topper",
+  ai_trend_label:"Performance Trend",
+  ai_trend_sub:"Improving / Stable / Declining across tests",
+  ai_volatile_label:"Volatile Performance",
+  ai_volatile_sub:"High score variance — inconsistent pattern",
+  ai_wellbeing_summary_label:"Wellbeing Summary",
+  ai_wellbeing_summary_sub:"Class-level psychosocial overview for teacher",
+  ai_year_projection_label:"Year-End Projection",
+  ai_year_projection_sub:"Projected final scores based on current trajectory",
+  back:"← Back",
+  insights_nav_label:"Insights",
+  export_section_title:"Generate &amp; Export Reports",
+  bucket_all_good:"All good — no concerns here right now.",
+  bucket_back_to_dashboard:"← Insights",
   bucket_class_desc:"Overall average, trend, and class-wide patterns",
-  bucket_student_label:"One Student",
-  bucket_student_desc:"Look up any student by name",
-  bucket_subject_label:"One Subject",
-  bucket_subject_desc:"See how the whole class did in one subject",
-  bucket_help_label:"Who Needs Help",
-  bucket_help_desc:"Students who may need extra support",
-  bucket_top_label:"Top Performers",
-  bucket_top_desc:"Highest scorers and most improved",
-  bucket_clusters_label:"Performance Groups",
+  bucket_class_label:"My Whole Class",
   bucket_clusters_desc:"Cohort patterns found across average, consistency, trend and attendance",
+  bucket_clusters_label:"Performance Groups",
+  bucket_compare_report_desc:"One management-level PDF ranking every section side by side",
+  bucket_compare_report_label:"Section Comparison Report",
   bucket_count_badge_one:"({{count}} found)",
   bucket_count_badge_other:"({{count}} found)",
-  bucket_all_good:"All good — no concerns here right now.",
-  back:"← Back",
-  bucket_back_to_dashboard:"← Dashboard",
+  bucket_export_desc:"One click — everything, no choices to make",
+  bucket_export_label:"Export Reports",
+  bucket_help_desc:"Students who may need extra support",
+  bucket_help_label:"Who Needs Help",
+  bucket_persection_desc:"Student/Teacher/Management PDFs for one section at a time",
+  bucket_persection_label:"Per-Section Reports",
+  bucket_smart_desc:"Ask anything about this class in plain language",
+  bucket_smart_label:"Smart Search ✨",
+  bucket_student_desc:"Look up any student by name",
+  bucket_student_label:"One Student",
+  bucket_subject_desc:"See how the whole class did in one subject",
+  bucket_subject_label:"One Subject",
+  bucket_top_desc:"Highest scorers and most improved",
+  bucket_top_label:"Top Performers",
+  faq_audience_finance:"For the Admin / Office",
+  faq_audience_formulas:"Exact Formulas & Calculation Logic",
+  faq_audience_it:"From the IT-in-charge",
+  faq_audience_nitpicky:"The Nitpicky (But Real) Ones",
+  faq_audience_parent:"Parent-Facing Concerns",
+  faq_audience_principal:"From the Principal",
+  faq_audience_teacher:"From a Regular Teacher",
+  faq_audience_terms:"Terms & Abbreviations Used in the App",
+  faq_audience_vp:"From the VP / Academic Coordinator",
+  faq_cnt_finance:"Budget & paperwork",
+  faq_cnt_formulas:"For maths/statistics/analytics reviewers — every number, in writing",
+  faq_cnt_it:"Hosting & data location",
+  faq_cnt_nitpicky:"You'll actually hear these",
+  faq_cnt_parent:"What the principal anticipates",
+  faq_cnt_principal:"Money, liability, reputation",
+  faq_cnt_teacher:"The actual daily user",
+  faq_cnt_terms:"What every label actually means",
+  faq_cnt_vp:"Process & control",
+  faq_empty:"No questions match your search. Try a different word.",
+  faq_hero_eyebrow:"Frequently Asked Questions",
+  faq_hero_sub:"These are the actual questions principals, coordinators, IT staff and teachers ask when this tool is proposed to them — from serious procurement concerns down to the nitpicky ones. Every answer below reflects exactly what the app does today. Where something isn't built yet, that's stated plainly rather than glossed over.",
+  faq_hero_title:"You have students' marks. Here's exactly how the StudIn analytic tool <span style=\"color:#2ec4b6\">turns them into insight —</span> answered honestly, not persuasively.",
+  faq_jump_formulas:"Jump straight to Exact Formulas & Calculation Logic (for maths/stats reviewers)",
+  faq_search_placeholder:"Search questions — e.g. 'data', 'offline', 'cost', 'save'...",
+  faq_tag_admin:"Admin",
+  faq_tag_appdefined:"App-defined",
+  faq_tag_core:"Core",
+  faq_tag_practical:"Practical",
+  faq_tag_serious:"Serious",
+  faq_tag_silly:"Silly",
+  faq_tag_statistics:"Statistics",
+  faq_tag_technical:"Technical",
   finding_top_rank:"{{student}} is ranked #{{rank}} in the class.",
+  home_hero_sub:"Upload a filled Excel workbook and Student Insight identifies learning gaps, flags at-risk students, tracks progress over time, and generates ready-to-share reports — computed instantly, entirely in your browser, with your data never uploaded anywhere.",
+  home_hero_title:"Turn your students' marks into actionable insight",
+  home_upload_sub:"Drop your class's filled Excel file below. Managing more than one section or batch? Drop 2 or more files at once — matching ones are compared automatically, and any that don't match still get their own individual analysis.",
+  home_upload_title:"Upload Your Filled Sheet",
+  individual_bucket_plan_desc:"What to focus on at home this week",
+  individual_bucket_plan_label:"Recommendations",
+  individual_bucket_report_desc:"Overall summary, trend and where things stand",
+  individual_bucket_report_label:"Progress Report",
+  individual_bucket_subjects_desc:"Test-by-test marks and subject breakdown",
+  individual_bucket_subjects_label:"Subjects & Marks",
+  individual_bucket_wellbeing_desc:"Stress and engagement signals",
+  individual_bucket_wellbeing_label:"Wellbeing",
+  setup_absent_alert_label:"Absent Alert",
+  setup_btn_back:"Back",
+  setup_btn_done_upload:"Done — Upload on Home",
+  setup_btn_download_template:"Download Template",
+  setup_btn_load_different:"Load a Different Sheet",
+  setup_btn_load_existing:"Load Existing Filled Sheet",
+  setup_btn_next:"Next",
+  setup_card_new_desc:"Start fresh — set up institution, class, subjects and tests, then download a blank workbook to fill offline.",
+  setup_card_new_title:"Create New Template",
+  setup_card_update_desc:"Already filled Test 1? Load your workbook, add Test 2 / Test 3, then re-download — existing marks are kept, only new blank columns are added.",
+  setup_card_update_title:"Update Existing Template",
+  setup_class_name_error:"Class / Batch is required",
+  setup_class_name_label:"Class / Batch",
+  setup_class_name_placeholder:"e.g. Class 9",
+  setup_class_section_label:"Section",
+  setup_class_section_placeholder:"e.g. B",
+  setup_class_teacher_label:"Teacher Name",
+  setup_class_title:"Class / Batch",
+  setup_class_year_error:"Academic year is required",
+  setup_class_year_label:"Academic Year",
+  setup_class_year_placeholder:"e.g. 2026",
+  setup_compare_banner_btn:"Home · Upload",
+  setup_compare_banner_desc:"Optional — if every section's teacher already has a filled sheet, skip straight to <button class=\"btn btn-secondary btn-sm\" onclick=\"goStep(&#39;home&#39;)\" style=\"display:inline-flex;padding:3px 8px;font-size:12px;vertical-align:middle\">Home · Upload</button> and the Subjects/Tests/Max Marks from the first file you upload become the shared schema automatically. Only fill this in if you need to <b>generate a blank template</b> to hand out first — in that case, Subjects, Tests & Max Marks entered below will be shared across every section you compare.",
+  setup_compare_banner_title:"Compare Sections / Batches — Institution mode",
+  setup_drop_alert_label:"Drop Alert %",
+  setup_howstart_title:"How would you like to start?",
+  setup_indiv_multichild_hint:"Tracking more than one child? Just add another row in the downloaded template's STUDENTS sheet with a different Student ID — each child gets their own switcher entry on Insights, never compared to each other.",
+  setup_inst_contact_label:"Contact",
+  setup_inst_contact_placeholder:"phone / email",
+  setup_inst_location_label:"Location",
+  setup_inst_location_placeholder:"City, State",
+  setup_inst_name_error:"Institution name is required",
+  setup_inst_name_label:"Institution Name",
+  setup_inst_name_placeholder:"e.g. Springfield International School",
+  setup_inst_title:"Institution",
+  setup_inst_type_label:"Type",
+  setup_inst_type_select:"Select...",
+  setup_merge_cancel:"Cancel — start a fresh template instead",
+  setup_mode_indiv_desc:"A parent tracking one or more children, or an aspirant tracking their own prep — no class comparison, just personal progress over time.",
+  setup_mode_indiv_title:"Individual (Parent / Self-Prep)",
+  setup_mode_inst_desc:"A teacher or coaching centre tracking a whole class or batch of students — with rank, class average, and at-risk flags.",
+  setup_mode_inst_title:"Institution / Coaching Batch",
+  setup_pass_threshold_label:"Pass %",
+  setup_scoring_grade:"Grade",
+  setup_scoring_marks:"Marks",
+  setup_scoring_passfail:"Pass/Fail",
+  setup_scoring_pct:"Percentage",
+  setup_scoring_title:"Scoring",
+  setup_step1_title:"Step 1 · Setup",
+  setup_subjects_addbtn:"Add Subject",
+  setup_subjects_title:"Subjects",
+  setup_subtitle:"Configure your institution, academic year, class, subjects and assessment details before importing student data.",
+  setup_tests_addbtn:"Add Test",
+  setup_tests_title:"Tests / Exams",
+  setup_whofor_title:"Who is this for?",
+  shell_home_left_pitch_1:"Instant PDF report cards",
+  shell_home_left_pitch_2:"No data ever uploaded",
+  shell_home_left_pitch_3:"Auto-detects subjects & tests",
+  shell_home_left_pitch_4:"Works for one class or many",
+  shell_home_left_pitch_5:"13 languages, full RTL support",
+  shell_home_left_pitch_6:"Ask questions in plain language",
+  shell_home_left_pitch_7:"Turns raw marks into rank, trend & risk flags",
+  shell_home_right_pitch_1:"Class-wide KPIs — averages, pass rate, and trends across tests",
+  shell_home_right_pitch_2:"A performance heatmap across every subject and test",
+  shell_home_right_pitch_3:"An automatic list of students who may need extra help",
+  shell_home_right_pitch_4:"Top performers and instant two-student comparisons",
+  shell_home_right_pitch_5:"Patterns pulled out of teacher remarks and wellbeing notes",
+  shell_home_right_pitch_6:"Performance groups, once the class is large enough",
+  shell_left_file_details_title:"File details",
+  shell_left_file_label:"Uploaded file",
+  shell_left_multi_file:"Multiple files",
+  shell_left_no_file:"No file uploaded yet",
+  shell_left_org_label:"Institution / Individual",
+  shell_left_records_label:"Records",
+  shell_left_single_file:"Single file",
+  shell_rail_features_title:"Features",
+  shell_rail_properties_title:"Properties",
+  shell_right_build_template:"Build Your Own Template",
+  shell_right_exports_ready:"Exports ready",
+  shell_right_link_sample_files:"Sample Files",
+  shell_right_selected_features:"Selected features",
+  shell_right_try_sample:"Try Sample Data",
+  smart_search_ai_tooltip:"AI feature — development in progress",
+  smart_search_back:"Back to Insights",
+  smart_search_coming_soon:"Coming soon",
+  smart_search_empty_sub:"This section needs a bit more data before questions become available here.",
+  smart_search_empty_title:"Nothing to ask yet",
+  smart_search_load_error:"Couldn't load Smart Search. Check your connection and try again.",
+  smart_search_select_first:"Select a student first.",
+  smart_search_select_student:"Select a student…",
+  smart_search_student_label:"Student",
+  smart_search_subtitle:"Tap a question for a plain-language answer, computed from this class's data. Nothing here is sent anywhere — calculated on your device, same as the rest of the app.",
+  smart_search_title:"Smart Search",
+  smart_v2_compare_link:"Compare two students",
+  smart_v2_deflection_hint:"Try one of the suggestions below",
+  smart_v2_input_placeholder:"Ask about this class or a student…",
+  smart_v2_legacy_link:"Prefer tap-to-ask? Open Classic Smart Search",
   student_picker_prompt:"Type a student's name to see their full report.",
   subject_picker_prompt:"Pick a subject to see how the class did.",
-  home_hero_title:"Turn your students' marks into actionable insight",
-  home_hero_sub:"Upload a filled Excel workbook and Student Insight identifies learning gaps, flags at-risk students, tracks progress over time, and generates ready-to-share reports — computed instantly, entirely in your browser, with your data never uploaded anywhere.",
-  home_upload_title:"Upload Your Filled Sheet",
-  home_upload_sub:"Drop your class's filled Excel file below. Managing more than one section or batch? Drop 2 or more files at once — matching ones are compared automatically, and any that don't match still get their own individual analysis.",
-  about_hero_title:"You have students' marks. <span style=\"color:#2ec4b6\">Let's build meaningful insight from them.</span>",
-  about_hero_sub:"Student Insight is the StudIn analytic tool that turns a spreadsheet of marks into ranks, trends, at-risk flags, and plain-language findings — without ever asking you to hand your data to a server first. Unlike traditional web applications that require user accounts, cloud storage, or centralized databases, Student Insight is designed as a completely stateless, privacy-first analytics platform. The application itself never becomes the owner of your data. Instead, it serves as an intelligent processing engine that transforms your spreadsheets into meaningful educational insights while keeping complete control in your hands.",
-  faq_audience_principal:"From the Principal",
-  faq_audience_vp:"From the VP / Academic Coordinator",
-  faq_audience_it:"From the IT-in-charge",
-  faq_audience_teacher:"From a Regular Teacher",
-  faq_audience_parent:"Parent-Facing Concerns",
-  faq_audience_finance:"For the Admin / Office",
-  faq_audience_nitpicky:"The Nitpicky (But Real) Ones",
-  faq_audience_formulas:"Exact Formulas & Calculation Logic",
-  faq_audience_terms:"Terms & Abbreviations Used in the App",
-  // v3.9 — Phase 4 i18n: Setup + About + FAQ-chrome keys, added alongside
-  // the Phase 3 bucket/home/about-hero/faq-audience keys above.
-  "setup_step1_title":"Step 1 · Setup",
-  "setup_subtitle":"Configure your institution, academic year, class, subjects and assessment details before importing student data.",
-  "setup_compare_banner_title":"Compare Sections / Batches — Institution mode",
-  "setup_compare_banner_desc":"Optional — if every section's teacher already has a filled sheet, skip straight to <button class=\"btn btn-secondary btn-sm\" onclick=\"goStep(&#39;home&#39;)\" style=\"display:inline-flex;padding:3px 8px;font-size:12px;vertical-align:middle\">Home · Upload</button> and the Subjects/Tests/Max Marks from the first file you upload become the shared schema automatically. Only fill this in if you need to <b>generate a blank template</b> to hand out first — in that case, Subjects, Tests & Max Marks entered below will be shared across every section you compare.",
-  "setup_compare_banner_btn":"Home · Upload",
-  "setup_howstart_title":"How would you like to start?",
-  "setup_card_new_title":"Create New Template",
-  "setup_card_new_desc":"Start fresh — set up institution, class, subjects and tests, then download a blank workbook to fill offline.",
-  "setup_card_update_title":"Update Existing Template",
-  "setup_card_update_desc":"Already filled Test 1? Load your workbook, add Test 2 / Test 3, then re-download — existing marks are kept, only new blank columns are added.",
-  "setup_btn_load_existing":"Load Existing Filled Sheet",
-  "setup_merge_cancel":"Cancel — start a fresh template instead",
-  "setup_whofor_title":"Who is this for?",
-  "setup_mode_inst_title":"Institution / Coaching Batch",
-  "setup_mode_inst_desc":"A teacher or coaching centre tracking a whole class or batch of students — with rank, class average, and at-risk flags.",
-  "setup_mode_indiv_title":"Individual (Parent / Self-Prep)",
-  "setup_mode_indiv_desc":"A parent tracking one or more children, or an aspirant tracking their own prep — no class comparison, just personal progress over time.",
-  "setup_indiv_multichild_hint":"Tracking more than one child? Just add another row in the downloaded template's STUDENTS sheet with a different Student ID — each child gets their own switcher entry on the Dashboard, never compared to each other.",
-  "setup_inst_title":"Institution",
-  "setup_inst_name_label":"Institution Name",
-  "setup_inst_name_placeholder":"e.g. Springfield International School",
-  "setup_inst_name_error":"Institution name is required",
-  "setup_inst_type_label":"Type",
-  "setup_inst_type_select":"Select...",
-  "setup_inst_location_label":"Location",
-  "setup_inst_location_placeholder":"City, State",
-  "setup_inst_contact_label":"Contact",
-  "setup_inst_contact_placeholder":"phone / email",
-  "setup_class_title":"Class / Batch",
-  "setup_class_name_label":"Class / Batch",
-  "setup_class_name_placeholder":"e.g. Class 9",
-  "setup_class_name_error":"Class / Batch is required",
-  "setup_class_section_label":"Section",
-  "setup_class_section_placeholder":"e.g. B",
-  "setup_class_year_label":"Academic Year",
-  "setup_class_year_placeholder":"e.g. 2026",
-  "setup_class_year_error":"Academic year is required",
-  "setup_class_teacher_label":"Teacher Name",
-  "setup_scoring_title":"Scoring",
-  "setup_scoring_marks":"Marks",
-  "setup_scoring_pct":"Percentage",
-  "setup_scoring_grade":"Grade",
-  "setup_scoring_passfail":"Pass/Fail",
-  "setup_pass_threshold_label":"Pass %",
-  "setup_absent_alert_label":"Absent Alert",
-  "setup_drop_alert_label":"Drop Alert %",
-  "setup_subjects_title":"Subjects",
-  "setup_subjects_addbtn":"Add Subject",
-  "setup_tests_title":"Tests / Exams",
-  "setup_tests_addbtn":"Add Test",
-  "setup_btn_back":"Back",
-  "setup_btn_next":"Next",
-  "setup_btn_done_upload":"Done — Upload on Home",
-  "setup_btn_download_template":"Download Template",
-  "about_eyebrow":"Student Insight — About",
-  "about_stat_cost":"Cost, forever",
-  "about_stat_servers":"Servers involved",
-  "about_stat_offline":"Offline capable",
-  "about_stat_license_label":"Open source licence",
-  "about_builtby":"Built by Sandeep Hakki",
-  "about_sec1_title":"Your Data Always Belongs to You",
-  "about_sec1_p1":"Student Insight never treats the browser as permanent storage.",
-  "about_sec1_p2":"Your data is stored only in files that you own.",
-  "about_sec1_p3":"Every project can be imported, analyzed, updated, exported, shared, archived, or backed up without depending on an online account or remote server.",
-  "about_sec1_p4":"If you move to another computer, your project moves with you. If you disconnect from the internet, your project continues to work.",
-  "about_sec1_p5":"<strong>Your data remains yours.</strong>",
-  "about_sec2_title":"Built for GitHub Pages and Static Hosting",
-  "about_sec2_p1":"Student Insight is intentionally designed to run from a single static website. It works equally well whether it is opened from:",
-  "about_sec2_host1":"GitHub Pages",
-  "about_sec2_host2":"A local HTML file",
-  "about_sec2_host3":"A USB drive",
-  "about_sec2_host4":"A school intranet",
-  "about_sec2_host5":"An offline classroom computer",
-  "about_sec2_p2":"No installation. No server. No database. No subscriptions. No vendor lock-in.",
-  "about_sec3_title":"Privacy by Design",
-  "about_sec3_p1":"Educational records are among the most sensitive types of information.",
-  "about_sec3_p2":"Student Insight is designed so that student information never needs to leave the educator's device. The application does not require:",
-  "about_sec3_no1":"User accounts",
-  "about_sec3_no2":"Cloud synchronization",
-  "about_sec3_no3":"Remote databases",
-  "about_sec3_no4":"Cookies or fingerprinting",
-  "about_sec3_no5":"Personal data collection",
-  "about_sec3_no6":"Background uploads of your files",
-  "about_sec3_p3":"The browser simply processes the data that you choose to open — your uploaded spreadsheets and student records never leave your device.",
-  "about_sec3_p4":"To understand how many people use Student Insight, the site uses <strong>Cloudflare Web Analytics</strong> — a cookieless, aggregate-only visit counter that does not use fingerprinting and collects no personal data. It only ever sees anonymous page-view counts, never anything from the files you upload or analyze.",
-  "about_sec4_title":"Your Spreadsheet is the Source of Truth",
-  "about_sec4_p1":"Traditional systems store information inside databases. Student Insight stores knowledge inside educator-owned project files.",
-  "about_sec4_p2":"The application can always reconstruct the complete working environment from those files.",
-  "about_sec4_p3":"Nothing important depends on browser memory. Nothing important depends on server storage.",
-  "about_sec4_p4":"This carries through the whole academic year, not just a single test. As Test 2 and Test 3 come in, the same file grows to hold them — the Setup step can load an already-filled sheet and add the next test's columns onto it directly, so nothing already recorded is ever re-entered or discarded along the way.",
-  "about_sec4_p5":"<strong>Your project remains portable, transparent, and future-proof.</strong>",
-  "about_sec5_title":"Designed for Every Educational Institution — and Individuals",
-  "about_sec5_p1":"Its architecture is designed to support:",
-  "about_sec5_chip1":"Schools",
-  "about_sec5_chip2":"Colleges",
-  "about_sec5_chip3":"Universities",
-  "about_sec5_chip4":"Coaching Centres",
-  "about_sec5_chip5":"Individual Tutors",
-  "about_sec5_chip6":"Training Institutes",
-  "about_sec5_chip7":"Online Learning Programs",
-  "about_sec5_chip8":"Parents",
-  "about_sec5_chip9":"Self-Prep Aspirants",
-  "about_sec6_title":"Beyond Marks and Attendance",
-  "about_sec6_p1":"Student Insight is not another student management system. Its purpose is to help educators understand learning.",
-  "about_sec6_p2":"The goal is not simply to collect data.",
-  "about_sec6_p3":"<strong>The goal is to transform educational data into educational intelligence.</strong>",
-  "about_sec7_title":"Offline First. Stateless by Design.",
-  "about_sec7_col1":"Every educator or parent accesses the same application.<br>Every user owns their own data.<br>Every project remains independent.",
-  "about_sec7_col2":"No shared sessions.<br>No shared storage.<br>No hidden cloud dependency.",
-  "about_sec7_col3":"The application is temporary.<br><br>Your project is permanent.",
-  "about_sec8_title":"Open, Portable and Future Ready",
-  "about_sec8_p1":"Because Student Insight is built around open file formats and user-owned data, everyone remains free to archive, migrate, or extend their projects without being tied to proprietary infrastructure.",
-  "about_philosophy_quote":"Student Insight is a privacy-first, offline education analytics platform where educators own their data, projects live in user-controlled files, and the application serves only as an intelligent analysis engine.",
-  "about_philosophy_cite":"Our Philosophy",
-  "about_formulas_title":"Want to verify the maths yourself?",
-  "about_formulas_desc":"Every average, rank, percentile, trend and composite score, written out as exact formulas — for the maths/statistics/analytics people your institute will ask.",
-  "about_formulas_btn":"See Exact Formulas →",
-  "about_bio_kicker":"Who built this",
-  "about_bio_name":"Sandeep S Hakki",
-  "about_bio_desc":"Educator and builder based in India, working on free, privacy-first tools that give teachers, institutions, and parents back control of their own data — Student Insight is one of them, built as a social cause rather than a product.",
-  "about_bio_email_btn":"sandeep@hakki.in",
-  "about_bio_projectpage_btn":"Project Page",
-  "faq_hero_eyebrow":"Frequently Asked Questions",
-  "faq_hero_title":"You have students' marks. Here's exactly how the StudIn analytic tool <span style=\"color:#2ec4b6\">turns them into insight —</span> answered honestly, not persuasively.",
-  "faq_hero_sub":"These are the actual questions principals, coordinators, IT staff and teachers ask when this tool is proposed to them — from serious procurement concerns down to the nitpicky ones. Every answer below reflects exactly what the app does today. Where something isn't built yet, that's stated plainly rather than glossed over.",
-  "faq_search_placeholder":"Search questions — e.g. 'data', 'offline', 'cost', 'save'...",
-  "faq_jump_formulas":"Jump straight to Exact Formulas & Calculation Logic (for maths/stats reviewers)",
-  "faq_empty":"No questions match your search. Try a different word.",
-  "faq_cnt_principal":"Money, liability, reputation",
-  "faq_cnt_vp":"Process & control",
-  "faq_cnt_it":"Hosting & data location",
-  "faq_cnt_teacher":"The actual daily user",
-  "faq_cnt_parent":"What the principal anticipates",
-  "faq_cnt_finance":"Budget & paperwork",
-  "faq_cnt_nitpicky":"You'll actually hear these",
-  "faq_cnt_formulas":"For maths/statistics/analytics reviewers — every number, in writing",
-  "faq_cnt_terms":"What every label actually means",
-  "faq_tag_serious":"Serious",
-  "faq_tag_practical":"Practical",
-  "faq_tag_silly":"Silly",
-  "faq_tag_core":"Core",
-  "faq_tag_appdefined":"App-defined",
-  "setup_btn_load_different":"Load a Different Sheet",
-  "faq_tag_admin":"Admin",
-  "faq_tag_statistics":"Statistics",
-  "faq_tag_technical":"Technical",
 };
 // v3.9 — Phase 3 i18n. SR_STRINGS_EN above stays inline in this file as
 // the EMERGENCY FALLBACK (per explicit direction: "English sits in html
@@ -591,35 +744,23 @@ function renderBuckets(){
   $("#individual-student-switcher").css("display", APP.setup.mode==="individual" ? "flex" : "none");
   if(APP.compareMode){
     $("#bucket-screen,#bucket-list-screen,#bucket-answer-screen").hide();
-    $("#legacy-back-to-smart").hide(); // Compare mode has no Smart View to return to
+    hideExportSection();
     showScreen("#legacy-dashboard-body");
     renderDashboard();
     return;
   }
   // FEEDBACK #6 (UI bugs, item 6): the old KPI/cards/heatmap/wellbeing
   // dashboard is still fully implemented (renderDashboard() and friends) —
-  // it's just not the default entry for a single Institution file anymore.
-  // Rather than removing that richer view, it's one link away, and stays
-  // showing across tab-switches until the person switches back themselves.
-  if(APP._forceLegacyView){
-    $("#bucket-screen,#bucket-list-screen,#bucket-answer-screen").hide();
-    $("#legacy-back-to-smart").show();
-    showScreen("#legacy-dashboard-body");
-    renderDashboard();
-    // ui-prompt-batch2.md item 1: Classic Dashboard closes BOTH rails and
-    // clears their content (not just collapses width) — so stale Smart-
-    // dashboard content can't flash back if either panel is manually
-    // re-expanded while still in Classic mode. Keyed off this flag, not
-    // step==="dashboard" (both Classic and Smart share that step).
-    if(typeof setShellRailsOpen==="function") setShellRailsOpen(false);
-    if(typeof setLeftRail==="function") setLeftRail("");
-    if(typeof setRightRail==="function") setRightRail("");
-    return;
-  }
+  // Compare Mode and Individual mode still use it directly (branches
+  // above). The former "Classic Dashboard" manual toggle for Institution+
+  // non-Compare mode is retired — prompt-v4.20 §1ii/§1iv removed its only
+  // trigger (#btn-classic-dashboard), so there is exactly one view for
+  // that combination now: the rail-driven bucket screen below.
   if(APP.setup.mode==="individual"){
     populateIndividualSwitcher();
     $("#legacy-dashboard-body").hide();
     $("#bucket-list-screen,#bucket-answer-screen").hide();
+    hideExportSection();
     showScreen("#bucket-screen");
     renderIndividualBuckets();
     return;
@@ -657,7 +798,8 @@ const DASHBOARD_CONTROL_ICONS={
   top:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 6H4a2 2 0 0 0 2 2"/><path d="M17 6h3a2 2 0 0 1-2 2"/></svg>',
   compare:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 3v18"/><path d="M16 3v18"/><path d="M3 8h5"/><path d="M16 8h5"/><path d="M3 16h5"/><path d="M16 16h5"/></svg>',
   clusters:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/></svg>',
-  smart:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></svg>'
+  smart:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></svg>',
+  export:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3.3 8.5l8.7 4.5 8.7-4.5"/><path d="M12 22V13"/></svg>'
 };
 // item 7g/h (OPEN QUESTION, confirmed by user: one merged list): "Smart
 // Search" is listed here as an ordinary control alongside the others — its
@@ -695,17 +837,10 @@ function buildDashboardControlsHtml(){
   }).join("");
   return `<div class="bucket-list">${rows}</div>`;
 }
-// Item #6 pair: swap between the 5-card Smart Reveal buckets and the
-// older, denser KPI/cards/heatmap/wellbeing/alerts-table view — both read
-// the exact same APP.students/APP.classStats, nothing is recomputed.
-function showLegacyDashboard(){
-  APP._forceLegacyView=true;
-  renderBuckets();
-}
-function showSmartBucketView(){
-  APP._forceLegacyView=false;
-  renderBuckets();
-}
+// Classic/Smart toggle retired (prompt-v4.20 §1ii/§1iv) — showLegacyDashboard()/
+// showSmartBucketView() no longer have any caller (both used APP._forceLegacyView,
+// which is now permanently false). Left undefined rather than kept-as-dead-code:
+// nothing else in the app reads or calls them.
 
 /* ── INDIVIDUAL/PARENT MODE BUCKETS ──
    Extends the same progressive-disclosure pattern used for Institution
@@ -920,11 +1055,22 @@ function emptyStateHtml(text){
   return `<div class="bucket-empty">${esc(text)}</div>`;
 }
 
+function hideExportSection(){
+  $("#panel-export").hide();
+}
+function revealExportSection(){
+  updateExportGate();
+  if(APP.compareMode && typeof populateExportSectionPicker==="function") populateExportSectionPicker();
+  else $("#exp-count").text((APP.students||[]).length);
+  const el=document.getElementById("panel-export");
+  if(el){ el.style.display="block"; el.scrollIntoView({behavior:"smooth",block:"start"}); }
+}
+
 function buildCompareExportControlsHtml(){
   const rows=[
     {label:srT("bucket_compare_report_label"),desc:srT("bucket_compare_report_desc")},
     {label:srT("bucket_persection_label"),desc:srT("bucket_persection_desc")}
-  ].map(b=>`<div class="bucket-row" role="button" tabindex="0" onclick="goStep('export')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('export');}">
+  ].map(b=>`<div class="bucket-row" role="button" tabindex="0" onclick="revealExportSection()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();revealExportSection();}">
     <span class="bucket-text"><span class="bucket-label">${esc(b.label)}</span><span class="bucket-desc">${esc(b.desc)}</span></span>
   </div>`).join("");
   return `<div class="bucket-list">${rows}</div>`;
@@ -936,19 +1082,48 @@ function openBucket(id){
   // "currently selected control" state below, so it's never persisted as
   // APP._currentBucketId and returning to Dashboard later doesn't
   // re-trigger the navigation.
-  if(id==="export"){ goStep("export"); return; }
+  // prompt-v4.20 §1xii: Export Reports is now the final section of
+  // Insights itself, not a separate screen — reveal it in place (scroll
+  // it into view) instead of goStep('export'), so neither rail resets nor
+  // any step transition happens. updateExportGate()/populateExportSectionPicker()
+  // still need their one-time setup the same way goStep('export') used to
+  // trigger it, since #panel-export is no longer a step goStep() visits.
   window._bucketCurrent=id;
   APP._currentBucketId=id;
   APP._forceLegacyView=false; // selecting any control leaves Classic Dashboard view, per item 8/f
-  $("#legacy-dashboard-body").hide();
-  $("#bucket-answer-screen").show();
-  renderDashboardSampleBanner();
   try{
     if(typeof renderShellLeftRail==="function") renderShellLeftRail("dashboard"); // refresh active-row highlight
   }catch(err){
     console.error("Shell left-rail refresh failed in openBucket:",id,err);
   }
-  if(id==="class")return renderClassAnswer();
+  // prompt-v4.20 §1iii: "My Whole Class" IS the rich KPI/tabs/student-card
+  // dashboard (renderDashboard() into #legacy-dashboard-body) — not a
+  // separate "Classic" toggle (that manual toggle is retired, see §1ii/iv
+  // above), just what this one bucket renders. Every other bucket below
+  // still uses the lighter #bucket-answer-screen content.
+  if(id==="class"){
+    $("#bucket-answer-screen,#panel-export").hide();
+    $("#legacy-dashboard-body").show();
+    renderDashboardSampleBanner();
+    renderDashboard();
+    return;
+  }
+  // prompt-v4.20 §1xii follow-up fix: Export is a normal bucket switch too
+  // now (was a special-cased scroll-to before — that's what caused its
+  // content to stack underneath whatever bucket was previously open,
+  // instead of replacing it). Center shows only #panel-export's "What
+  // Gets Generated" cards; the student/report-type picker + Generate
+  // button live in the right rail via renderExportPropertiesRail().
+  if(id==="export"){
+    $("#legacy-dashboard-body,#bucket-answer-screen").hide();
+    $("#panel-export").show();
+    renderDashboardSampleBanner();
+    if(typeof renderExportPropertiesRail==="function") renderExportPropertiesRail();
+    return;
+  }
+  $("#legacy-dashboard-body,#panel-export").hide();
+  $("#bucket-answer-screen").show();
+  renderDashboardSampleBanner();
   if(id==="student")return renderStudentPicker();
   if(id==="subject")return renderSubjectPicker();
   if(id==="help")return renderFilteredList("help");
@@ -1190,21 +1365,30 @@ function openFinding(kind,studentId){
 // what actually distinguishes it (in the students' own real numbers, not
 // standardized/z-scored — those are an internal computation detail, not
 // something a teacher should have to read).
+// prompt-v4.20 §1xi: Performance Groups is now 3 independent accordion
+// cards rendered inline (native <details>, same pattern the shell rail's
+// "File details" already uses) instead of a list-then-drill-in screen —
+// first group open by default, the other two closed, each toggleable on
+// its own, each member list scrolling internally instead of growing the
+// page. openClusterGroup() (Screen-C drill-in) is no longer called from
+// here but is left defined in case anything else still uses it.
 function renderClusterGroups(){
   if(typeof setRightRail==="function") setRightRail(""); // item e: no properties for this control
   const cc=APP.cohortClusters;
   if(!cc||!cc.groups||!cc.groups.length){ $("#bucket-answer-screen").html(`<div class="bucket-empty">${esc(srT("bucket_all_good"))}</div>`); return; }
-  const rows=cc.groups.map(g=>{
-    const avgTxt=g.centroid.overallAvg+"% avg";
-    const consTxt=g.centroid.consistency+" consistency";
-    return `<div class="finding-row" role="button" tabindex="0" onclick="openClusterGroup(${g.clusterIndex})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openClusterGroup(${g.clusterIndex});}">
-      <b>${esc(g.label)}</b> — ${g.students.length} student${g.students.length===1?"":"s"} · ${esc(avgTxt)} · ${esc(consTxt)}
-    </div>`;
+  const cards=cc.groups.map((g,i)=>{
+    const c=g.centroid;
+    const names=g.students.map(st=>`<div class="subject-row"><span>${esc(st.name)}</span><span>${esc(String(st.analysis.overallAvg))}% · Rank #${esc(String(st.analysis.rank))}</span></div>`).join("");
+    return `<details class="shell-details cluster-group-card"${i===0?" open":""}>
+      <summary class="shell-panel-title" style="cursor:pointer"><b>${esc(g.label)}</b> — ${g.students.length} student${g.students.length===1?"":"s"} · ${c.overallAvg}% avg · ${c.consistency} consistency</summary>
+      <p style="font-size:12px;color:var(--c-text2);margin:8px 0">Group averages: ${c.overallAvg}% overall, trend ${c.slope>=0?"+":""}${c.slope} pts/test, ${c.absenceRate.toFixed(2)} absence days per test.</p>
+      <div class="subject-row-list cluster-group-scroll">${names}</div>
+    </details>`;
   }).join("");
   $("#bucket-answer-screen").html(`
     <div class="bucket-answer-title">${esc(srT("bucket_clusters_label"))}</div>
     <div class="bucket-picker-hint">Found by grouping students on average, consistency, trend and attendance together — not a single-number ranking. Groups only appear once a class is large enough (30+) for the pattern to be meaningful.</div>
-    <div class="finding-list">${rows}</div>
+    ${cards}
   `);
 }
 function openClusterGroup(clusterIndex){
@@ -1255,16 +1439,7 @@ function renderStudentPicker(){
 function onBucketStudentPick(name){
   const st=(APP.students||[]).find(s=>(s.name||"").trim().toLowerCase()===String(name).trim().toLowerCase());
   if(!st)return;
-  const a=st.analysis||{};
-  const ew=(a.explainedWarnings||[]);
-  const body=ew.length?ew.map(f=>`<p>${esc(f.reason+flagChapterSuffix(st,f.type))}</p>`).join(""):`<p>${esc(srT("bucket_all_good"))}</p>`;
-  $("#bucket-answer-screen").html(`
-    <div class="bucket-answer-title">${esc(st.name)}</div>
-    <div class="bucket-answer-sub">Overall: ${esc(String(a.overallAvg))}% · Rank #${esc(String(a.rank))} · Grade ${esc(a.grade||"-")} · Trend: ${esc(a.trend||"-")}</div>
-    <div class="bucket-answer-body">${body}</div>
-    <div class="chart-container" style="margin-top:14px"><div class="card-title">Progress Trend</div><canvas id="bucket-chart-student-trend"></canvas></div>
-  `);
-  renderBucketStudentTrendChart("bucket-chart-student-trend",st);
+  $("#bucket-answer-screen").html(`<div class="bucket-answer-body">${buildStudentDetailHtml(st)}</div>`);
 }
 
 function renderSubjectPicker(){
@@ -1568,8 +1743,6 @@ function renderCharts(){
   // (wasted) Chart.js calls entirely too.
   if(isIndividual)return;
   _charts.scatter=new Chart($("#chart-scatter")[0],{type:"scatter",data:{datasets:[{label:"Students",data:sts.map(st=>({x:st.analysis.totalAbsent||0,y:st.analysis.overallAvg})),backgroundColor:"rgba(67,97,238,.6)",pointRadius:5}]},options:{responsive:true,scales:{x:{title:{display:true,text:"Total Absences"}},y:{title:{display:true,text:"Avg %"},min:0,max:100}}}});
-  const top10=[...sts].slice(0,Math.min(10,sts.length));
-  _charts.rank=new Chart($("#chart-rank")[0],{type:"bar",data:{labels:top10.map(s=>s.name.split(" ")[0]),datasets:[{label:"Overall %",data:top10.map(s=>s.analysis.overallAvg),backgroundColor:top10.map(s=>s.analysis.overallAvg>=80?"rgba(46,196,182,.7)":s.analysis.overallAvg>=APP.setup.passThreshold?"rgba(67,97,238,.7)":"rgba(242,92,84,.7)"),borderRadius:4}]},options:{responsive:true,indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,max:100}}}});
 }
 function destroyCharts(){Object.values(_charts).forEach(c=>c&&c.destroy());_charts={};}
 function renderWellbeingPanel(){
@@ -1686,11 +1859,12 @@ function sortStudents(s){APP.sort=s;renderStudentCards();}
    data-student-id attribute sidesteps that whole class of bug: the
    browser HTML parser decodes entities into the attribute value safely,
    and nothing gets re-concatenated into executable JS. */
-$(document).on("click",".student-card",function(){
-  openStudentModal($(this).attr("data-student-id"));
-});
-function openStudentModal(id){
-  const st=APP.students.find(s=>s.id===id);if(!st)return;
+/* prompt-v4.20 §1v: .student-card click-to-modal removed — cards are now
+   purely informational everywhere they're rendered. openStudentModal()
+   itself is kept (not deleted) since #modal-overlay/#modal-box are still
+   used elsewhere (Sample Files preview — see showSampleFiles()), but this
+   is the only caller that opened it for student detail, and it's gone. */
+function buildStudentDetailHtml(st){
   const a=st.analysis,{subjects,tests}=APP.setup;
   const isIndividual=APP.setup.mode==="individual";
   // v1.5: Total column = scored/max across subjects opted for that test
@@ -1712,7 +1886,7 @@ function openStudentModal(id){
   // Class Avg row directly under the marks table (Institution mode only —
   // there's no "class" to compare against in Individual mode) so "where does
   // this child stand" is answered right next to the table, not only via the
-  // separate "vs. Class Average, by Subject" badges further down the modal.
+  // separate "vs. Class Average, by Subject" badges further down.
   const classAvgRow=(!isIndividual&&APP.students&&APP.students.length>1)?(()=>{
     const perSubjAvgs=subjects.map(s=>{
       const vals=[];
@@ -1724,20 +1898,15 @@ function openStudentModal(id){
     return `<tr style="font-style:italic;background:var(--c-primary-soft)"><td>Class Avg</td>${perSubjAvgs.map(v=>`<td>${v!==null?v+"%":"-"}</td>`).join("")}<td>-</td><td>${classOverall!==null?classOverall+"%":"-"}</td><td>-</td><td></td></tr>`;
   })():"";
   // Percentile is a ranking, not a percentage score — clarified inline
-  // right where a parent actually reads it, not only in the FAQ (a 78th
-  // percentile student can have a 60% average if the rest of the class
-  // scored lower still).
-  // Percentile math on a class of well under a dozen students implies a
-  // precision that doesn't exist (e.g. "14th percentile" out of 8 kids is
-  // really just "7th of 8" dressed up with a decimal-feeling number). Below
-  // 12 students, show rank + a plain point-difference from the class
-  // average instead of a percentile.
+  // right where a parent actually reads it. Below 12 students a percentile
+  // implies false precision, so show rank + a plain point-difference from
+  // the class average instead.
   const classAvgAll=(!isIndividual&&APP.students&&APP.students.length>1)?(()=>{const vals=APP.students.map(s2=>s2.analysis&&s2.analysis.overallAvg).filter(v=>v!==undefined&&v!==null);return vals.length?Math.round(vals.reduce((x,y)=>x+y,0)/vals.length):null;})():null;
   const standingBit=isIndividual?"":(APP.students.length>=12
     ?` · Rank #${a.rank} of ${APP.students.length} · ${a.percentile}th percentile (better than ${a.percentile}% of classmates — not a % score)`
     :` · Rank #${a.rank} of ${APP.students.length}${classAvgAll!==null?` · ${Math.abs(a.overallAvg-classAvgAll)} points ${a.overallAvg>=classAvgAll?"above":"below"} the class average of ${classAvgAll}%`:""}`);
   const idLine=isIndividual?`ID: ${esc(st.id)} · Grade: ${a.grade}`:`ID: ${esc(st.id)}${standingBit} · Grade: ${a.grade}`;
-  $("#modal-content").html(`<h3 style="font-family:var(--font-display);font-size:18px;margin-bottom:4px">${esc(st.name)}</h3><div style="font-size:12px;color:var(--c-text3);margin-bottom:16px">${idLine}</div><div class="grid-4" style="margin-bottom:16px"><div class="kpi-card"><div class="kpi-label">Overall Avg</div><div class="kpi-val">${a.overallAvg}%</div></div><div class="kpi-card"><div class="kpi-label">Trend</div><div class="kpi-val" style="font-size:16px">${a.trend==="improving"?"<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polyline points='3 17 9 11 13 15 21 6'/><polyline points='15 6 21 6 21 12'/></svg>":a.trend==="declining"?"<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polyline points='3 7 9 13 13 9 21 18'/><polyline points='15 18 21 18 21 12'/></svg>":"➡"} ${a.trend}</div></div><div class="kpi-card"><div class="kpi-label">Absences</div><div class="kpi-val">${a.totalAbsent}</div></div><div class="kpi-card" title="Estimated from absences + score trend only — not a certified wellbeing or psychological assessment"><div class="kpi-label">Stress ⓘ</div><div class="kpi-val" style="font-size:16px">${a.wellbeingFlag}</div></div></div><div class="tbl-wrap" style="margin-bottom:4px"><table class="data-table"><thead><tr><th>Test</th>${subjects.map(s=>`<th>${esc(s)}</th>`).join("")}<th>Total</th><th>Avg</th><th>Absent</th><th>Remark</th></tr></thead><tbody>${testRows}${classAvgRow}</tbody></table></div><div style="font-size:10.5px;color:var(--c-text3);margin-bottom:16px">Total = scored/max marks across subjects opted for that test.</div>${a.healthScore!=null?`<div style="margin-bottom:10px;padding:8px 12px;border-radius:var(--r-sm);display:flex;align-items:center;gap:10px;background:${a.healthScore>=80?'#e6f9f7':a.healthScore>=65?'#eef0fd':a.healthScore>=50?'#fff4e0':'#fdecea'}"><div style="font-size:22px;font-weight:700;font-family:var(--font-display);color:${a.healthScore>=80?'#1a5c50':a.healthScore>=65?'#2d3ab1':a.healthScore>=50?'#9a6200':'#8b1a1a'}">♥ ${a.healthScore}</div><div><div style="font-weight:700;font-size:12px">Health Score — ${a.healthBand||''}</div><div style="font-size:11px;color:var(--c-text2)">Academics 40% · Consistency 20% · Trend 20% · Engagement 20%</div></div></div>`:""}
+  return `<h3 style="font-family:var(--font-display);font-size:18px;margin-bottom:4px">${esc(st.name)}</h3><div style="font-size:12px;color:var(--c-text3);margin-bottom:16px">${idLine}</div><div class="grid-4" style="margin-bottom:16px"><div class="kpi-card"><div class="kpi-label">Overall Avg</div><div class="kpi-val">${a.overallAvg}%</div></div><div class="kpi-card"><div class="kpi-label">Trend</div><div class="kpi-val" style="font-size:16px">${a.trend==="improving"?"<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polyline points='3 17 9 11 13 15 21 6'/><polyline points='15 6 21 6 21 12'/></svg>":a.trend==="declining"?"<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polyline points='3 7 9 13 13 9 21 18'/><polyline points='15 18 21 18 21 12'/></svg>":"➡"} ${a.trend}</div></div><div class="kpi-card"><div class="kpi-label">Absences</div><div class="kpi-val">${a.totalAbsent}</div></div><div class="kpi-card" title="Estimated from absences + score trend only — not a certified wellbeing or psychological assessment"><div class="kpi-label">Stress ⓘ</div><div class="kpi-val" style="font-size:16px">${a.wellbeingFlag}</div></div></div><div class="tbl-wrap" style="margin-bottom:4px"><table class="data-table"><thead><tr><th>Test</th>${subjects.map(s=>`<th>${esc(s)}</th>`).join("")}<th>Total</th><th>Avg</th><th>Absent</th><th>Remark</th></tr></thead><tbody>${testRows}${classAvgRow}</tbody></table></div><div style="font-size:10.5px;color:var(--c-text3);margin-bottom:16px">Total = scored/max marks across subjects opted for that test.</div>${a.healthScore!=null?`<div style="margin-bottom:10px;padding:8px 12px;border-radius:var(--r-sm);display:flex;align-items:center;gap:10px;background:${a.healthScore>=80?'#e6f9f7':a.healthScore>=65?'#eef0fd':a.healthScore>=50?'#fff4e0':'#fdecea'}"><div style="font-size:22px;font-weight:700;font-family:var(--font-display);color:${a.healthScore>=80?'#1a5c50':a.healthScore>=65?'#2d3ab1':a.healthScore>=50?'#9a6200':'#8b1a1a'}">♥ ${a.healthScore}</div><div><div style="font-weight:700;font-size:12px">Health Score — ${a.healthBand||''}</div><div style="font-size:11px;color:var(--c-text2)">Academics 40% · Consistency 20% · Trend 20% · Engagement 20%</div></div></div>`:""}
 ${a.explainedWarnings&&a.explainedWarnings.length?`<div style="margin-bottom:12px"><div style="font-weight:600;font-size:11px;margin-bottom:6px">⚠ Alerts &amp; Explanations</div>${a.explainedWarnings.map(f=>`<div style="margin-bottom:5px;padding:6px 10px;border-radius:var(--r-sm);background:${f.color}18;border-left:3px solid ${f.color}"><div style="font-weight:700;font-size:11px;color:${f.color}">${f.label}</div><div style="font-size:11px;color:var(--c-text2);margin-top:2px">${(f.reason||'')+flagChapterSuffix(st,f.type)}</div></div>`).join('')}</div>`:st.flags.length?`<div style="margin-bottom:14px"><div style="font-weight:600;margin-bottom:6px">Flags</div>${st.flags.map(f=>`<span class="badge" style="background:${f.color}22;color:${f.color};margin-right:6px">${f.label}</span>`).join("")}</div>`:""}
 <div class="grid-4" style="margin-bottom:14px">
   <div class="kpi-card"><div class="kpi-label">Consistency</div><div class="kpi-val" style="font-size:18px">${a.consistencyScore||"—"}%</div></div>
@@ -1751,23 +1920,15 @@ ${a.explainedWarnings&&a.explainedWarnings.length?`<div style="margin-bottom:12p
   <div class="kpi-card"><div class="kpi-label">Best Test</div><div class="kpi-val" style="font-size:14px">${a.bestTest?esc(a.bestTest.name)+" ("+a.bestTest.pct+"%)":"—"}</div></div>
   <div class="kpi-card"><div class="kpi-label">Weakest Test</div><div class="kpi-val" style="font-size:14px">${a.worstTest?esc(a.worstTest.name)+" ("+a.worstTest.pct+"%)":"—"}</div></div>
 </div>
-${!isIndividual&&a.subjectDeltas&&Object.keys(a.subjectDeltas).length?`<div class="card" style="padding:12px;margin-bottom:14px"><div class="card-title" style="margin-bottom:6px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><line x1='6' y1='20' x2='6' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='18' y1='20' x2='18' y2='14'/></svg> vs. Class Average, by Subject</div><div style="display:flex;flex-wrap:wrap;gap:6px">${Object.entries(a.subjectDeltas).map(([s,d])=>`<span class="badge" style="background:${d>=0?'var(--c-success)':'var(--c-danger)'}18;color:${d>=0?'var(--c-success)':'var(--c-danger)'}" title="${esc(s)}: ${d>=0?'above':'below'} the class average by ${Math.abs(d)} points">${esc(s)} ${d>=0?"+":""}${d}</span>`).join("")}</div></div>`:""}</div><div style="display:flex;flex-direction:column;gap:10px">${/* STUDIN-PRO: "The Bottom Line" gated per §8.
-narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l1.8-3.7A8.5 8.5 0 1 1 21 11.5z'/></svg>","The Bottom Line","parentMessage",a.parentMessage,st.id)
-*/ ""}${/* STUDIN-PRO: "What's Changed" gated per §8.
-<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polyline points='3 17 9 11 13 15 21 6'/><polyline points='15 6 21 6 21 12'/></svg> What's Changed <span style="font-weight:400;color:var(--c-text3);font-size:11px">(computed from the marks table — not editable)</span></div><div style="font-size:13px">${esc(a.trendFacts||"")}</div></div>
-*/ ""}${/* STUDIN-PRO: "Strengths" gated per §8 (modal — unchanged by
-ui-prompt-batch2.md item 3, which only reversed Strengths' PDF status;
-the modal already had it gated from the start).
-${a.strengthsLetter?narrativeCard("⭐","Strengths","strengthsLetter",a.strengthsLetter,st.id):""}
-*/ ""}${/* STUDIN-PRO: "At Home This Week" gated per §8.
-narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z'/><path d='M9 22V12h6v10'/></svg>","At Home This Week","homePlan",a.homePlan,st.id)
-*/ ""}${!isIndividual&&a.schoolPlan?narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg>","At School","schoolPlan",a.schoolPlan,st.id):""}${/* STUDIN-PRO: Teacher Remarks (per-test) gated per §8.
-remarkCardsHtml(st)
-*/ ""}</div>`);
+${!isIndividual&&a.subjectDeltas&&Object.keys(a.subjectDeltas).length?`<div class="card" style="padding:12px;margin-bottom:14px"><div class="card-title" style="margin-bottom:6px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><line x1='6' y1='20' x2='6' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='18' y1='20' x2='18' y2='14'/></svg> vs. Class Average, by Subject</div><div style="display:flex;flex-wrap:wrap;gap:6px">${Object.entries(a.subjectDeltas).map(([s,d])=>`<span class="badge" style="background:${d>=0?'var(--c-success)':'var(--c-danger)'}18;color:${d>=0?'var(--c-success)':'var(--c-danger)'}" title="${esc(s)}: ${d>=0?'above':'below'} the class average by ${Math.abs(d)} points">${esc(s)} ${d>=0?"+":""}${d}</span>`).join("")}</div></div>`:""}
+${!isIndividual&&a.schoolPlan?narrativeCard("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg>","At School","schoolPlan",a.schoolPlan,st.id):""}`;
+}
+function openStudentModal(id){
+  const st=APP.students.find(s=>s.id===id);if(!st)return;
+  $("#modal-content").html(buildStudentDetailHtml(st));
   $("#modal-overlay").addClass("open");
   _modalLastFocus=document.activeElement;
   setTimeout(()=>{const f=document.querySelector('#modal-overlay.open .modal-close');if(f)f.focus();},0);
-  if(typeof initVoiceInput==="function")initVoiceInput(); // wire mic buttons on the freshly-rendered remark textareas
 }
 let _modalLastFocus=null;
 // One shared builder for every editable narrative box (Report Card Comment,
@@ -1810,7 +1971,7 @@ function remarkCardsHtml(st){
     const rlen=remark.length;
     const rcountText=rlen+" characters"+(rlen>300?" — long remarks may push other sections to extra pages in the PDF":"");
     const rcountColor=rlen>300?"var(--c-warn,#f9a826)":"var(--c-text3)";
-    return `<div><div style="font-size:11.5px;font-weight:700;color:var(--c-text2);margin-bottom:4px">${esc(t.name)}${remarkToneBadgeHtml(remarkTone)}</div><textarea class="narrative-edit remark-edit" data-voice="true" data-test="${esc(t.name)}" id="${remarkId}" style="width:100%;min-height:44px;font-size:13px;font-family:inherit;padding:8px;border:1px solid var(--c-border);border-radius:var(--r-sm);resize:vertical" oninput="$(this).next('.narrative-save-row').find('button').prop('disabled',false);updateRemarkCharCount(this)">${esc(remark)}</textarea><div class="narrative-save-row" style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><span class="remark-char-count" data-for="${remarkId}" style="font-size:11px;color:${rcountColor}">${rcountText}</span><button class="btn btn-secondary" style="padding:5px 14px;font-size:12px" disabled onclick="saveRemarkField('${esc(st.id)}','${esc(t.name)}',this)">Save</button></div></div>`;
+    return `<div><div style="font-size:11.5px;font-weight:700;color:var(--c-text2);margin-bottom:4px">${esc(t.name)}${remarkToneBadgeHtml(remarkTone)}</div><textarea class="narrative-edit remark-edit" data-test="${esc(t.name)}" id="${remarkId}" style="width:100%;min-height:44px;font-size:13px;font-family:inherit;padding:8px;border:1px solid var(--c-border);border-radius:var(--r-sm);resize:vertical" oninput="$(this).next('.narrative-save-row').find('button').prop('disabled',false);updateRemarkCharCount(this)">${esc(remark)}</textarea><div class="narrative-save-row" style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><span class="remark-char-count" data-for="${remarkId}" style="font-size:11px;color:${rcountColor}">${rcountText}</span><button class="btn btn-secondary" style="padding:5px 14px;font-size:12px" disabled onclick="saveRemarkField('${esc(st.id)}','${esc(t.name)}',this)">Save</button></div></div>`;
   }).join("")}</div></div>`;
 }
 // STRESS-TEST FIX (BUG-4, STRESS_TEST_REPORT.md): a very long remark (400+

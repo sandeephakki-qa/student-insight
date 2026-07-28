@@ -287,9 +287,7 @@ textarea:focus-visible,[tabindex]:focus-visible,[role="button"]:focus-visible,
 
 /* STUDENT CARDS */
 .student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--sp-3);margin-bottom:var(--sp-4)}
-.student-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r);padding:var(--sp-4);cursor:pointer;transition:var(--transition)}
-.student-card:hover{border-color:var(--c-primary);box-shadow:var(--c-shadow-md);transform:translateY(-1px)}
-.student-card:focus-visible{outline:2px solid var(--c-primary);outline-offset:2px}
+.student-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r);padding:var(--sp-4);transition:var(--transition)}
 .sc-name{font-weight:700;font-size:13.5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sc-id{font-size:10.5px;color:var(--c-text3);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sc-avg{font-size:22px;font-weight:700;font-family:var(--font-display)}
@@ -371,11 +369,11 @@ textarea:focus-visible,[tabindex]:focus-visible,[role="button"]:focus-visible,
 .mm-chip input{width:56px;padding:4px 6px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:12px;text-align:center}
 
 /* DROP ZONE */
-.drop-zone{border:2px dashed var(--c-border);border-radius:var(--r);padding:36px;text-align:center;cursor:pointer;transition:var(--transition)}
+.drop-zone{border:2px dashed var(--c-border);border-radius:var(--r);padding:16px 24px;text-align:center;cursor:pointer;transition:var(--transition)}
 .drop-zone:hover,.drop-zone.drag-over{border-color:var(--c-primary);background:var(--c-primary-soft)}
-.drop-zone-icon{font-size:40px;margin-bottom:10px}
-.drop-zone-title{font-weight:700;font-size:15px;margin-bottom:4px}
-.drop-zone-sub{font-size:12.5px;color:var(--c-text2)}
+.drop-zone-icon{font-size:24px;margin-bottom:6px}
+.drop-zone-title{font-weight:700;font-size:13px;margin-bottom:3px}
+.drop-zone-sub{font-size:11.5px;color:var(--c-text2)}
 
 /* PDF ACTIONS */
 
@@ -511,6 +509,7 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
 
 /* ── DASHBOARD NEW DESIGN ── */
 .db-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px}
+.db-export-section{margin-top:28px;padding-top:20px;border-top:2px solid var(--c-border);scroll-margin-top:20px}
 .db-title{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--c-text)}
 .db-subtitle{font-size:12px;color:var(--c-text3);margin-top:2px}
 .db-kpi-strip{display:flex;gap:10px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
@@ -628,6 +627,9 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
 .smart-chip-open{background:var(--c-primary-soft);border-color:var(--c-primary);border-radius:var(--r-md) var(--r-md) 0 0}
 .smart-ans-body{padding:10px 14px 12px;background:var(--c-surface2);border-radius:0 0 var(--r-sm) var(--r-sm);border:1px solid var(--c-border);border-top:none;font-size:13.5px;line-height:1.6;color:var(--c-text);margin-top:-10px;margin-bottom:10px}
 .subject-row-list{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.cluster-group-card{border:1px solid var(--c-border);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;background:var(--c-surface)}
+.cluster-group-card summary{font-size:13px}
+.cluster-group-scroll{max-height:260px;overflow-y:auto}
 .subject-row{display:flex;justify-content:space-between;padding:10px 14px;font-size:14px;background:var(--c-surface2);border-radius:var(--r-sm);color:var(--c-text)}
 @media(prefers-reduced-motion:no-preference){.bucket-row,.finding-row{transition:border-color .15s,box-shadow .15s}}
 
@@ -649,19 +651,6 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
 .sw-choice-card.sw-choice-active { box-shadow:0 0 0 2px var(--c-primary) inset; }
 .sw-grid-2 { grid-template-columns:1fr 1fr; }
 @media(max-width:700px){ .sw-grid-2 { grid-template-columns:1fr; } }
-
-/* ── Voice Input mic buttons (Task 3c, studin-features-prompt v1.0) ── */
-/* MOBILE FIX: absolute-positioned overlay was escaping its field's
-   boundary on narrow screens (mic icon floating outside the input/card).
-   Flex-row is robust regardless of container width or nesting — the mic
-   button is a normal same-line sibling, sized to content, never absolute. */
-.voice-field-wrap { display:flex; align-items:flex-start; gap:6px; width:100%; }
-.voice-field-wrap input.has-voice-btn,
-.voice-field-wrap textarea.has-voice-btn { flex:1 1 auto; min-width:0; width:auto; }
-.voice-mic-btn { padding:4px 8px;font-size:14px;line-height:1;min-height:unset;flex-shrink:0;
-                 border:1px solid var(--c-border);background:var(--c-surface2); }
-.voice-mic-btn.voice-active { background:var(--c-danger,#e03131);color:#fff;
-                               border-color:var(--c-danger,#e03131); }
 
 /* ── Bucket breadcrumb (feedback item #7) — replaces two stacked back
    buttons with one line: "Dashboard › Back" ── */

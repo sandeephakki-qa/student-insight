@@ -1,5 +1,6 @@
 /* ════ ANALYSIS ════ */
 async function runAnalysis(){
+  document.getElementById("btn-home-run-analysis")?.classList.remove("btn-glow");
   if(APP.compareMode){await runCompareAnalysisCore();return;}
   if(!APP.rawData){toast("Upload data first.","warn");return;}
   // Only collect from form if the form has been filled (has subjects in DOM)
@@ -1198,7 +1199,7 @@ function removeHomeCompareFile(id){
   const btn=document.getElementById("btn-home-run-analysis");
   const validCount=APP.sections.filter(s=>s.valid).length;
   if(validCount>=1){
-    if(btn){btn.style.display="inline-flex";btn.disabled=false;btn.style.opacity=1;btn.style.cursor="pointer";}
+    if(btn){btn.style.display="inline-flex";btn.disabled=false;btn.style.opacity=1;btn.style.cursor="pointer";btn.classList.add("btn-glow");}
     $("#home-import-status").hide().empty();
   } else {
     if(btn){btn.style.display="none";}

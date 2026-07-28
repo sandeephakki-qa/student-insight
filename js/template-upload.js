@@ -666,6 +666,11 @@ function showHomeRunAnalysisButton(){
   btn.style.display="inline-flex";
   btn.disabled=false;
   btn.style.opacity=1;btn.style.cursor="pointer";
+  // prompt-v4.20 §2: glow/pulse until clicked, so the next action is
+  // obvious without hunting for it — reuses the existing .btn-glow
+  // animation (same one #btn-generate-pdfs already uses), removed by the
+  // button's own onclick (runAnalysis()) the moment it's actually pressed.
+  btn.classList.add("btn-glow");
   scrollToEl(btn);
 }
 
@@ -709,7 +714,7 @@ function renderHomePage(){
   // stayed visible/enabled from before, letting the user run analysis
   // with nothing uploaded. Always hide/disable it on a fresh Home render;
   // a real import re-enables it via showHomeRunAnalysisButton().
-  (function(){const btn=document.getElementById("btn-home-run-analysis");if(btn){btn.style.display="none";btn.disabled=true;btn.style.opacity=.45;btn.style.cursor="not-allowed";}})();
+  (function(){const btn=document.getElementById("btn-home-run-analysis");if(btn){btn.style.display="none";btn.disabled=true;btn.style.opacity=.45;btn.style.cursor="not-allowed";btn.classList.remove("btn-glow");}})();
   // Reset stepper
   document.querySelectorAll(".step-item").forEach(el=>{el.classList.remove("active");el.classList.add("locked");});
   document.querySelector('.step-item[data-step="home"]')?.classList.remove("locked");

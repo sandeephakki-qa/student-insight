@@ -269,8 +269,8 @@
      no Continue button, see §9. Export: ready/blocked status + ZIP
      button, gated on APP.dataIssues exactly like the core Export panel.
      About/FAQ: Sample Files + Home links. Dashboard (Task 6, done):
-     renderShellDashboardRail() — input+mic (data-voice, initVoiceInput()
-     re-run safely, it self-guards against double-wiring) + Ask button,
+     renderShellDashboardRail() — input (voice/mic removed app-wide, see
+     prompt-v4.19 §1g) + Ask button,
      suggestion chips from SmartQueryV2.availableQuestions(), answers
      appended as cards in a scrollable thread, legacy Smart Search link
      (openSmartSearchScreen()) and Compare-students link
@@ -1620,9 +1620,8 @@
 <nav id="stepper" aria-label="Setup steps">
   <div class="step-item active" data-step="home" role="button" tabindex="0" aria-current="step" onclick="goStep('home')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('home');}"><div class="step-num" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z'/><path d='M9 22V12h6v10'/></svg></div><span>Home</span></div>
   <span class="step-sep" aria-hidden="true">›</span>
-  <div class="step-item locked" data-step="dashboard" role="button" tabindex="0" onclick="goStep('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('dashboard');}"><div class="step-num" aria-hidden="true">1</div><span>Dashboard</span></div>
+  <div class="step-item locked" data-step="dashboard" role="button" tabindex="0" onclick="goStep('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('dashboard');}"><div class="step-num" aria-hidden="true">1</div><span data-i18n="insights_nav_label">Insights</span></div>
   <span class="step-sep" aria-hidden="true">›</span>
-  <div class="step-item locked" data-step="export" role="button" tabindex="0" onclick="goStep('export')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goStep('export');}" style="display:none"><div class="step-num" aria-hidden="true">2</div><span>Export PDFs</span></div>
   <!-- ui-prompt-template.md §6: Export is no longer a numbered stepper step
        (display:none, not deleted — goStep('export') and #panel-export
        still work exactly as before; the Dashboard rail's "Export Reports"
@@ -1650,17 +1649,17 @@
   <!-- HERO — single consolidated intro (badge + heading + one description),
        replacing the old hero banner AND a second "Turn your marks into
        insight" heading below it that repeated the same message twice. -->
-  <div style="background:linear-gradient(120deg,#1a2456 0%,#3d3494 42%,#2e6ba8 72%,#1e7f76 100%);border-radius:14px;padding:24px 28px;margin-bottom:20px;position:relative;overflow:hidden">
+  <div style="background:linear-gradient(120deg,#1a2456 0%,#3d3494 42%,#2e6ba8 72%,#1e7f76 100%);border-radius:14px;padding:12px 24px;margin-bottom:10px;position:relative;overflow:hidden">
     <div style="position:absolute;inset:0;opacity:.5;background-image:radial-gradient(circle,rgba(255,255,255,.09) 1px,transparent 1.4px);background-size:18px 18px;pointer-events:none"></div>
     <div style="position:absolute;top:-50px;right:-30px;width:240px;height:240px;background:rgba(255,255,255,.06);border-radius:50%;pointer-events:none"></div>
     <div style="position:absolute;bottom:-70px;left:28%;width:180px;height:180px;background:rgba(46,196,182,.16);border-radius:50%;filter:blur(2px);pointer-events:none"></div>
     <span style="position:absolute;top:16px;right:20px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.34);z-index:1">Built by Sandeep Hakki</span>
     <div style="position:relative;z-index:1;max-width:680px;margin:0 auto;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.22)">
-      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border-radius:99px;padding:3px 12px;margin-bottom:10px">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border-radius:99px;padding:2px 12px;margin-bottom:6px">
         <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.5px;text-transform:uppercase">Privacy First • Browser Based • No Student Data Uploaded</span>
       </div>
-      <h1 style="font-family:var(--font-display);font-size:clamp(19px,4vw + 6px,24px);font-weight:800;color:#fff;margin-bottom:8px;line-height:1.25" data-i18n="home_hero_title">Turn your students' marks into actionable insight</h1>
-      <p style="font-size:12.5px;color:rgba(255,255,255,.82);line-height:1.65;margin-bottom:0" data-i18n="home_hero_sub">Upload a filled Excel workbook and Student Insight identifies learning gaps, flags at-risk students, tracks progress over time, and generates ready-to-share reports — computed instantly, entirely in your browser, with your data never uploaded anywhere.</p>
+      <h1 style="font-family:var(--font-display);font-size:clamp(17px,3vw + 6px,22px);font-weight:800;color:#fff;margin-bottom:4px;line-height:1.2" data-i18n="home_hero_title">Turn your students' marks into actionable insight</h1>
+      <p style="font-size:12px;color:rgba(255,255,255,.82);line-height:1.5;margin-bottom:0" data-i18n="home_hero_sub">Upload a filled Excel workbook and Student Insight identifies learning gaps, flags at-risk students, tracks progress over time, and generates ready-to-share reports — computed instantly, entirely in your browser, with your data never uploaded anywhere.</p>
     </div>
   </div>
 
@@ -1672,11 +1671,11 @@
        card used, rather than one-off inline styles. Run Analysis button
        only appears once a valid file has finished uploading (manual
        trigger — §2.3). -->
-  <div id="home-paths-grid" style="margin-bottom:20px">
+  <div id="home-paths-grid" style="margin-bottom:8px">
 
-    <div class="card">
-      <div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z'/></svg></span> <span data-i18n="home_upload_title">Upload Your Filled Sheet</span></div>
-      <div style="font-size:12.5px;color:var(--c-text2);line-height:1.6;margin-bottom:12px" data-i18n="home_upload_sub">
+    <div class="card" style="padding:16px 20px;margin-bottom:10px">
+      <div class="card-title" style="margin-bottom:8px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z'/></svg></span> <span data-i18n="home_upload_title">Upload Your Filled Sheet</span></div>
+      <div style="font-size:12px;color:var(--c-text2);line-height:1.4;margin-bottom:6px" data-i18n="home_upload_sub">
         Drop your class's filled Excel file below. Managing more than one section or batch? Drop 2 or more files at once — matching ones are compared automatically, and any that don't match still get their own individual analysis.
       </div>
       <div id="home-drop-zone" class="drop-zone"
@@ -1686,7 +1685,7 @@
         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('home-import-input').click();}">
         <div class="drop-zone-icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 21V9'/><polyline points='7 14 12 9 17 14'/><path d='M4 21h16'/></svg></div>
         <div class="drop-zone-title">Click to browse or drag &amp; drop your filled Excel file(s)</div>
-        <div class="drop-zone-sub">Accepts .xlsx · .xls · drop 2+ files to compare sections/batches · your student data never leaves your browser</div>
+        <div class="drop-zone-sub">.xlsx / .xls · drop 2+ to compare sections · never leaves your browser</div>
         <input type="file" id="home-import-input" accept=".xlsx,.xls" multiple style="display:none" onchange="handleHomeImportFiles(Array.from(this.files||[]));this.value='';"/>
       </div>
 
@@ -1697,7 +1696,7 @@
       <div id="home-import-status" style="display:none;margin-top:14px"></div>
       <div id="home-file-list" style="display:none;margin-top:14px"></div>
 
-      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:10px">
         <button class="btn btn-primary" id="btn-home-run-analysis" onclick="runAnalysis()" disabled style="display:none;opacity:.45;cursor:not-allowed">
           <svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M13 2 3 14h9l-1 8 10-12h-9l1-8z'/></svg> Run Analysis
         </button>
@@ -1705,18 +1704,14 @@
       </div>
     </div>
 
-    <div style="margin-top:18px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap">
-      <button type="button" class="btn btn-secondary btn-sm" onclick="showSampleFiles()"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M13 2 3 14h9l-1 8 10-12h-9l1-8z'/></svg> Try Sample Data — No Download Needed</button>
-      <button type="button" class="btn btn-secondary btn-sm" onclick="goStep('setup')"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z'/><rect x='5' y='5' width='14' height='16' rx='2'/></svg> Build Your Own Template</button>
+    <div style="margin-top:10px;display:flex;align-items:stretch;justify-content:center;gap:12px;flex-wrap:wrap">
+      <button type="button" class="btn btn-secondary btn-sm" style="flex:1 1 0;min-width:220px" onclick="showSampleFiles()"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M13 2 3 14h9l-1 8 10-12h-9l1-8z'/></svg> Try Sample Data — No Download Needed</button>
+      <button type="button" class="btn btn-secondary btn-sm" style="flex:1 1 0;min-width:220px" onclick="goStep('setup')"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z'/><rect x='5' y='5' width='14' height='16' rx='2'/></svg> Build Your Own Template</button>
     </div>
   </div>
 
-  <!-- TRUST NOTE — the one piece of the old "How it works" section that
-       wasn't already said above (stateless-by-design), kept as a compact
-       standalone line instead of a full 4-step walkthrough. -->
-  <div style="margin:4px 4px 0;padding:10px 14px;background:var(--c-primary-soft);border-radius:var(--r-sm);font-size:11.5px;color:var(--c-primary);display:flex;align-items:center;gap:8px">
-    <svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='11' width='16' height='10' rx='2'/><path d='M8 11V7a4 4 0 0 1 8 0v4'/></svg> <span><strong>Stateless by design.</strong> Close the tab and everything is gone — your Excel is the permanent record. Student Insight is the intelligence engine, not a data store.</span>
-  </div>
+  <!-- prompt-v4.19 §1d: stale "Stateless by design..." trust line removed
+       (copy removal only — NO_PERSISTENCE behavior itself is unchanged). -->
 
 </div>
 
@@ -1789,7 +1784,7 @@
           </div>
         </label>
       </div>
-      <div id="individual-multi-child-hint" style="display:none;margin-top:10px;font-size:11.5px;color:var(--c-text2);background:var(--c-surface);border:1px dashed var(--c-primary);border-radius:var(--r-sm);padding:8px 10px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M9 18h6'/><path d='M10 22h4'/><path d='M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2.3h6c0-1.1.4-1.8 1-2.3A7 7 0 0 0 12 2z'/></svg> <span data-i18n="setup_indiv_multichild_hint">Tracking more than one child? Just add another row in the downloaded template's STUDENTS sheet with a different Student ID — each child gets their own switcher entry on the Dashboard, never compared to each other.</span></div>
+      <div id="individual-multi-child-hint" style="display:none;margin-top:10px;font-size:11.5px;color:var(--c-text2);background:var(--c-surface);border:1px dashed var(--c-primary);border-radius:var(--r-sm);padding:8px 10px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M9 18h6'/><path d='M10 22h4'/><path d='M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2.3h6c0-1.1.4-1.8 1-2.3A7 7 0 0 0 12 2z'/></svg> <span data-i18n="setup_indiv_multichild_hint">Tracking more than one child? Just add another row in the downloaded template's STUDENTS sheet with a different Student ID — each child gets their own switcher entry on Insights, never compared to each other.</span></div>
       <div id="mode-lock-note" role="status" style="display:none;margin-top:10px;font-size:11.5px;font-weight:600;color:#8a5a00;background:#fff7e6;border:1px solid #f0c36d;border-radius:var(--r-sm);padding:8px 10px"></div>
     </div>
     <div class="card" style="padding:14px 16px;margin-top:14px">
@@ -1797,7 +1792,7 @@
       <div class="sw-grid-2" style="display:grid;gap:8px 12px">
         <div class="form-group" style="margin-bottom:0;grid-column:1/-1">
           <label id="inst-name-label"><span data-i18n="setup_inst_name_label">Institution Name</span> <span style="color:var(--c-danger)">*</span></label>
-          <input id="inst-name" type="text" data-voice="true" placeholder="e.g. Springfield International School" oninput="markDirty();validateSetup()"/>
+          <input id="inst-name" type="text" placeholder="e.g. Springfield International School" oninput="markDirty();validateSetup()"/>
           <div id="inst-name-hint" style="font-size:11px;color:var(--c-text3);margin-top:3px;display:none;min-height:14px"></div>
           <div id="err-inst-name" style="display:none;font-size:11px;color:var(--c-danger);margin-top:3px;min-height:14px">⚠ <span data-i18n="setup_inst_name_error">Institution name is required</span></div>
         </div>
@@ -1822,7 +1817,7 @@
       <div class="sw-grid-2" style="display:grid;gap:8px 12px">
         <div class="form-group" style="margin-bottom:0" id="class-name-group">
           <label id="class-name-label"><span data-i18n="setup_class_name_label">Class / Batch</span> <span style="color:var(--c-danger)">*</span></label>
-          <input id="class-name" type="text" data-voice="true" placeholder="e.g. Class 9" oninput="markDirty();validateSetup()"/>
+          <input id="class-name" type="text" placeholder="e.g. Class 9" oninput="markDirty();validateSetup()"/>
           <div id="err-class-name" style="display:none;font-size:11px;color:var(--c-danger);margin-top:3px;min-height:14px">⚠ <span data-i18n="setup_class_name_error">Class / Batch is required</span></div>
         </div>
         <div class="form-group" style="margin-bottom:0" id="class-section-group"><label data-i18n="setup_class_section_label">Section</label><input id="class-section" type="text" placeholder="e.g. B" oninput="markDirty()"/></div>
@@ -1918,18 +1913,14 @@
 <!-- DASHBOARD -->
 <div id="panel-dashboard" class="panel">
 
-  <!-- LAYER 1: CLASS IDENTITY + KPI STRIP -->
-  <div class="db-header phase-actionbar">
-    <div>
-      <div class="db-title"><span id="db-class-label">Class Dashboard</span> <span id="db-mode-badge" style="font-size:.65em;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--c-primary-light,#e8edfb);color:var(--c-primary,#1a56db);vertical-align:middle;margin-left:6px"></span></div>
-      <div class="db-subtitle" id="db-meta-label"></div>
-    </div>
-    <div style="display:flex;gap:8px;flex-shrink:0">
-      <button class="btn btn-secondary btn-sm" id="btn-classic-dashboard" onclick="showLegacyDashboard()" data-i18n="classic_dashboard_btn">Classic Dashboard</button>
-      <button class="btn btn-primary btn-sm btn-glow" id="btn-goto-export-dash" onclick="goStep('export')" style="flex-shrink:0">Export PDFs →</button>
-    </div>
-  </div>
-  <div style="font-size:12px;color:var(--c-text2);margin:-6px 0 12px;line-height:1.5">View comprehensive insights into student, class and subject performance. Identify trends, learning gaps and students requiring additional academic support.</div>
+  <!-- prompt-v4.20 §1i: db-header actionbar removed (Classic Dashboard
+       toggle + duplicate class/section title). Context now lives in the
+       Shell-left rail (file/org/class rows, already rendered there for
+       every step incl. this one — see js/vs-shell.js renderShellLeftRail).
+       #db-class-label/#db-mode-badge/#db-meta-label stay in the DOM
+       (Compare/Individual mode's renderDashboard() still writes to them)
+       but are no longer shown in a standalone header bar here. -->
+  <div style="display:none"><span id="db-class-label"></span><span id="db-mode-badge"></span><span id="db-meta-label"></span></div>
 
   <!-- ui-prompt-template.md item f: sample-data banner, text only — the
        "Set Up My Own Class →" button that used to sit here is removed
@@ -1972,9 +1963,6 @@
   </div>
 
   <div id="legacy-dashboard-body">
-  <div id="legacy-back-to-smart" style="display:none;margin-bottom:10px">
-    <a href="javascript:void(0)" onclick="showSmartBucketView()" style="font-size:12px;color:var(--c-text2);text-decoration:underline">← Back to Smart View</a>
-  </div>
   <!-- COMPARE MODE: section picker (Institution "Compare Sections" projects only) -->
   <div id="compare-section-picker" style="display:none;margin-bottom:14px;padding:10px 14px;background:var(--c-primary-soft);border-radius:var(--r-sm);align-items:center;gap:10px;flex-wrap:wrap">
     <label for="compare-section-select" style="font-size:12.5px;font-weight:700;color:var(--c-text2)"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><line x1='6' y1='20' x2='6' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='18' y1='20' x2='18' y2='14'/></svg> Viewing:</label>
@@ -2026,9 +2014,8 @@
       <div class="chart-container"><div class="card-title" id="chart-subject-avg-title">Subject Averages</div><canvas id="chart-subject-avg"></canvas></div>
       <div class="chart-container"><div class="card-title" id="chart-trend-title">Class Trend</div><canvas id="chart-trend"></canvas></div>
     </div>
-    <div class="grid-2" id="cohort-charts-row">
+    <div id="cohort-charts-row">
       <div class="chart-container"><div class="card-title">Marks vs Attendance</div><canvas id="chart-scatter"></canvas></div>
-      <div class="chart-container"><div class="card-title">Top Performers</div><canvas id="chart-rank"></canvas></div>
     </div>
     <div id="individual-charts-note" style="display:none;color:var(--c-text3);font-size:12px;padding:10px 2px">Cross-student comparison charts (Marks vs Attendance, Top Performers) aren't shown in Individual mode — each child/aspirant is tracked on their own, not against others.</div>
   </div>
@@ -2084,12 +2071,16 @@
 
   </div><!-- #legacy-dashboard-body -->
 
-</div>
-
-<!-- EXPORT -->
-<div id="panel-export" class="panel">
+  <!-- prompt-v4.20 §1xii: Export Reports, folded inline as the final
+       section of Insights — same #panel-export markup/ids as before
+       (generateAllPDFs()/exp-teacher/exp-mgmt/exp-zip lookups untouched),
+       just physically nested here instead of behind goStep('export').
+       Dropped the "panel" class so goStep()'s step-switch no longer
+       hides/shows it — it's simply always part of Insights now, so
+       triggering it never navigates away or resets either rail. -->
+  <div id="panel-export" class="db-export-section" style="display:none">
   <div class="phase-actionbar">
-    <div><div class="phase-actionbar-title"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path d='M14 2v6h6'/><path d='M8 13h8M8 17h8M8 9h2'/></svg> Step 5 · Generate &amp; Export Reports</div><div class="phase-actionbar-sub">Export professional reports for teachers, school leaders and parent discussions. Reports are generated using the data currently available in your browser — no student information is uploaded to external servers.</div></div>
+    <div><div class="phase-actionbar-title"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path d='M14 2v6h6'/><path d='M8 13h8M8 17h8M8 9h2'/></svg> <span data-i18n="export_section_title">Generate &amp; Export Reports</span></div><div class="phase-actionbar-sub">Export professional reports for teachers, school leaders and parent discussions. Reports are generated using the data currently available in your browser — no student information is uploaded to external servers.</div></div>
     <div class="phase-actionbar-btns">
       <button class="btn btn-success btn-glow" id="btn-generate-pdfs" onclick="generateAllPDFs()" style="font-size:13.5px;padding:9px 18px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 8l-9-5-9 5v8l9 5 9-5V8z'/><path d='M3.3 8.5l8.7 4.5 8.7-4.5'/><path d='M12 22V13'/></svg> Generate &amp; Download ZIP</button>
     </div>
@@ -2099,7 +2090,7 @@
       <div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z'/><rect x='5' y='5' width='14' height='16' rx='2'/></svg></span> What Gets Generated</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
         <div style="padding:14px;background:var(--c-surface2);border-radius:var(--r-sm);border-left:3px solid var(--c-primary)"><div style="font-weight:700;margin-bottom:4px" id="exp-student-card-title"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='8' r='4'/></svg> Student Reports</div><div style="font-size:12px;color:var(--c-text2)" id="exp-student-card-desc">Individual academic summaries highlighting strengths, learning gaps and suggested improvement areas.</div></div>
-        <div style="padding:14px;background:var(--c-surface2);border-radius:var(--r-sm);border-left:3px solid var(--c-success)" id="exp-teacher-card"><div style="font-weight:700;margin-bottom:4px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='8' r='4'/></svg>‍<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg> Teacher Report</div><div style="font-size:12px;color:var(--c-text2)">Comprehensive overview of class performance, trends, subject analysis and recommendations.</div></div>
+        <div style="padding:14px;background:var(--c-surface2);border-radius:var(--r-sm);border-left:3px solid var(--c-success)" id="exp-teacher-card"><div style="font-weight:700;margin-bottom:4px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg> Teacher Report</div><div style="font-size:12px;color:var(--c-text2)">Comprehensive overview of class performance, trends, subject analysis and recommendations.</div></div>
         <div style="padding:14px;background:var(--c-surface2);border-radius:var(--r-sm);border-left:3px solid var(--c-purple)" id="exp-mgmt-card"><div style="font-weight:700;margin-bottom:4px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg> Management Report</div><div style="font-size:12px;color:var(--c-text2)">Executive summary of key academic indicators and performance highlights.</div></div>
         <div style="padding:14px;background:var(--c-surface2);border-radius:var(--r-sm);border-left:3px solid var(--c-warn)"><div style="font-weight:700;margin-bottom:4px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 8l-9-5-9 5v8l9 5 9-5V8z'/><path d='M3.3 8.5l8.7 4.5 8.7-4.5'/><path d='M12 22V13'/></svg> ZIP Bundle</div><div style="font-size:12px;color:var(--c-text2)">All reports in a single download — ready to save or share with authorised stakeholders.</div></div>
       </div>
@@ -2140,7 +2131,8 @@
     </div>
     <div id="export-fallback" style="display:none"></div>
   </div>
-</div>
+  </div><!-- #panel-export (inline section) -->
+</div><!-- #panel-dashboard -->
 
 <!-- ABOUT -->
 <div id="panel-about" class="panel">
@@ -2341,7 +2333,7 @@
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Our teachers struggle with Excel — will they manage?<span class="faq-tag practical" data-i18n="faq_tag_practical">Practical</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">The app generates a ready-made Excel template based on your subjects and tests, so teachers fill a structured sheet rather than building one from scratch. That said, a teacher uncomfortable with Excel entirely will still need to do that filling-in step — this doesn't remove Excel from the workflow.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Who trains the teachers on this?<span class="faq-tag practical" data-i18n="faq_tag_practical">Practical</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">There's no training program or support team — it's a single developer and the app itself. The Sample Files section has downloadable examples to reduce guesswork, but there's no live onboarding available at scale today.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Can I use this to track just my own kid?<span class="faq-tag practical" data-i18n="faq_tag_practical">Practical</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">Yes — choose Individual mode in Setup instead of Institution mode. It's built for a parent tracking their own child or an aspirant tracking their own exam prep, with no class roster or comparison to other students.</div></details>
-      <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Can I track two children in different grades?<span class="faq-tag practical" data-i18n="faq_tag_practical">Practical</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">Yes. Add each child as their own row in the same Individual-mode Excel sheet, then use the switcher on the Dashboard to flip between them — each child's data and reports stay fully separate, never compared to each other.</div></details>
+      <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Can I track two children in different grades?<span class="faq-tag practical" data-i18n="faq_tag_practical">Practical</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">Yes. Add each child as their own row in the same Individual-mode Excel sheet, then use the switcher on Insights to flip between them — each child's data and reports stay fully separate, never compared to each other.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Do I need to be tech-savvy to use this?<span class="faq-tag practical" data-i18n="faq_tag_practical">Practical</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">No — you just fill in a downloadable Excel template with marks and upload it back. No installation, no account, and no spreadsheet formulas to write yourself.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Can a coordinator see all teachers' data, and teachers only their own?<span class="faq-tag serious" data-i18n="faq_tag_serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">There's no login or accounts at all, so there's no "coordinator view vs teacher view." Anyone with the uploaded file and the app open sees everything in that session. Access control is entirely organizational (who has the file), not enforced by the app.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span>Does it catch teacher data-entry mistakes?<span class="faq-tag practical" data-i18n="faq_tag_practical">Practical</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a">Partially — before analysis runs, it checks for duplicate student IDs, marks rows referencing students who don't exist, and non-numeric entries in a marks cell (like "Absent" typed where a number was expected). It flags these; it doesn't guess the correct value for you.</div></details>

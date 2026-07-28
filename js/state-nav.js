@@ -87,6 +87,10 @@ function goStep(step){
   try{
     if(typeof renderShellLeftRail==="function") renderShellLeftRail(step);
     if(typeof renderShellRightRail==="function") renderShellRightRail(step);
+    // prompt-v4.19 §2a: rails auto-collapse entering Setup, auto-restore
+    // leaving it — reuses the same setShellRailsOpen() car-mirror already
+    // wired for Classic Dashboard, just keyed off step==="setup" instead.
+    if(typeof setShellRailsOpen==="function") setShellRailsOpen(step!=="setup");
   }catch(err){
     console.error("Shell rail render failed for step:",step,err);
   }
@@ -115,7 +119,24 @@ function goStep(step){
     else $("#exp-count").text(APP.students.length);
   }
   if(step==="home")renderHomePage();
-  if(step==="setup"){ if(typeof swGoto==="function") swGoto(APP.setupWizardStep||1); }
+  if(step==="setup"){
+    if(typeof swGoto==="function") swGoto(APP.setupWizardStep||1);
+    // prompt-v4.19 §2b: initial-render-only prefill — guarded by both a
+    // one-time flag AND an empty-field check, so neither a value the user
+    // already typed nor one loaded from an uploaded workbook's SETUP sheet
+    // (mergeSource) ever gets clobbered.
+    if(!APP._classYearPrefilled){
+      APP._classYearPrefilled=true;
+      const yearEl=document.getElementById("class-year");
+      if(yearEl && !yearEl.value.trim()){
+        const d=new Date(), y=d.getFullYear();
+        // Indian academic year convention: starts in April. Before April,
+        // the "current" academic year still began the previous calendar year.
+        const startYear = d.getMonth()>=3 ? y : y-1; // getMonth() 0-based, 3=April
+        yearEl.value = startYear + "-" + String((startYear+1)%100).padStart(2,"0");
+      }
+    }
+  }
 }
 // v4.1 (bug #1/#2 fix): Setup/Sample Files/About/FAQ now share one rule —
 // open from anywhere (Home, Setup itself, AI, etc.), locked only once the
