@@ -145,6 +145,40 @@
   window.setLeftRail = setLeftRail;
   window.setRightRail = setRightRail;
 
+  // mobile fix (screenshot follow-up): on <=768px, the left/right panels
+  // render as a top strip / bottom sheet (see css/vs-shell.css mobile
+  // block) that stays open until the user manually taps the toggle bar
+  // again, covering the main screen the whole time. Any tap on an actual
+  // control inside the open sheet (a button, link, bucket row, checkbox/
+  // radio, or anything with an onclick handler) should close that sheet
+  // right after, so the user lands back on the main screen instead of
+  // having to close it themselves. Plain text taps and typing in a text
+  // input are deliberately excluded so this doesn't fight normal typing.
+  function isActionableTarget(el){
+    return !!el.closest('button, a, .bucket-row, .shell-chip, [role="button"], input[type="checkbox"], input[type="radio"], label, [onclick]');
+  }
+  function isTypingTarget(el){
+    return !!el.closest('input[type="text"], input[type="search"], input[type="number"], input:not([type]), textarea, select, [contenteditable="true"]');
+  }
+  function attachMobileAutoClose(side){
+    const content = document.getElementById(side === "start" ? "shell-rail-start" : "shell-rail-end");
+    if(!content) return;
+    content.addEventListener("click", function(e){
+      if(!isMobileViewport()) return;
+      if(state[side].collapsed) return;
+      if(isTypingTarget(e.target)) return;
+      if(!isActionableTarget(e.target)) return;
+      // let the tapped control's own onclick/handler run first (navigation,
+      // toggling a checkbox, answering a Smart Query chip, etc.), then
+      // collapse the sheet back to its strip on the next tick.
+      setTimeout(function(){
+        state[side].collapsed = true;
+        syncPanelDOM(side);
+        applyWidth(side);
+      }, 120);
+    }, true);
+  }
+
   function initDivider(dividerId, side){
     const divider = document.getElementById(dividerId);
     if(!divider) return;
@@ -210,6 +244,8 @@
     applyWidth("end");
     initDivider("shell-divider-start", "start");
     initDivider("shell-divider-end", "end");
+    attachMobileAutoClose("start");
+    attachMobileAutoClose("end");
     // Item 2 fix (ui-prompt-template.md §4.1): the rails weren't showing
     // any text on Home. goStep("home") already calls
     // renderShellLeftRail()/renderShellRightRail(), but that boot call

@@ -332,7 +332,30 @@
   .shell-panel-toggle{
     height:36px;
     font-size:11px;
+    background:var(--c-primary-soft);
+    color:var(--c-primary);
+    position:relative;
   }
+  .shell-panel-toggle:hover{background:var(--c-primary-soft);color:var(--c-primary)}
+  .shell-panel-toggle .shell-panel-title{color:var(--c-primary)}
+  /* small centered drawer-handle bar, standard mobile affordance for
+     "this strip is a pull-open sheet" — purely decorative, sits above
+     the label/chevron via ::before */
+  .shell-panel-toggle::before{
+    content:"";position:absolute;top:4px;left:50%;transform:translateX(-50%);
+    width:32px;height:3px;border-radius:99px;background:var(--c-primary);opacity:.45;
+  }
+  #shell-panel-start .shell-panel-toggle{border-block-end:2px solid var(--c-primary)}
+  #shell-panel-end .shell-panel-toggle{border-block-start:2px solid var(--c-primary);border-block-end:none}
+  /* base chevrons were authored for a left/right side-column layout;
+     on mobile the panels are a top strip / bottom sheet instead, so
+     point them down (expand) / up (collapse) for the top strip and the
+     mirror for the bottom sheet, overriding the desktop 180deg-flip rule
+     via the higher-specificity #id selector below. */
+  #shell-panel-start .shell-panel-toggle svg{transform:rotate(-90deg)}
+  #shell-panel-start[data-collapsed="false"] .shell-panel-toggle svg{transform:rotate(90deg)}
+  #shell-panel-end .shell-panel-toggle svg{transform:rotate(90deg)}
+  #shell-panel-end[data-collapsed="false"] .shell-panel-toggle svg{transform:rotate(-90deg)}
   .shell-panel[data-collapsed="true"] .shell-panel-title{display:inline} /* room for it here, unlike the 28px desktop column */
   .shell-panel[data-collapsed="true"] .shell-panel-content{display:none}
   .shell-panel[data-collapsed="false"] .shell-panel-content{display:block}
