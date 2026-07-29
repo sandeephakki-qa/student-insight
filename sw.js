@@ -15,7 +15,7 @@
    no hostname or path string-matching needed anywhere in this file.
 ============================================================ */
 
-const CACHE_VERSION = 'sia-v11.3';
+const CACHE_VERSION = 'sia-v11.5-debug';
 const CACHE_NAME    = CACHE_VERSION;
 
 // e.g. "https://studin.in/" on prod, or
@@ -102,6 +102,18 @@ self.addEventListener('fetch', event => {
   // (This is a stateless, in-browser-only app — no student data ever
   // touches the network or this cache; see index.html's Project
   // Intelligence Block §1 for the privacy model this mirrors.)
+  // v4.29 SW fix: this used to run for EVERY non-CDN/non-xlsx request,
+  // including unrelated cross-origin requests (e.g. a dev-server-injected
+  // analytics beacon) that this app never asked for and has no cached
+  // entry for. When those got CORS-blocked, the .catch() fallback called
+  // caches.match(), got `undefined` back, and respondWith(undefined)
+  // throws "Failed to convert value to 'Response'" — a real, repeating
+  // console error, not just noise. Scope this handler to same-origin
+  // requests only (everything this app shell actually owns); anything
+  // else is left completely unintercepted, exactly as if this SW didn't
+  // exist for it.
+  if (!event.request.url.startsWith(self.location.origin)) return;
+
   event.respondWith(
     fetch(event.request)
       .then(response => {
@@ -111,6 +123,8 @@ self.addEventListener('fetch', event => {
         }
         return response;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() =>
+        caches.match(event.request).then(cached => cached || Response.error())
+      )
   );
 });
