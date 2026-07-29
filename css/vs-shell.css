@@ -163,6 +163,12 @@
 }
 .shell-details[open] summary::before{transform:rotate(90deg)}
 .shell-action-btn{display:block;width:100%;margin-block-end:8px;text-align:center}
+.shell-action-btn-sticky{
+  position:sticky;
+  bottom:0;
+  margin-block-end:0;
+  box-shadow:0 -6px 8px -6px rgba(0,0,0,.18);
+}
 
 /* ---- Task 6: Smart Query v2 rail (chips + answer thread) ---- */
 .shell-chip-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-block-end:10px}

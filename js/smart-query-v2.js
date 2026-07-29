@@ -73,6 +73,7 @@ const SmartQueryV2 = (function(){
         case "students.length>=2": return students.length>=2;
         case "tests.length>=2": return (setup.tests||[]).length>=2;
         case "subjects.length>=2": return (setup.subjects||[]).length>=2;
+        case "selectedStudent": return setup.mode==="individual" && students.length>=1;
         default:
           // Unknown guard string — fail open (question stays hidden)
           // rather than throwing, since this is data-driven and a typo
@@ -236,17 +237,15 @@ const SmartQueryV2 = (function(){
     const qTokens = tokenize(queryText);
     if(!qTokens.length) return { ok:false, results:[], deflected:false, text:"" };
 
-    if(isOutOfDomain(qTokens)){
-      return { ok:false, results:[], deflected:true, text: _bank.deflectionMessage || "That's outside what I can help with." };
-    }
-
     const candidates = availableQuestions();
     const scored = candidates.map(q => {
       const labelTokens = tokenize(q.label);
       const catTokens = tokenize(q._categoryLabel);
+      const keywordTokens = tokenize((q.keywords||[]).join(" "));
       let score = 0;
       qTokens.forEach(t => {
         if(labelTokens.indexOf(t) !== -1) score += 3;
+        else if(keywordTokens.indexOf(t) !== -1) score += 2;
         else if(catTokens.indexOf(t) !== -1) score += 1;
       });
       return { question: q, score };
@@ -260,6 +259,12 @@ const SmartQueryV2 = (function(){
       score: r.score
     }));
 
+    // Only gate on domainVocabulary as a last resort, when scoring
+    // (label + category + keywords) found literally nothing — a bare
+    // vocabulary check ahead of scoring was blocking keyword-only
+    // matches (e.g. "who is struggling" scores against wellbeing's
+    // keywords but contains no literal domainVocabulary word) before
+    // the scorer ever got to run.
     if(!results.length){
       return { ok:false, results:[], deflected:true, text: _bank.deflectionMessage || "That's outside what I can help with." };
     }

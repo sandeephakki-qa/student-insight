@@ -437,6 +437,12 @@ table.data-table th[data-sortable]:focus-visible{outline:2px solid var(--c-prima
      so it doesn't visually fuse into the action group underneath it. */
   .sw-nav{gap:18px}
   .sw-nav-actions{gap:10px!important}
+  /* Bug fix: sample-data banner was using full desktop padding/font-size
+     and a full-size dismiss button, so on a narrow screen the two lines
+     of text + button took up a disproportionate amount of the viewport. */
+  .dashboard-sample-banner-card{padding:8px 10px!important;gap:8px!important}
+  .dashboard-sample-banner-card>div:first-child{font-size:11.5px!important}
+  .dashboard-sample-banner-card button{padding:4px 8px!important;min-height:unset!important;font-size:12px!important}
 }
 /* STRESS-TEST FIX (BUG-2, STRESS_TEST_REPORT.md): grid collapse needs a
    threshold BELOW iPad mini (744px CSS width) and an unfolded Galaxy
@@ -660,3 +666,34 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
 .bucket-breadcrumb a:hover, .bucket-breadcrumb a:focus-visible { color:var(--c-primary); text-decoration:underline; }
 .bucket-breadcrumb a:last-child { color:var(--c-primary); }
 .bucket-breadcrumb .crumb-sep { color:var(--c-text3); }
+
+/* ---- v4.23-smart-query-chat: center-panel chat window ---- */
+/* v4.28/v4.29 §1: #bucket-answer-screen (chat's parent) had zero CSS
+   rules, so .chat-window's height:100% resolved against an unbounded
+   parent and the page grew instead of the thread scrolling internally.
+   The first attempt at this fix only bounded #bucket-answer-screen
+   itself, but its ancestor .panel.active (the tab body wrapping it, see
+   ".panel{display:block}" below) has height:auto — a percentage height
+   chain stops working the moment it passes through an auto-height
+   ancestor, so that fix never actually took effect. Chaining the same
+   scoped (":has(.chat-window)") flex/height fix up through .panel too
+   closes that gap without touching .panel's normal (auto-height,
+   page-scrolls-via-#main) behavior for every other tab/bucket. */
+.panel.active:has(.chat-window){height:100%;display:flex;flex-direction:column;min-height:0}
+#bucket-answer-screen:has(.chat-window){height:100%;display:flex;flex-direction:column;min-height:0}
+.chat-window{display:flex;flex-direction:column;flex:1 1 auto;height:100%;min-height:360px}
+.chat-thread{display:flex;flex-direction:column;gap:10px;overflow-y:auto;flex:1 1 auto;min-height:120px;padding:4px 2px 10px}
+.chat-bubble{max-width:78%;padding:10px 14px;border-radius:var(--r-md);font-size:13.5px;line-height:1.5;overflow-wrap:anywhere}
+.chat-bubble-user{align-self:flex-end;background:var(--c-primary);color:#fff;border-bottom-right-radius:4px}
+.chat-bubble-answer{align-self:flex-start;background:var(--c-surface2);color:var(--c-text);border-bottom-left-radius:4px}
+.chat-bubble-thinking{align-self:flex-start;background:var(--c-surface2);padding:12px 16px;display:flex;gap:5px;align-items:center;border-bottom-left-radius:4px}
+.chat-thinking-dot{width:6px;height:6px;border-radius:50%;background:var(--c-text3);animation:chatDotPulse 1.1s ease-in-out infinite}
+.chat-thinking-dot:nth-child(2){animation-delay:.15s}
+.chat-thinking-dot:nth-child(3){animation-delay:.3s}
+@keyframes chatDotPulse{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+.chat-suggestions{align-self:flex-start;max-width:92%;display:flex;flex-direction:column;gap:6px}
+.chat-suggestion-chip{text-align:left;font-size:12.5px;padding:7px 12px;border-radius:var(--r-sm);border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-text);cursor:pointer}
+.chat-suggestion-chip:hover{border-color:var(--c-primary);color:var(--c-primary)}
+.chat-composer{display:flex;gap:8px;margin-top:10px;flex:0 0 auto}
+.chat-composer input{flex:1 1 auto;min-width:0}
+.chat-empty-hint{color:var(--c-text2);font-size:12.5px;text-align:center;padding:24px 8px}

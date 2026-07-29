@@ -691,8 +691,19 @@ function reapplyI18nStrings(){
   // mirror without forcing text-align on the still-English-layout panels
   // nested inside it. A full content-level RTL audit is Task 8's job.
   $("#app-shell-body").attr("dir", isRtl ? "rtl" : "ltr");
-  if($("#bucket-screen").is(":visible")){
-    if(APP.setup.mode==="individual") renderIndividualBuckets(); else renderBuckets();
+  // v4.21-individual-mode-shell-parity §6/OQ2: this used to check
+  // #bucket-screen's visibility, which was already stale for Institution
+  // mode (migrated to the rail-driven #bucket-answer-screen/
+  // #legacy-dashboard-body pattern earlier — #bucket-screen is never
+  // shown for it) and is now stale for Individual mode too after this
+  // migration. Re-render whichever mode's actual current view is showing.
+  if(APP.compareMode){
+    if($("#legacy-dashboard-body").is(":visible") && typeof renderDashboard==="function") renderDashboard();
+    else if($("#bucket-answer-screen").is(":visible") && typeof renderCompareOverview==="function") renderCompareOverview();
+  } else if(APP.setup && APP.setup.mode==="individual"){
+    if($("#bucket-answer-screen").is(":visible") && typeof openIndividualBucket==="function") openIndividualBucket(window._individualBucketCurrent||"report");
+  } else {
+    if(($("#legacy-dashboard-body").is(":visible")||$("#bucket-answer-screen").is(":visible")) && typeof openBucket==="function") openBucket(APP._currentBucketId||"class");
   }
   if($("#smart-search-screen").is(":visible") && typeof renderSmartSearchScreen==="function"){
     renderSmartSearchScreen();
@@ -754,10 +765,23 @@ function renderBuckets(){
   updateExportGate(); // EXPORT_GATE invariant: re-derive every time the Dashboard step is entered, same as renderDashboard() does — buckets is now an alternate entry point, not a replacement for the gate check.
   $("#individual-student-switcher").css("display", APP.setup.mode==="individual" ? "flex" : "none");
   if(APP.compareMode){
-    $("#bucket-screen,#bucket-list-screen,#bucket-answer-screen").hide();
+    $("#bucket-screen,#bucket-list-screen").hide();
     $("#panel-export").hide();
-    showScreen("#legacy-dashboard-body");
-    renderDashboard();
+    // v4.22-compare-mode-shell-parity §2/§3/§4: restore whichever
+    // section/group was last active (re-entry — e.g. leaving to Setup and
+    // coming back), or default to the first valid section on fresh entry
+    // ("BUILD spec §3: default landing is the first uploaded file's own
+    // result, never the Compare overview" — same rule as before, just
+    // driven from here instead of goStep()). Both helpers handle their
+    // own show/hide + rail refresh, mirroring openBucket()/openIndividualBucket().
+    if(APP._activeCompareGroupId && APP.sectionComparison && APP.sectionComparison.length){
+      selectCompareGroup(APP._activeCompareGroupId);
+    } else {
+      const validSecs=(APP.sections||[]).filter(s=>s.valid&&s.students);
+      const stillValid=APP._activeCompareSectionId && validSecs.some(s=>s.id===APP._activeCompareSectionId);
+      const targetId=stillValid ? APP._activeCompareSectionId : (validSecs[0]&&validSecs[0].id);
+      if(targetId) selectCompareSection(targetId);
+    }
     return;
   }
   // FEEDBACK #6 (UI bugs, item 6): the old KPI/cards/heatmap/wellbeing
@@ -767,20 +791,32 @@ function renderBuckets(){
   // non-Compare mode is retired — prompt-v4.20 §1ii/§1iv removed its only
   // trigger (#btn-classic-dashboard), so there is exactly one view for
   // that combination now: the rail-driven bucket screen below.
+  // v4.21-individual-mode-shell-parity §3: Individual mode now migrates
+  // onto the same persistent-center pattern Institution mode already
+  // uses — #bucket-answer-screen stays up, openIndividualBucket() just
+  // re-populates it in place, instead of the old #bucket-screen (full
+  // tile grid) → #bucket-answer-screen two-level swap. "report" (Progress
+  // Report) is the default landing bucket — the closest analog to
+  // Institution's "class" default (richest, most-summary view).
   if(APP.setup.mode==="individual"){
     populateIndividualSwitcher();
+    $("#bucket-screen,#bucket-list-screen").hide();
     $("#legacy-dashboard-body").hide();
-    $("#bucket-list-screen,#bucket-answer-screen").hide();
     $("#panel-export").hide();
-    showScreen("#bucket-screen");
-    renderIndividualBuckets();
+    $("#bucket-answer-screen").show();
+    if(typeof setShellRailsOpen==="function") setShellRailsOpen(true);
+    openIndividualBucket(window._individualBucketCurrent||"report");
     return;
   }
   // ui-prompt-template.md item 7: rail-driven, in-place Dashboard for
   // Institution + non-Compare mode (per PIB §9 smart-reveal-scope — Compare
-  // and Individual mode are explicitly out of scope for this redesign, see
-  // the two early-return branches above, unchanged). #bucket-screen and
-  // #bucket-list-screen are retired for this mode — left empty/hidden —
+  // mode keeps its own separate branch above, unchanged. Individual mode
+  // used to be a second unchanged early-return here too, but is now
+  // migrated onto this identical pattern by its own branch above —
+  // v4.21-individual-mode-shell-parity — just with a different bucket set
+  // via buildIndividualDashboardControlsHtml() instead of
+  // buildDashboardControlsHtml()). #bucket-screen and #bucket-list-screen
+  // are retired for both modes now — left empty/hidden —
   // #bucket-answer-screen is now the single, persistent, always-visible
   // center content area; the old full-screen bucket-grid moved to the left
   // rail (buildDashboardControlsHtml(), called from renderShellLeftRail()),
@@ -813,12 +849,14 @@ const DASHBOARD_CONTROL_ICONS={
   export:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3.3 8.5l8.7 4.5 8.7-4.5"/><path d="M12 22V13"/></svg>'
 };
 // item 7g/h (OPEN QUESTION, confirmed by user: one merged list): "Smart
-// Search" is listed here as an ordinary control alongside the others — its
-// right-rail content (search input + full question list) and center-panel
-// answer are wired in js/vs-shell.js's renderDashboardPropertiesRail() /
-// js/render-dashboard.js's onSmartQuestionPick(), both built on the real
-// SmartQueryV2 API (load/isReady/availableQuestions/answerQuestion), not
-// the older openSmartSearchScreen() flow, which item h asks to retire.
+// Search" is listed here as an ordinary control alongside the others.
+// v4.23-smart-query-chat: its center-panel answer is now a real chat
+// window wired to SmartQueryV2.ask() (renderDashboardSmartSearch()/
+// smartChatSubmit()/smartChatRunQuery() below), and its canned-question
+// list moved into the LEFT rail (buildSmartQueryCannedQuestionsHtml(),
+// appended by renderShellLeftRail() when this bucket is active) — not the
+// right rail, which now closes for this bucket like the other
+// no-per-item-picker buckets.
 function buildDashboardControlsHtml(){
   const students=APP.students||[];
   const helpCount=students.filter(bucketIsHelp).length;
@@ -848,6 +886,39 @@ function buildDashboardControlsHtml(){
   }).join("");
   return `<div class="bucket-list">${rows}</div>`;
 }
+const COMPARE_ROW_ICONS={
+  section:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 21V15h6v6"/><path d="M9 7h1M9 11h1M14 7h1M14 11h1"/></svg>',
+  group:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M17 3l4 4-4 4"/><path d="M3 7h18"/><path d="M7 21l-4-4 4-4"/><path d="M21 17H3"/></svg>'
+};
+// v4.22-compare-mode-shell-parity §1: replaces #compare-section-picker's
+// inline dropdown — same data populateCompareSectionPicker() used to
+// assemble (every valid section, plus one row per computeCompareGroups()
+// match of 2+ sections), same .bucket-list/.bucket-row markup as every
+// other rail list in the app. Active row keyed off APP._activeCompareSectionId
+// (a section) or a null value while APP.sectionComparison is populated
+// (viewing the "Compare Sections" group view instead).
+function buildCompareSectionListHtml(){
+  const secs=(APP.sections||[]).filter(s=>s.valid&&s.students);
+  const groups=(APP.compareGroups||[]).filter(g=>g.sections.length>=2);
+  const activeSectionId=APP._activeCompareSectionId||null;
+  const viewingGroup=!activeSectionId && APP.sectionComparison && APP.sectionComparison.length;
+  const groupRows=groups.map(g=>{
+    const activeClass=(viewingGroup && APP._activeCompareGroupId===g.id)?" bucket-row-active":"";
+    const label="Compare: "+g.sections.map(s=>s.label).join(", ");
+    return `<div class="bucket-row${activeClass}" role="button" tabindex="0" onclick="selectCompareGroup('${esc(g.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectCompareGroup('${esc(g.id)}');}">
+      <span class="bucket-icon" aria-hidden="true">${COMPARE_ROW_ICONS.group}</span>
+      <span class="bucket-text"><span class="bucket-label">${esc(label)}</span><span class="bucket-desc">${g.sections.length} sections, side-by-side ranking</span></span>
+    </div>`;
+  }).join("");
+  const sectionRows=secs.map(s=>{
+    const activeClass=(activeSectionId===s.id)?" bucket-row-active":"";
+    return `<div class="bucket-row${activeClass}" role="button" tabindex="0" onclick="selectCompareSection('${esc(s.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectCompareSection('${esc(s.id)}');}">
+      <span class="bucket-icon" aria-hidden="true">${COMPARE_ROW_ICONS.section}</span>
+      <span class="bucket-text"><span class="bucket-label">${esc(s.label)}</span><span class="bucket-desc">${s.students.length} students — full dashboard</span></span>
+    </div>`;
+  }).join("");
+  return `<div class="bucket-list">${groupRows}${sectionRows}</div>`;
+}
 // Classic/Smart toggle retired (prompt-v4.20 §1ii/§1iv) — showLegacyDashboard()/
 // showSmartBucketView() no longer have any caller (both used APP._forceLegacyView,
 // which is now permanently false). Left undefined rather than kept-as-dead-code:
@@ -876,47 +947,84 @@ function currentIndividualStudent(){
   if(!APP.individualSelectedId||!sts.find(s=>s.id===APP.individualSelectedId)) APP.individualSelectedId=sts[0].id;
   return sts.find(s=>s.id===APP.individualSelectedId)||sts[0];
 }
-function renderIndividualBuckets(){
-  const st=currentIndividualStudent();
-  if(!st){ $("#bucket-screen").html(`<div class="bucket-list"><div class="bucket-row" style="cursor:default"><span class="bucket-text"><span class="bucket-label">No student data yet</span></span></div></div>`); return; }
-  const ICONS={
-    report:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>',
-    subjects:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-    plan:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
-    wellbeing:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'
-  };
+const INDIVIDUAL_BUCKET_ICONS={
+  report:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>',
+  subjects:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  plan:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+  wellbeing:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+  smart:'<svg class="ic" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></svg>'
+};
+// Pure — returns Individual mode's bucket definitions for the given
+// (already-resolved) current child, no DOM access. Single source of
+// truth for both the rail builder below and anything else that needs
+// to know what buckets exist for this child (e.g. picking a default id).
+function individualBucketDefs(st){
   const buckets=[
-    {id:"report",label:"Progress Report",desc:"Overall summary, trend and where things stand",icon:"report"},
-    {id:"subjects",label:"Subjects & Marks",desc:"Test-by-test marks and subject breakdown",icon:"subjects"},
-    {id:"plan",label:"Recommendations",desc:"What to focus on at home this week",icon:"plan"}
+    {id:"report",label:"Progress Report",desc:"Overall summary, trend and where things stand"},
+    {id:"subjects",label:"Subjects & Marks",desc:"Test-by-test marks and subject breakdown"},
+    {id:"plan",label:"Recommendations",desc:"What to focus on at home this week"}
   ];
-  if(st.analysis && st.analysis.wellbeingFlag){
-    buckets.push({id:"wellbeing",label:"Wellbeing",desc:"Stress and engagement signals",icon:"wellbeing"});
+  if(st && st.analysis && st.analysis.wellbeingFlag){
+    buckets.push({id:"wellbeing",label:"Wellbeing",desc:"Stress and engagement signals"});
   }
-  const rows=buckets.map(b=>`<div class="bucket-row" role="button" tabindex="0" onclick="openIndividualBucket('${b.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openIndividualBucket('${b.id}');}">
-    <span class="bucket-icon" aria-hidden="true">${ICONS[b.icon]}</span>
-    <span class="bucket-text"><span class="bucket-label">${esc(b.label)}</span><span class="bucket-desc">${esc(b.desc)}</span></span>
-  </div>`).join("");
-  $("#bucket-screen").html(`<div class="bucket-list">${rows}</div>`);
+  buckets.push({id:"smart",label:"Smart Search ✨",desc:"Ask anything about this student"});
+  return buckets;
+}
+// v4.21-individual-mode-shell-parity §1: left-rail builder for Individual
+// mode, mirroring buildDashboardControlsHtml() exactly (same .bucket-list/
+// .bucket-row/icon/badge/active-highlight markup) — Institution mode and
+// Individual mode's bucket lists now look and behave identically, just
+// built from a different bucket set and a different "current id" tracker
+// (window._individualBucketCurrent instead of APP._currentBucketId).
+function buildIndividualDashboardControlsHtml(){
+  const st=currentIndividualStudent();
+  if(!st) return `<div class="bucket-list"><div class="bucket-row" style="cursor:default"><span class="bucket-text"><span class="bucket-label">No student data yet</span></span></div></div>`;
+  const buckets=individualBucketDefs(st);
+  const active=window._individualBucketCurrent||"report";
+  const rows=buckets.map(b=>{
+    const activeClass=(b.id===active)?" bucket-row-active":"";
+    return `<div class="bucket-row${activeClass}" role="button" tabindex="0" onclick="openIndividualBucket('${b.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openIndividualBucket('${b.id}');}">
+      <span class="bucket-icon" aria-hidden="true">${INDIVIDUAL_BUCKET_ICONS[b.id]}</span>
+      <span class="bucket-text"><span class="bucket-label">${esc(b.label)}</span><span class="bucket-desc">${esc(b.desc)}</span></span>
+    </div>`;
+  }).join("");
+  return `<div class="bucket-list">${rows}</div>`;
 }
 function openIndividualBucket(id){
   const st=currentIndividualStudent();
   if(!st) return;
   window._individualBucketCurrent=id;
-  $("#bucket-screen").hide();
+  // v4.21 §5: same active-row refresh pattern Institution's openBucket()
+  // already has, so the left-rail bucket list (now where the picker
+  // actually lives, §1/§2) highlights whichever bucket is open.
+  try{
+    if(typeof renderShellLeftRail==="function") renderShellLeftRail("dashboard");
+  }catch(err){
+    console.error("Shell left-rail refresh failed in openIndividualBucket:",id,err);
+  }
+  // v4.21 §4: none of Individual mode's four buckets have a per-item
+  // picker (the child switcher above already narrows to one student, so
+  // there's nothing left to pick inside a bucket) — close the right rail
+  // for all four, same "no properties" pattern Institution's picker-less
+  // buckets (Compare/Clusters/Top) already use.
+  if(typeof setRightRail==="function") setRightRail("");
+  if(typeof setShellRailOpen==="function") setShellRailOpen("end", false);
   if(id==="report") return renderIndividualReportAnswer(st);
   if(id==="subjects") return renderIndividualSubjectsAnswer(st);
   if(id==="plan") return renderIndividualPlanAnswer(st);
   if(id==="wellbeing") return renderIndividualWellbeingAnswer(st);
+  if(id==="smart") return renderDashboardSmartSearch();
 }
 function backToIndividualBuckets(){
-  $("#bucket-list-screen,#bucket-answer-screen").hide();
-  $("#bucket-screen").show();
+  // v4.21: retired along with #bucket-screen/#bucket-list-screen for
+  // Individual mode — the bucket list lives permanently in the left rail
+  // now, so there's no separate "back to list" screen to return to. Kept
+  // as a no-op (not deleted) in case anything still references it from
+  // old inline onclick markup that wasn't caught by this migration.
 }
 function renderIndividualReportAnswer(st){
   const a=st.analysis||{};
   $("#bucket-answer-screen").html(`
-    <button class="bucket-back-btn" onclick="backToIndividualBuckets()">${esc(srT("back"))}</button>
     <div class="bucket-answer-title">Progress Report — ${esc(st.name)}</div>
     <div class="bucket-answer-sub">Overall: ${esc(String(a.overallAvg))}% · Grade ${esc(a.grade||"-")} · Trend: ${esc(a.trend||"-")}</div>
     <div class="bucket-answer-body">
@@ -987,7 +1095,6 @@ function renderIndividualSubjectsAnswer(st){
   const avgs=(st.analysis&&st.analysis.subjectAvgs)||{};
   const rows=Object.entries(avgs).sort((a,b)=>a[1]-b[1]).map(([subj,val])=>`<div class="subject-row"><span>${esc(subj)}</span><span>${esc(String(val))}%</span></div>`).join("");
   $("#bucket-answer-screen").html(`
-    <button class="bucket-back-btn" onclick="backToIndividualBuckets()">${esc(srT("back"))}</button>
     <div class="bucket-answer-title">Subjects & Marks — ${esc(st.name)}</div>
     <div class="bucket-answer-body">
       <div class="subject-row-list">${rows||"<p>No subject data available yet.</p>"}</div>
@@ -998,7 +1105,6 @@ function renderIndividualSubjectsAnswer(st){
 }
 function renderIndividualPlanAnswer(st){
   $("#bucket-answer-screen").html(`
-    <button class="bucket-back-btn" onclick="backToIndividualBuckets()">${esc(srT("back"))}</button>
     <div class="bucket-answer-title">Recommendations — ${esc(st.name)}</div>
     <div class="bucket-answer-body"><p>${esc(generateHomePlan(st))}</p></div>
   `).addClass("screen-fade-in").show();
@@ -1009,7 +1115,6 @@ function renderIndividualWellbeingAnswer(st){
                a.wellbeingFlag==="moderate" ? "Keep an eye on this — not urgent, but worth noting." :
                "No particular concern at this time.";
   $("#bucket-answer-screen").html(`
-    <button class="bucket-back-btn" onclick="backToIndividualBuckets()">${esc(srT("back"))}</button>
     <div class="bucket-answer-title">Wellbeing — ${esc(st.name)}</div>
     <div class="bucket-answer-body"><p>Wellbeing flag: ${esc(a.wellbeingFlag)} (stress score ${esc(String(a.stressScore))}/100). ${esc(note)}</p></div>
   `).addClass("screen-fade-in").show();
@@ -1022,44 +1127,218 @@ function renderIndividualWellbeingAnswer(st){
 function renderDashboardSampleBanner(){
   const el=$("#dashboard-sample-banner");
   if(!APP._isSampleData){ el.html(""); return; }
-  el.html(`<div class="card" style="padding:10px 14px;margin-bottom:14px;border-color:var(--c-warn,#f9a826);background:#fff8ec;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+  el.html(`<div class="card dashboard-sample-banner-card" style="padding:10px 14px;margin-bottom:14px;border-color:var(--c-warn,#f9a826);background:#fff8ec;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
     <div style="font-size:12.5px;color:#8a5a00"><strong>You're viewing sample data.</strong> This is a demo — head to Home whenever you're ready to import your own class's marks.</div>
     <button type="button" class="btn btn-secondary btn-sm" onclick="APP._isSampleData=false;renderDashboardSampleBanner();" aria-label="Dismiss">✕</button>
   </div>`);
 }
 
-// item g/h: Smart Search as an ordinary rail control (OPEN QUESTION,
-// confirmed: one merged list) — right rail gets a live-filter search input
-// + the full question list (same picker pattern as (c)/(d), not Task 6's
-// chat-thread UI, which this supersedes — see PIB §9). Built on
-// SmartQueryV2's real API, loaded lazily on first use.
-function renderDashboardSmartSearch(){
-  if(typeof setShellRailsOpen==="function") setShellRailsOpen(true); // item g's "flagship" moment, ui-prompt-batch2.md item 1
-  if(typeof setRightRail!=="function")return;
-  if(!window.SmartQueryV2){ setRightRail(`<div class="shell-empty-state">Smart Search isn't available right now.</div>`); return; }
+// v4.23-smart-query-chat §1: canned questions now live in the LEFT rail
+// (below the bucket list), replacing the old right-rail question list —
+// called from renderShellLeftRail() only while the Smart Search bucket is
+// the active one. Tapping a question feeds the same chat flow (§4) a
+// typed question would, via smartChatAskCanned() below — it does NOT
+// answer separately in the rail the way the old right-rail list did.
+// v4.29: Smart Search is now reachable from both Institution mode
+// (APP._currentBucketId) and Individual mode (window._individualBucketCurrent)
+// — each mode tracks its own active bucket separately, so call-sites that
+// need to know "is the smart bucket showing right now" must check
+// whichever tracker the current mode actually uses.
+function isSmartBucketActive(){
+  return APP.setup.mode==="individual"
+    ? window._individualBucketCurrent==="smart"
+    : APP._currentBucketId==="smart";
+}
+function buildSmartQueryCannedQuestionsHtml(){
+  if(!window.SmartQueryV2) return "";
   if(!SmartQueryV2.isReady()){
-    setRightRail(`<div class="shell-empty-state">Loading questions…</div>`);
-    SmartQueryV2.load().then(function(){
-      if(APP._currentBucketId==="smart") renderDashboardSmartSearch();
-    }).catch(function(){
-      setRightRail(`<div class="shell-empty-state">Couldn't load the question list.</div>`);
+    ensureSmartQueryLoaded(function(){
+      if(isSmartBucketActive() && typeof renderShellLeftRail==="function") renderShellLeftRail("dashboard");
     });
+    return `<div class="shell-panel-title" style="margin-top:14px">Suggested Questions</div><div class="shell-empty-state">Loading questions…</div>`;
+  }
+  const qs=SmartQueryV2.availableQuestions();
+  const rows=qs.map(function(q){
+    const idJs=String(q.id).replace(/'/g,"\\'");
+    const labelJs=String(q.label).replace(/'/g,"\\'");
+    return `<div class="bucket-picker-row" onclick="smartChatAskCanned('${idJs}','${labelJs}')">${esc(q.label)}</div>`;
+  }).join("");
+  return `<div class="shell-panel-title" style="margin-top:14px">Suggested Questions</div><div class="bucket-picker-list">${rows||emptyStateHtml(srT("bucket_all_good"))}</div>`;
+}
+// Loader guard shared with the old rail implementation's naming, kept
+// separate from vs-shell.js's own copy (different module scope) — same
+// one-shot "don't double-load" behavior.
+let _smartChatLoadAttempted=false;
+function ensureSmartQueryLoaded(cb){
+  if(!window.SmartQueryV2) return;
+  if(SmartQueryV2.isReady()){ if(cb) cb(); return; }
+  if(_smartChatLoadAttempted) return;
+  _smartChatLoadAttempted=true;
+  SmartQueryV2.load().then(function(){ if(cb) cb(); }).catch(function(){});
+}
+
+// v4.23-smart-query-chat §3: transcript lives only as a plain in-memory
+// array, same pattern as _targetScoreInputs above — NO_PERSISTENCE, reset
+// on reload or on leaving the bucket (see renderDashboardSmartSearch()).
+let _smartChatTranscript=[];
+
+// item g/h retired the old right-rail search+list UI (superseded by
+// v4.23-smart-query-chat) — Smart Search is now a real chat window in the
+// center panel, wired to SmartQueryV2.ask()/match() instead of a substring
+// filter. Canned questions moved to the left rail (buildSmartQueryCannedQuestionsHtml()
+// above); this just builds the thread+composer skeleton and clears the
+// right rail (§2 — no per-item properties for this bucket, same "no
+// properties" pattern as renderComparePicker()/renderClusterGroups()).
+function renderDashboardSmartSearch(){
+  if(typeof setRightRail==="function") setRightRail("");
+  if(typeof setShellRailOpen==="function") setShellRailOpen("end", false);
+  _smartChatTranscript=[];
+  if(!window.SmartQueryV2){
+    $("#bucket-answer-screen").html(`<div class="shell-empty-state">Smart Search isn't available right now.</div>`);
     return;
   }
-  const questions=SmartQueryV2.availableQuestions();
-  const rows=questions.map(q=>`<div class="bucket-picker-row" onclick="onSmartQuestionPick('${String(q.id).replace(/'/g,"\\'")}')">${esc(q.label)}</div>`).join("");
-  setRightRail(`
-    <div style="display:flex;gap:8px;align-items:center">
-      <input type="text" class="bucket-picker-input" placeholder="${esc(srT("smart_v2_input_placeholder"))}" oninput="filterPickerList('bucket-smart-results',this.value)" autocomplete="off" id="bucket-smart-input" style="flex:1">
-      <button type="button" onclick="document.getElementById('bucket-smart-input').value='';filterPickerList('bucket-smart-results','');" aria-label="Clear" title="Clear" style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:16px;line-height:1">×</button>
+  $("#bucket-answer-screen").html(`
+    <div class="bucket-answer-title">${esc(srT("bucket_smart_label"))}</div>
+    <div class="chat-window">
+      <div id="chat-thread" class="chat-thread"><div class="chat-empty-hint">Ask anything about this class, or pick a suggested question from the left.</div></div>
+      <div class="chat-composer">
+        <input type="text" id="chat-composer-input" class="bucket-picker-input" autocomplete="off" placeholder="${esc(srT("smart_v2_input_placeholder"))}" onkeydown="if(event.key==='Enter'){event.preventDefault();smartChatSubmit();}">
+        <button type="button" class="btn btn-primary" onclick="smartChatSubmit()">Submit</button>
+      </div>
     </div>
-    <div id="bucket-smart-results" class="bucket-picker-list">${rows||emptyStateHtml(srT("bucket_all_good"))}</div>`);
-  $("#bucket-answer-screen").html(`<div class="shell-empty-state">${esc(srT("smart_v2_deflection_hint"))}</div>`);
+  `);
+  // One-time data-load gate — distinct from the per-message thinking beat
+  // (§4.4): this is honest "the question bank itself isn't loaded yet",
+  // not a manufactured delay.
+  if(!SmartQueryV2.isReady()){
+    $("#chat-thread").html(`<div class="chat-empty-hint">Loading questions…</div>`);
+    ensureSmartQueryLoaded(function(){
+      if(isSmartBucketActive()) $("#chat-thread").html(`<div class="chat-empty-hint">Ask anything about this class, or pick a suggested question from the left.</div>`);
+    });
+  }
 }
-function onSmartQuestionPick(questionId){
-  if(!window.SmartQueryV2||!SmartQueryV2.isReady())return;
-  const res=SmartQueryV2.answerQuestion(questionId);
-  $("#bucket-answer-screen").html(`<div class="bucket-answer-body">${esc(res.text)}</div>`);
+function smartChatScrollToBottom(){
+  const el=document.getElementById("chat-thread");
+  if(el) el.scrollTop=el.scrollHeight;
+}
+function smartChatClearEmptyHint(){
+  const el=document.getElementById("chat-thread");
+  if(el && el.children.length===1 && el.children[0].className==="chat-empty-hint") el.innerHTML="";
+}
+function smartChatAppendUserBubble(text){
+  smartChatClearEmptyHint();
+  _smartChatTranscript.push({role:"user",text:text});
+  const thread=document.getElementById("chat-thread");
+  if(!thread) return;
+  const bubble=document.createElement("div");
+  bubble.className="chat-bubble chat-bubble-user";
+  bubble.textContent=text;
+  thread.appendChild(bubble);
+  smartChatScrollToBottom();
+}
+// v4.23 §4.2/§5: brief, honest, generic thinking indicator — dots only,
+// never fabricated "analyzing marks…" step text. The real answer is
+// already computed synchronously by SmartQueryV2 before this ever shows;
+// the delay is a pure reveal-timing affordance, capped low.
+function smartChatAppendThinkingBubble(){
+  const thread=document.getElementById("chat-thread");
+  if(!thread) return null;
+  const bubble=document.createElement("div");
+  bubble.className="chat-bubble chat-bubble-thinking";
+  bubble.innerHTML='<span class="chat-thinking-dot"></span><span class="chat-thinking-dot"></span><span class="chat-thinking-dot"></span>';
+  thread.appendChild(bubble);
+  smartChatScrollToBottom();
+  return bubble;
+}
+function smartChatReplaceWithAnswerBubble(thinkingEl,text){
+  _smartChatTranscript.push({role:"answer",text:text});
+  if(!thinkingEl) return;
+  thinkingEl.className="chat-bubble chat-bubble-answer";
+  const reduced=window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduced){
+    thinkingEl.textContent=text;
+    smartChatScrollToBottom();
+    return;
+  }
+  // v4.28 §3: word-by-word reveal — answer is already fully computed
+  // above, this is timing-only (no fabricated intermediate content).
+  const words=text.split(" ");
+  let i=0;
+  thinkingEl.textContent="";
+  (function tick(){
+    thinkingEl.textContent += (i>0?" ":"") + words[i];
+    i++;
+    smartChatScrollToBottom();
+    if(i<words.length) setTimeout(tick,30);
+  })();
+}
+function smartChatReplaceWithSuggestionsBubble(thinkingEl,results,deflectionText){
+  _smartChatTranscript.push({role:"answer",text:deflectionText});
+  if(!thinkingEl) return;
+  thinkingEl.className="chat-suggestions";
+  const chips=results.map(function(r){
+    const idJs=String(r.id).replace(/'/g,"\\'");
+    const labelJs=String(r.label).replace(/'/g,"\\'");
+    return `<button type="button" class="chat-suggestion-chip" onclick="smartChatAskCanned('${idJs}','${labelJs}')">${esc(r.label)}</button>`;
+  }).join("");
+  thinkingEl.innerHTML=`<div class="chat-bubble chat-bubble-answer">${esc(deflectionText)}</div>${chips}`;
+  smartChatScrollToBottom();
+}
+// v4.23 §0/§4: submit flow, ported verbatim from vs-shell.js's dead
+// smartQueryRailAsk_run() (ask() first, fall back to match() candidates
+// as tappable chips on no confident hit, deflection message otherwise) —
+// same control flow, retargeted at the chat thread instead of the rail.
+function smartChatRunQuery(text){
+  const userThinkingBubble=smartChatAppendThinkingBubble();
+  const delay=280+Math.random()*220; // same rhythm as the AI-loader's sleep() elsewhere in this codebase
+  setTimeout(function(){
+    // v4.28 Cause A fix: call match() exactly once and derive both
+    // outcomes (auto-answer vs. suggestion chips) from that single
+    // result, instead of a doomed second call with identical input.
+    const AUTO_ANSWER_THRESHOLD=6; // top.score>=6 auto-answers; lower-but-scored results become chips
+    const m=SmartQueryV2.match(text,5);
+    if(m.ok && m.results.length){
+      const top=m.results[0];
+      if(top.score>=AUTO_ANSWER_THRESHOLD){
+        const answer=SmartQueryV2.answerQuestion(top.id);
+        smartChatReplaceWithAnswerBubble(userThinkingBubble,answer.text);
+      } else {
+        smartChatReplaceWithSuggestionsBubble(userThinkingBubble,m.results,srT("smart_v2_deflection_hint"));
+      }
+    } else {
+      smartChatReplaceWithAnswerBubble(userThinkingBubble,m.text||"I couldn't find a matching question.");
+    }
+  },delay);
+}
+function smartChatSubmit(){
+  const input=document.getElementById("chat-composer-input");
+  const text=input?input.value.trim():"";
+  if(!text) return;
+  if(input) input.value="";
+  smartChatAppendUserBubble(text);
+  if(!window.SmartQueryV2) return;
+  if(!SmartQueryV2.isReady()){
+    ensureSmartQueryLoaded(function(){ smartChatRunQuery(text); });
+    return;
+  }
+  smartChatRunQuery(text);
+}
+// Tapping a canned question (left rail, §1, or a suggestion chip in the
+// thread, §4.3) — answerQuestion(id) is already known-good for this
+// exact id, so it always resolves to a real answer bubble, no fallback
+// branch needed here (mirrors smartQueryRailAnswer()'s simplicity).
+function smartChatAskCanned(questionId,label){
+  smartChatAppendUserBubble(label);
+  const thinkingBubble=smartChatAppendThinkingBubble();
+  const delay=280+Math.random()*220;
+  setTimeout(function(){
+    if(!window.SmartQueryV2||!SmartQueryV2.isReady()){
+      smartChatReplaceWithAnswerBubble(thinkingBubble,"Smart Search isn't available right now.");
+      return;
+    }
+    const res=SmartQueryV2.answerQuestion(questionId);
+    smartChatReplaceWithAnswerBubble(thinkingBubble,res.text);
+  },delay);
 }
 
 function emptyStateHtml(text){
@@ -1099,7 +1378,7 @@ function openBucket(id){
   // make sure it's re-opened in case a previous bucket had closed it.
   // #shell-rail-start (left rail) is untouched either way.
   if(typeof setShellRailOpen==="function"){
-    const RAIL_END_CLOSED_FOR = {class:1,top:1,compare:1,clusters:1};
+    const RAIL_END_CLOSED_FOR = {class:1,top:1,compare:1,clusters:1,smart:1};
     setShellRailOpen("end", !RAIL_END_CLOSED_FOR[id]);
   }
   // prompt-v4.20 §1iii: "My Whole Class" IS the rich KPI/tabs/student-card
@@ -1551,13 +1830,14 @@ function populateIndividualSwitcher(){
 }
 function selectIndividualStudent(id){
   APP.individualSelectedId=id;
-  if($("#bucket-screen").is(":visible")||$("#bucket-list-screen").is(":visible")||$("#bucket-answer-screen").is(":visible")){
-    // Individual bucket view active: refresh the bucket list for the new
-    // child, and if a specific bucket answer was open, re-open the same
-    // one for the newly selected child rather than dropping back to the list.
+  if($("#bucket-answer-screen").is(":visible")){
+    // Individual bucket view active: refresh the left-rail bucket list for
+    // the new child (wellbeing tile appears/disappears per-child), and
+    // re-open whatever bucket answer was showing rather than dropping
+    // back to a list screen — there is no separate list screen anymore.
     const reopenId=window._individualBucketCurrent;
-    renderIndividualBuckets();
-    if(reopenId && $("#bucket-answer-screen").is(":visible")){ openIndividualBucket(reopenId); }
+    if(typeof renderShellLeftRail==="function") renderShellLeftRail("dashboard");
+    if(reopenId){ openIndividualBucket(reopenId); }
     return;
   }
   renderKPIs();renderStudentCards();renderHeatmap();renderCharts();renderWellbeingPanel();renderFlagsTable();

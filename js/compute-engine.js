@@ -977,8 +977,6 @@ function applyCompareModeUI(){
   const cm=!!APP.compareMode;
   $("#compare-setup-banner").toggle(cm);
   $("#mode-select-card").toggle(!cm);
-  $("#compare-section-picker").toggle(cm);
-  if(!cm){$("#compare-overview-panel").hide();$("#single-view-dashboard-body").show();}
   $("#compare-export-card,#compare-per-section-export-card").toggle(cm);
   $("#btn-generate-pdfs").toggle(!cm);
 }
@@ -1249,7 +1247,7 @@ async function runCompareAnalysisCore(){
     APP.setup.tests=(sec.schema&&sec.schema.tests)||[];
     APP.rawData=sec.rawData;
     parseStudents();computeAnalysis();computeGenderAnalysis();
-    sec.students=APP.students;sec.classStats=APP.classStats;sec.genderAnalysis=APP.genderAnalysis;sec.dataIssues=APP.dataIssues;
+    sec.students=APP.students;sec.classStats=APP.classStats;sec.genderAnalysis=APP.genderAnalysis;sec.dataIssues=APP.dataIssues;sec.cohortClusters=APP.cohortClusters;
   }
   $("#ai-loader").hide();
   // btn-analyse removed (v3.2) — panel-ai is now a pure progress screen.
@@ -1381,61 +1379,65 @@ function computeSectionComparisonFor(sections,subjects){
   return rows;
 }
 
-/* ── Compare Dashboard: section picker + overview + drill-down ──
+/* ── Compare Dashboard: section list + overview + drill-down ──
    Lists every analysed file individually (so mixed/incompatible uploads —
    an individual aspirant's sheet next to a school class — still each get
-   their own dashboard), PLUS one "🔀 Compare" entry per group of 2+
-   sections that share the same schema (computeCompareGroups()). */
-function populateCompareSectionPicker(){
-  const secs=APP.sections.filter(s=>s.valid&&s.students);
-  const groups=(APP.compareGroups||[]).filter(g=>g.sections.length>=2);
-  const prev=$("#compare-section-select").val()||(groups[0]&&"grp:"+groups[0].id)||(secs[0]&&secs[0].id)||"";
-  $("#compare-section-select").html(
-    groups.map(g=>`<option value="grp:${g.id}">🔀 Compare: ${g.sections.map(s=>esc(s.label)).join(", ")}</option>`).join("")+
-    secs.map(s=>`<option value="${s.id}">${esc(s.label)}</option>`).join(""));
-  const validValues=new Set(groups.map(g=>"grp:"+g.id).concat(secs.map(s=>s.id)));
-  const fallback=validValues.has(prev)?prev:((groups[0]&&"grp:"+groups[0].id)||(secs[0]&&secs[0].id)||"");
-  $("#compare-section-select").val(fallback);
+   their own dashboard), PLUS one "Compare:" entry per group of 2+
+   sections that share the same schema (computeCompareGroups()). The list
+   itself now lives in the left rail — see buildCompareSectionListHtml()
+   in js/render-dashboard.js (v4.22-compare-mode-shell-parity §1) — this
+   used to populate an inline #compare-section-picker dropdown instead. */
+// v4.22-compare-mode-shell-parity §2: selecting a single section now
+// works exactly like Institution mode's own bucket flow — once this
+// section's data is loaded into APP.students/APP.setup/APP.cohortClusters
+// (the same shape openBucket() already expects), every existing bucket —
+// My Whole Class through Export — works for it with zero changes to the
+// bucket functions themselves. Replaces the old selectCompareView(val)'s
+// "else" branch.
+function selectCompareSection(id){
+  const sec=APP.sections.find(s=>s.id===id);
+  if(!sec||!sec.students)return;
+  // Each section carries its own schema — restore it before rendering,
+  // since a different section (or the group/comparison view) may have
+  // last set APP.setup.subjects/tests to something else entirely.
+  APP.setup.subjects=(sec.schema&&sec.schema.subjects)||APP.setup.subjects;
+  APP.setup.tests=(sec.schema&&sec.schema.tests)||APP.setup.tests;
+  APP.students=sec.students;APP.classStats=sec.classStats;APP.genderAnalysis=sec.genderAnalysis;
+  APP.dataIssues=sec.dataIssues||[];APP.cohortClusters=sec.cohortClusters||null; // §5 fix — this section's own clusters, not whichever ran last
+  APP._activeCompareSectionId=id;
+  APP._activeCompareGroupId=null;
+  APP.sectionComparison=[];
+  if(typeof updateExportGate==="function") updateExportGate();
+  if(typeof renderShellLeftRail==="function") renderShellLeftRail("dashboard"); // refresh active-row highlight, same pattern as openBucket()/openIndividualBucket()
+  if(typeof setShellRailsOpen==="function") setShellRailsOpen(true);
+  $("#bucket-screen,#bucket-list-screen").hide();
+  openBucket(APP._currentBucketId||"class");
 }
-function selectCompareView(val){
-  if(val==="__overview__"&&APP.compareGroups&&APP.compareGroups.length){
-    // Backward-compat fallback if an old value lingers anywhere — treat as
-    // "first comparable group" rather than a single global comparison.
-    const g=APP.compareGroups.find(g=>g.sections.length>=2);
-    if(g)val="grp:"+g.id;
-  }
-  if(val&&val.indexOf("grp:")===0){
-    const group=(APP.compareGroups||[]).find(g=>g.id===val.slice(4));
-    if(!group)return;
-    $("#single-view-dashboard-body").hide();
-    $("#compare-overview-panel").show();
-    APP.sectionComparison=group.comparison||[];
-    APP.setup.subjects=group.subjects||[];
-    renderCompareOverview();
-    $("#db-class-label").text("Comparing "+group.sections.length+" Section(s)");
-    $("#db-meta-label").text([APP.setup.instName,APP.setup.year].filter(Boolean).join(" · "));
-    $("#db-mode-badge").html("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg> Compare Mode");
-    // A previously-viewed section's data-issue gate (set by renderDashboard()
-    // → updateExportGate() while drilled into that section) must not leak
-    // into Overview — the comparison report and per-section exports each
-    // check their own relevant section's issues at generation time anyway.
-    unlockStep("export");
-    $("#btn-generate-pdfs,#btn-goto-export-dash").prop("disabled",false).css({opacity:1,cursor:"pointer"}).attr("title","");
-  } else {
-    const sec=APP.sections.find(s=>s.id===val);
-    if(!sec||!sec.students)return;
-    $("#compare-overview-panel").hide();
-    $("#single-view-dashboard-body").show();
-    // Each section carries its own schema — restore it before rendering,
-    // since a different section (or a group view) may have last set
-    // APP.setup.subjects/tests to something else entirely.
-    APP.setup.subjects=(sec.schema&&sec.schema.subjects)||APP.setup.subjects;
-    APP.setup.tests=(sec.schema&&sec.schema.tests)||APP.setup.tests;
-    APP.students=sec.students;APP.classStats=sec.classStats;APP.genderAnalysis=sec.genderAnalysis;APP.dataIssues=sec.dataIssues||[];
-    renderDashboard();
-    $("#db-class-label").text(sec.label);
-    $("#db-mode-badge").html("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg> "+sec.label);
-  }
+// v4.22-compare-mode-shell-parity §3: promotes the existing comparison
+// (renderCompareOverview() — ranked section table + management grid when
+// detected, already fully computed by computeCompareGroups()) into the
+// same persistent center container every other bucket-equivalent view
+// uses, instead of a separate #compare-overview-panel. No per-item
+// picker for this view (it's a report, not a list to drill into further)
+// — same "no properties" pattern renderComparePicker()/renderClusterGroups()
+// already use for the right rail.
+function selectCompareGroup(groupId){
+  const group=(APP.compareGroups||[]).find(g=>g.id===groupId);
+  if(!group)return;
+  APP.sectionComparison=group.comparison||[];
+  APP.setup.subjects=group.subjects||[];
+  APP._activeCompareSectionId=null;
+  APP._activeCompareGroupId=groupId;
+  if(typeof renderShellLeftRail==="function") renderShellLeftRail("dashboard");
+  if(typeof setShellRailsOpen==="function") setShellRailsOpen(true);
+  if(typeof setShellRailOpen==="function") setShellRailOpen("end", false);
+  if(typeof setRightRail==="function") setRightRail("");
+  $("#legacy-dashboard-body,#bucket-screen,#bucket-list-screen").hide();
+  $("#bucket-answer-screen").show();
+  renderDashboardSampleBanner();
+  renderCompareOverview(); // retargeted to #bucket-answer-screen, see below
+  if(typeof unlockStep==="function") unlockStep("export");
+  if(typeof updateExportGate==="function") updateExportGate();
 }
 function renderManagementGrid(mg){
   if(!mg)return "";
@@ -1452,7 +1454,7 @@ function renderManagementGrid(mg){
     const cells=mg.sectionKeys.map(sk=>{
       const row=c.secs.find(r=>r.sec===sk);
       if(!row)return `<td style="text-align:center;color:var(--c-text3)">—</td>`;
-      return `<td style="text-align:center;cursor:pointer" onclick="selectCompareView('${row.id}')" title="Click to open ${esc(row.label)}">
+      return `<td style="text-align:center;cursor:pointer" onclick="selectCompareSection('${row.id}')" title="Click to open ${esc(row.label)}">
         <div style="background:${cellColor(row.avg)};color:${cellText(row.avg)};border-radius:6px;padding:6px 4px;font-weight:700">${row.avg}%<div style="font-size:9px;font-weight:500;opacity:.8">${row.n} students</div></div>
       </td>`;
     }).join("");
@@ -1513,7 +1515,7 @@ function renderFlaggedSectionsCard(flagged){
   if(!flagged.length)return "";
   return `<div class="card" style="margin-bottom:16px;border-left:3px solid var(--c-danger)">
     <div class="card-title" style="margin-bottom:8px">🚩 Sections Needing Attention</div>
-    ${flagged.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--c-border);cursor:pointer" onclick="selectCompareView('${r.id}')">
+    ${flagged.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--c-border);cursor:pointer" onclick="selectCompareSection('${r.id}')">
       <span style="font-weight:600">${esc(r.label)}</span>
       <span style="font-size:12px;color:var(--c-text2)">${r.avg}% avg · ${r.atRisk} at-risk of ${r.n}</span>
     </div>`).join("")}
@@ -1521,8 +1523,8 @@ function renderFlaggedSectionsCard(flagged){
 }
 function renderCompareOverview(){
   const rows=APP.sectionComparison||[];
-  const wrap=$("#compare-overview-panel");
-  if(!rows.length){wrap.html('<div class="card">No analysed sections yet.</div>');return;}
+  const wrap=$("#bucket-answer-screen");
+  if(!rows.length){wrap.html('<div class="bucket-empty">No analysed sections yet.</div>');return;}
   const mg=computeManagementGrid();
   // mgHtml now only covers the banner + KPI strip + Class×Section grid
   // table (all genuinely multi-class-only) — the weak-subjects and
@@ -1536,7 +1538,7 @@ function renderCompareOverview(){
     <div class="kpi-card"><div class="kpi-label">Needs Attention</div><div class="kpi-val" style="font-size:16px">${esc(worst.label)} (${worst.avg}%)</div></div>
     <div class="kpi-card"><div class="kpi-label">Total Students</div><div class="kpi-val">${rows.reduce((a,r)=>a+r.n,0)}</div></div>
   </div>`;
-  const tableRows=rows.map(r=>`<tr style="cursor:pointer" onclick="selectCompareView('${r.id}')" title="Click to open ${esc(r.label)}">
+  const tableRows=rows.map(r=>`<tr style="cursor:pointer" onclick="selectCompareSection('${r.id}')" title="Click to open ${esc(r.label)}">
     <td style="font-weight:700">#${r.rank}</td>
     <td style="font-weight:600">${esc(r.label)} <span style="color:var(--c-primary);font-size:10px">↗</span></td>
     <td>${r.n}</td>
@@ -1564,7 +1566,7 @@ function renderCompareOverview(){
     }).join("");
     return `<div class="card" style="margin-bottom:12px"><div class="card-title" style="margin-bottom:10px">${esc(sub)}</div>${bars}</div>`;
   }).join("");
-  wrap.html(mgHtml+kpis+table+flagCard+weakCard+`<div class="card-title" style="margin:4px 0 10px">Subject-wise Comparison (per test, per section)</div>`+subjectCards);
+  wrap.html(`<div class="bucket-answer-title">Compare Sections</div>`+mgHtml+kpis+table+flagCard+weakCard+`<div class="card-title" style="margin:4px 0 10px">Subject-wise Comparison (per test, per section)</div>`+subjectCards);
 }
 
 /* ── Compare Export: comparison PDF + per-section report bundles ── */

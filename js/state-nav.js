@@ -105,17 +105,7 @@ function goStep(step){
   // (likely more common) case of switching language elsewhere first, then
   // navigating here afterward.
   if(step==="ai"&&typeof renderAICheckboxes==="function")renderAICheckboxes();
-  if(step==="dashboard"){
-    if(APP.compareMode){
-      populateCompareSectionPicker();
-      // BUILD spec §3: default landing selection is the first uploaded
-      // file's own result, never the Compare overview, even when Compare
-      // is available — Compare stays opt-in via the dropdown.
-      const firstValid=APP.sections.find(s=>s.valid&&s.students);
-      selectCompareView(firstValid?firstValid.id:"__overview__");
-    }
-    else renderBuckets();
-  }
+  if(step==="dashboard") renderBuckets();
   if(step==="export"){
     if(APP.compareMode){populateExportSectionPicker();}
     else $("#exp-count").text(APP.students.length);
@@ -123,19 +113,14 @@ function goStep(step){
   if(step==="home")renderHomePage();
   if(step==="setup"){
     if(typeof swGoto==="function") swGoto(APP.setupWizardStep||1);
-    // prompt-v4.19 §2b: initial-render-only prefill — guarded by both a
-    // one-time flag AND an empty-field check, so neither a value the user
-    // already typed nor one loaded from an uploaded workbook's SETUP sheet
-    // (mergeSource) ever gets clobbered.
+    // prompt-v4.19 §2b (revised): prefill with the plain current year —
+    // matches the field's own placeholder ("e.g. 2026"), not a YYYY-YY
+    // range format the field was never designed to display.
     if(!APP._classYearPrefilled){
       APP._classYearPrefilled=true;
       const yearEl=document.getElementById("class-year");
       if(yearEl && !yearEl.value.trim()){
-        const d=new Date(), y=d.getFullYear();
-        // Indian academic year convention: starts in April. Before April,
-        // the "current" academic year still began the previous calendar year.
-        const startYear = d.getMonth()>=3 ? y : y-1; // getMonth() 0-based, 3=April
-        yearEl.value = startYear + "-" + String((startYear+1)%100).padStart(2,"0");
+        yearEl.value = String(new Date().getFullYear());
       }
     }
   }

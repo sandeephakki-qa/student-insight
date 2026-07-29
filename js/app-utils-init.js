@@ -60,6 +60,14 @@ function validateSetup(){
   $("#err-class-year").toggle(!year);
   if(!year) $("#class-year").css("border-color","var(--c-danger)"); else $("#class-year").css("border-color","");
 
+  // Bug fix: a test's max-marks grid is built from the subject list — no
+  // subjects means no columns to score against, so there's no use in
+  // letting someone create a test yet. Gate the button itself rather than
+  // only complaining after the fact.
+  const hasSubjects=subjects.length>0;
+  $("#btn-add-test").prop("disabled",!hasSubjects).css({opacity:hasSubjects?1:.45,cursor:hasSubjects?"pointer":"not-allowed"});
+  $("#tests-need-subject-hint").toggle(!hasSubjects);
+
   // Duplicate names corrupt per-subject/per-test aggregation downstream —
   // e.g. two subjects named "Maths" and "maths" would silently overwrite
   // each other in subjectAvgs, since it's keyed by name. Case-insensitive

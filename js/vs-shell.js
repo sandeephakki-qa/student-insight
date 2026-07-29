@@ -290,23 +290,66 @@
       const classLabel = [APP.setup && APP.setup.className, APP.setup && APP.setup.section]
         .filter(Boolean).join(" ");
       if(classLabel) rows += row(srT("shell_left_org_label"), classLabel);
+      // v4.22-compare-mode-shell-parity §6: the active section/group name
+      // used to be written into a display:none stub (#db-class-label etc,
+      // left behind when prompt-v4.20 §1i deleted the header that used to
+      // show it) — genuinely invisible to the user. Shown here instead,
+      // same file-details row area every other mode already uses.
+      if(APP.compareMode){
+        const activeLabel = APP._activeCompareSectionId
+          ? ((APP.sections||[]).find(function(s){return s.id===APP._activeCompareSectionId;})||{}).label
+          : (APP.sectionComparison && APP.sectionComparison.length ? "Comparing " + APP.sectionComparison.length + " section(s)" : null);
+        if(activeLabel) rows += row("Viewing", activeLabel);
+      }
     }
     // item 6: wrap in a native <details> — collapsed by default, no new
     // JS needed for the expand/collapse itself.
     let html = '<details class="shell-details"><summary class="shell-panel-title" style="cursor:pointer">'
       + esc(srT("shell_left_file_details_title")) + '</summary>' + rows + '</details>';
     // item 7 (ui-prompt-template.md §4.2): Dashboard's left rail also gets
-    // the persistent controls list — Institution + non-Compare mode only
-    // (PIB §9 smart-reveal-scope; Individual mode falls straight through
-    // to the legacy dashboard body and doesn't use this rail-driven
-    // system, so it keeps the plain File-details-only rail above).
-    if(step === "dashboard" && APP.setup && APP.setup.mode !== "individual" && !APP.compareMode
-       && typeof buildDashboardControlsHtml === "function"){
-      html += buildDashboardControlsHtml();
+    // the persistent controls list — mode-aware: Individual mode gets its
+    // own bucket set (v4.21-individual-mode-shell-parity §1/§2, full
+    // parity with Institution's rail-driven pattern, no more falling
+    // through to a separate full-screen tile grid), Institution +
+    // non-Compare mode keeps its existing bucket set, Compare mode is
+    // untouched (handled separately below).
+    if(step === "dashboard" && !APP.compareMode){
+      if(APP.setup && APP.setup.mode === "individual" && typeof buildIndividualDashboardControlsHtml === "function"){
+        html += buildIndividualDashboardControlsHtml();
+        if(window._individualBucketCurrent === "smart" && typeof buildSmartQueryCannedQuestionsHtml === "function"){
+          html += buildSmartQueryCannedQuestionsHtml();
+        }
+      } else if(APP.setup && APP.setup.mode !== "individual" && typeof buildDashboardControlsHtml === "function"){
+        html += buildDashboardControlsHtml();
+        // v4.23-smart-query-chat §1: canned questions replace the old
+        // right-rail question list — shown here, below the bucket list,
+        // only while Smart Search is the active bucket.
+        if(APP._currentBucketId === "smart" && typeof buildSmartQueryCannedQuestionsHtml === "function"){
+          html += buildSmartQueryCannedQuestionsHtml();
+        }
+      }
+    }
+    // v4.22-compare-mode-shell-parity §1/§2: section/group list replaces
+    // the old inline #compare-section-picker dropdown. Once a single
+    // section is active (APP._activeCompareSectionId set — not viewing
+    // the "Compare Sections" group view), that section's data has already
+    // been swapped into APP.students/APP.setup/APP.cohortClusters by
+    // selectCompareSection(), so the exact same buildDashboardControlsHtml()
+    // Institution mode uses works here too, unmodified — real parity, not
+    // a lookalike copy.
+    if(step === "dashboard" && APP.compareMode && typeof buildCompareSectionListHtml === "function"){
+      html += buildCompareSectionListHtml();
+      if(APP._activeCompareSectionId && typeof buildDashboardControlsHtml === "function"){
+        html += buildDashboardControlsHtml();
+        if(APP._currentBucketId === "smart" && typeof buildSmartQueryCannedQuestionsHtml === "function"){
+          html += buildSmartQueryCannedQuestionsHtml();
+        }
+      }
     }
     // §6 resolved open question: Compare Mode keeps its two export cards
     // SEPARATE (not folded into one button) — surfaced as their own small
-    // rail here, since Compare Mode otherwise has no rail content at all.
+    // rail section here, below the section/group list and (when active)
+    // per-section bucket list added above.
     if(step === "dashboard" && APP.compareMode && typeof buildCompareExportControlsHtml === "function"){
       html += buildCompareExportControlsHtml();
     }
@@ -410,7 +453,7 @@
           + '<label class="bucket-picker-row" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="exp-mgmt" checked style="accent-color:var(--c-primary)"> Management Report</label>')
         + '<label class="bucket-picker-row" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="exp-zip" checked style="accent-color:var(--c-primary)"> Bundle as ZIP</label>'
         + '</details>'
-        + '<button type="button" class="btn btn-success btn-glow shell-action-btn" id="btn-generate-pdfs" onclick="generateAllPDFs()">' + esc(srT("shell_right_generate_zip")) + '</button>';
+        + '<button type="button" class="btn btn-success btn-glow shell-action-btn shell-action-btn-sticky" id="btn-generate-pdfs" onclick="generateAllPDFs()">' + esc(srT("shell_right_generate_zip")) + '</button>';
     }
     setRightRail(html);
     if(typeof updateExportGate === "function") updateExportGate();

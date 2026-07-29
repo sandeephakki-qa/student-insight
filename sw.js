@@ -15,7 +15,7 @@
    no hostname or path string-matching needed anywhere in this file.
 ============================================================ */
 
-const CACHE_VERSION = 'sia-v11.0';
+const CACHE_VERSION = 'sia-v11.3';
 const CACHE_NAME    = CACHE_VERSION;
 
 // e.g. "https://studin.in/" on prod, or
