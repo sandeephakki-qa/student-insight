@@ -19,6 +19,8 @@
 ============================================================ */
 
 const SmartQueryV2 = (function(){
+  console.log("%c[SmartQueryV2] file version: v4.29-debug-marker","background:#4361ee;color:#fff;padding:2px 6px;border-radius:4px");
+
 
   let _bank = null;         // parsed knowledge/smart-questions.json
   let _loadPromise = null;
@@ -147,7 +149,7 @@ const SmartQueryV2 = (function(){
      questions fall back to unavailableMessage/emptyMessage from the
      JSON itself rather than a hardcoded string, so wording stays
      data-driven and translatable. ── */
-  function answerQuestion(questionId){
+  function answerQuestionImpl(questionId){
     const q = flatQuestions().find(x => x.id === questionId);
     if(!q) return { ok:false, text: "That question isn't in the current question bank." };
     if(!questionAiFeatureOk(q)){
@@ -283,6 +285,13 @@ const SmartQueryV2 = (function(){
     const top = m.results[0];
     const answer = answerQuestion(top.id);
     return { ok: answer.ok, text: answer.text, matched: top };
+  }
+
+  function answerQuestion(questionId){
+    const q = flatQuestions().find(x => x.id === questionId);
+    const r = answerQuestionImpl(questionId);
+    console.log("SmartQueryV2:"+questionId, {computeKey: q&&q.computeKey, value: q&&resolveComputeKey(q.computeKey)}, r);
+    return r;
   }
 
   return {

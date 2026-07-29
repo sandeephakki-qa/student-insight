@@ -1652,13 +1652,16 @@
     <div style="position:absolute;inset:0;opacity:.5;background-image:radial-gradient(circle,rgba(255,255,255,.09) 1px,transparent 1.4px);background-size:18px 18px;pointer-events:none"></div>
     <div style="position:absolute;top:-50px;right:-30px;width:240px;height:240px;background:rgba(255,255,255,.06);border-radius:50%;pointer-events:none"></div>
     <div style="position:absolute;bottom:-70px;left:28%;width:180px;height:180px;background:rgba(46,196,182,.16);border-radius:50%;filter:blur(2px);pointer-events:none"></div>
-    <span style="position:absolute;top:16px;right:20px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.34);z-index:1">Built by Sandeep Hakki</span>
     <div style="position:relative;z-index:1;max-width:680px;margin:0 auto;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.22)">
-      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border-radius:99px;padding:2px 12px;margin-bottom:6px">
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.5px;text-transform:uppercase">Privacy First • Browser Based • No Student Data Uploaded</span>
+      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border-radius:99px;padding:2px 12px;margin-bottom:6px;cursor:pointer" onclick="toggleTrust('t1')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleTrust('t1');}">
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.5px;text-transform:uppercase" data-i18n="home_trust_badge">Privacy First • Browser Based • No Student Data Uploaded ▾</span>
+      </div>
+      <div id="trust-detail" style="display:none;max-width:520px;margin:0 auto 8px;background:rgba(0,0,0,.18);border-radius:8px;padding:8px 14px">
+        <div id="t1" class="trust-body" style="display:block;font-size:11px;color:rgba(255,255,255,.9);line-height:1.5" data-i18n="home_trust_detail">Nothing to comply with, because nothing is transmitted — all computation happens on the device, marks and names never leave the browser, there's no server to breach.</div>
       </div>
       <h1 style="font-family:var(--font-display);font-size:clamp(17px,3vw + 6px,22px);font-weight:800;color:#fff;margin-bottom:4px;line-height:1.2" data-i18n="home_hero_title">Turn your students' marks into actionable insight</h1>
-      <p style="font-size:12px;color:rgba(255,255,255,.82);line-height:1.5;margin-bottom:0" data-i18n="home_hero_sub">Upload a filled Excel workbook and Student Insight identifies learning gaps, flags at-risk students, tracks progress over time, and generates ready-to-share reports — computed instantly, entirely in your browser, with your data never uploaded anywhere.</p>
+      <p style="font-size:12px;color:rgba(255,255,255,.82);line-height:1.5;margin-bottom:0" data-i18n="home_hero_sub">Upload a filled Excel workbook and Student Insight identifies learning gaps, flags at-risk students, tracks progress over time, and generates ready-to-share reports — computed instantly, entirely in your browser, with your data never uploaded anywhere — and once loaded, it keeps working even with no internet connection.</p>
+      <p style="font-size:11px;color:rgba(255,255,255,.68);line-height:1.4;margin-top:6px" data-i18n="home_hero_position">Not a school management system or an app to sign up for — no accounts, no data upload, works the moment you open it.</p>
     </div>
   </div>
 
@@ -2447,7 +2450,7 @@
 
 <!-- FOOTER -->
 <footer id="footer">
-  Powered by <a id="footer-project-link" href="https://studin.in/" target="_blank" rel="noopener">Student Insight</a> — Free &amp; Open Source · Built as a social cause by Sandeep Hakki · <a href="mailto:sandeep@hakki.in">sandeep@hakki.in</a>
+  <a id="footer-project-link" href="https://studin.in/" target="_blank" rel="noopener">Student Insight</a> — Free &amp; Open Source (see source &amp; license: [repo URL]) · Version [X.X] · [Privacy Policy] · [Accessibility Statement] · Contact: <a href="mailto:sandeep@hakki.in">sandeep@hakki.in</a>
 </footer>
 
 <!-- PERF: library scripts moved from <head> so they no longer block initial

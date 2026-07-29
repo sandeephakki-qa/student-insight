@@ -321,7 +321,9 @@ const SmartEngineLocalProvider = (function(){
       return {ok:false, text:"Select a student first."};
     }
     try{
-      return handler(context);
+      const result = handler(context);
+      console.log("SmartEngine:"+questionId, context.student ? {student:context.student.name, analysis:context.student.analysis} : {}, result);
+      return result;
     }catch(err){
       console.error("SmartEngineLocalProvider.answer error for", questionId, err);
       return {ok:false, text:"Couldn't compute an answer for this — the underlying data may be incomplete."};
