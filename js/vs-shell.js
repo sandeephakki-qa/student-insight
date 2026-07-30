@@ -246,6 +246,7 @@
     initDivider("shell-divider-end", "end");
     attachMobileAutoClose("start");
     attachMobileAutoClose("end");
+    initMobileFirstVisitHint();
     // Item 2 fix (ui-prompt-template.md §4.1): the rails weren't showing
     // any text on Home. goStep("home") already calls
     // renderShellLeftRail()/renderShellRightRail(), but that boot call
@@ -258,6 +259,60 @@
     // content), fixes it if goStep() silently no-op'd.
     if(typeof renderShellLeftRail === "function") renderShellLeftRail((window.APP && APP.currentStep) || "home");
     if(typeof renderShellRightRail === "function") renderShellRightRail((window.APP && APP.currentStep) || "home");
+  }
+
+  // mobile fix (screenshot follow-up, 2026-07-30): a first-time mobile
+  // user has no reason to know the thin "FEATURES"/"PROPERTIES" strips
+  // at the top/bottom of the screen are tappable sheets, let alone what
+  // opening them does — there's no icon, animation, or copy hinting at
+  // it, just a static-looking label bar. Fix is purely additive and
+  // mobile-only: a gentle looping pulse on the existing drawer-handle
+  // pill (::before in CSS) plus a short inline caption next to each
+  // title ("Tap for page info & help" / "Tap for tools & actions"),
+  // both scoped to `.shell-first-visit` on <body> so desktop is
+  // completely unaffected. First genuine tap on EITHER strip clears the
+  // class on both (so the user isn't shown the same hint twice in one
+  // session) and remembers that via localStorage (no student data, same
+  // pattern as the existing si-theme-choice key) so returning visitors
+  // never see it again. Deliberately does NOT auto-expand either panel —
+  // an uninvited 70vh sheet slamming over the screen on load would be
+  // worse than the discoverability problem it's fixing; this only makes
+  // the existing tap target easier to notice and understand.
+  var SHELL_HINT_SEEN_KEY = "si-shell-hint-seen";
+  function shellHintAlreadySeen(){
+    try{ return !!localStorage.getItem(SHELL_HINT_SEEN_KEY); }catch(e){ return false; }
+  }
+  function markShellHintSeen(){
+    try{ localStorage.setItem(SHELL_HINT_SEEN_KEY, "1"); }catch(e){}
+  }
+  function dismissShellHint(){
+    document.body.classList.remove("shell-first-visit");
+    markShellHintSeen();
+  }
+  function buildHintCaption(key, fallback){
+    var span = document.createElement("span");
+    span.className = "shell-panel-toggle-hint";
+    span.textContent = (typeof i18nLabel === "function") ? i18nLabel(key, fallback) : fallback;
+    return span;
+  }
+  function initMobileFirstVisitHint(){
+    if(!isMobileViewport() || shellHintAlreadySeen()) return;
+    document.body.classList.add("shell-first-visit");
+    var startToggle = document.getElementById("shell-panel-start-toggle");
+    var endToggle = document.getElementById("shell-panel-end-toggle");
+    if(startToggle && !startToggle.querySelector(".shell-panel-toggle-hint")){
+      startToggle.insertBefore(buildHintCaption("shell_hint_features_peek","Tap for page info & help"), startToggle.lastElementChild);
+    }
+    if(endToggle && !endToggle.querySelector(".shell-panel-toggle-hint")){
+      endToggle.insertBefore(buildHintCaption("shell_hint_properties_peek","Tap for tools & actions"), endToggle.lastElementChild);
+    }
+    if(startToggle) startToggle.addEventListener("click", dismissShellHint, {once:true});
+    if(endToggle) endToggle.addEventListener("click", dismissShellHint, {once:true});
+    // also clear it if the viewport is resized past mobile (e.g. rotation
+    // to a tablet width) so it doesn't linger oddly at a desktop size
+    window.addEventListener("resize", function onResize(){
+      if(!isMobileViewport()){ document.body.classList.remove("shell-first-visit"); window.removeEventListener("resize", onResize); }
+    });
   }
 
   if(document.readyState === "loading"){

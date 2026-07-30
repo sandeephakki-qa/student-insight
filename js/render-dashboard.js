@@ -540,6 +540,8 @@ const SR_STRINGS_EN={
   shell_home_right_pitch_4:"Top performers and instant two-student comparisons",
   shell_home_right_pitch_5:"Patterns pulled out of teacher remarks and wellbeing notes",
   shell_home_right_pitch_6:"Performance groups, once the class is large enough",
+  shell_hint_features_peek:"Tap for page info & help",
+  shell_hint_properties_peek:"Tap for tools & actions",
   shell_left_file_details_title:"File details",
   shell_left_file_label:"Uploaded file",
   shell_left_multi_file:"Multiple files",
@@ -560,6 +562,7 @@ const SR_STRINGS_EN={
   smart_search_empty_sub:"This section needs a bit more data before questions become available here.",
   smart_search_empty_title:"Nothing to ask yet",
   smart_search_load_error:"Couldn't load Smart Search. Check your connection and try again.",
+  smart_search_pro_notice:"Smart Search feature is coming in StudIn Pro.",
   smart_search_select_first:"Select a student first.",
   smart_search_select_student:"Select a student…",
   smart_search_student_label:"Student",
@@ -651,12 +654,29 @@ function applyDataI18nSweep(){
     if(val!==undefined) el.innerHTML = val;
   });
   // v3.9: placeholder text on inputs can't be set via innerHTML — needs its
-  // own attribute + pass. Currently only used by the FAQ search box.
+  // own attribute + pass.
   document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{
     const key = el.getAttribute("data-i18n-placeholder");
     const val = table[key] || SR_STRINGS_EN[key];
-    if(val!==undefined) el.setAttribute("placeholder","🔍 "+val);
+    if(val!==undefined) el.setAttribute("placeholder",val);
   });
+  // i18n-gap-analysis: loader previously had no handling for title= or
+  // aria-label= attributes at all — every data-i18n-title/data-i18n-aria-label
+  // in the HTML was inert until these two passes were added.
+  document.querySelectorAll("[data-i18n-title]").forEach(el=>{
+    const key = el.getAttribute("data-i18n-title");
+    const val = table[key] || SR_STRINGS_EN[key];
+    if(val!==undefined) el.setAttribute("title",val);
+  });
+  document.querySelectorAll("[data-i18n-aria-label]").forEach(el=>{
+    const key = el.getAttribute("data-i18n-aria-label");
+    const val = table[key] || SR_STRINGS_EN[key];
+    if(val!==undefined) el.setAttribute("aria-label",val);
+  });
+  // i18n-gap-analysis #80: <title> is outside the querySelectorAll sweep
+  // (it's not swept by "[data-i18n]") — set it explicitly instead.
+  const titleVal = table["doc_title"] || SR_STRINGS_EN["doc_title"];
+  if(titleVal!==undefined) document.title = titleVal;
 }
 // v3.9 — small helper so the handful of buttons that get their innerHTML
 // rewritten from JS (Download Template / Load Existing / Load a Different
@@ -960,14 +980,14 @@ const INDIVIDUAL_BUCKET_ICONS={
 // to know what buckets exist for this child (e.g. picking a default id).
 function individualBucketDefs(st){
   const buckets=[
-    {id:"report",label:"Progress Report",desc:"Overall summary, trend and where things stand"},
-    {id:"subjects",label:"Subjects & Marks",desc:"Test-by-test marks and subject breakdown"},
-    {id:"plan",label:"Recommendations",desc:"What to focus on at home this week"}
+    {id:"report",label:i18nLabel("individual_bucket_report_label","Progress Report"),desc:i18nLabel("individual_bucket_report_desc","Overall summary, trend and where things stand")},
+    {id:"subjects",label:i18nLabel("individual_bucket_subjects_label","Subjects & Marks"),desc:i18nLabel("individual_bucket_subjects_desc","Test-by-test marks and subject breakdown")},
+    {id:"plan",label:i18nLabel("individual_bucket_plan_label","Recommendations"),desc:i18nLabel("individual_bucket_plan_desc","What to focus on at home this week")}
   ];
   if(st && st.analysis && st.analysis.wellbeingFlag){
-    buckets.push({id:"wellbeing",label:"Wellbeing",desc:"Stress and engagement signals"});
+    buckets.push({id:"wellbeing",label:i18nLabel("individual_bucket_wellbeing_label","Wellbeing"),desc:i18nLabel("individual_bucket_wellbeing_desc","Stress and engagement signals")});
   }
-  buckets.push({id:"smart",label:"Smart Search ✨",desc:"Ask anything about this student"});
+  buckets.push({id:"smart",label:i18nLabel("bucket_smart_label","Smart Search ✨"),desc:i18nLabel("bucket_smart_desc","Ask anything about this student")});
   return buckets;
 }
 // v4.21-individual-mode-shell-parity §1: left-rail builder for Individual
@@ -1150,20 +1170,7 @@ function isSmartBucketActive(){
     : APP._currentBucketId==="smart";
 }
 function buildSmartQueryCannedQuestionsHtml(){
-  if(!window.SmartQueryV2) return "";
-  if(!SmartQueryV2.isReady()){
-    ensureSmartQueryLoaded(function(){
-      if(isSmartBucketActive() && typeof renderShellLeftRail==="function") renderShellLeftRail("dashboard");
-    });
-    return `<div class="shell-panel-title" style="margin-top:14px">Suggested Questions</div><div class="shell-empty-state">Loading questions…</div>`;
-  }
-  const qs=SmartQueryV2.availableQuestions();
-  const rows=qs.map(function(q){
-    const idJs=String(q.id).replace(/'/g,"\\'");
-    const labelJs=String(q.label).replace(/'/g,"\\'");
-    return `<div class="bucket-picker-row" onclick="smartChatAskCanned('${idJs}','${labelJs}')">${esc(q.label)}</div>`;
-  }).join("");
-  return `<div class="shell-panel-title" style="margin-top:14px">Suggested Questions</div><div class="bucket-picker-list">${rows||emptyStateHtml(srT("bucket_all_good"))}</div>`;
+  return ""; // Smart Search is gated behind a StudIn Pro notice; no canned-question list to show.
 }
 // Loader guard shared with the old rail implementation's naming, kept
 // separate from vs-shell.js's own copy (different module scope) — same
@@ -1193,29 +1200,10 @@ function renderDashboardSmartSearch(){
   if(typeof setRightRail==="function") setRightRail("");
   if(typeof setShellRailOpen==="function") setShellRailOpen("end", false);
   _smartChatTranscript=[];
-  if(!window.SmartQueryV2){
-    $("#bucket-answer-screen").html(`<div class="shell-empty-state">Smart Search isn't available right now.</div>`);
-    return;
-  }
   $("#bucket-answer-screen").html(`
     <div class="bucket-answer-title">${esc(srT("bucket_smart_label"))}</div>
-    <div class="chat-window">
-      <div id="chat-thread" class="chat-thread"><div class="chat-empty-hint">Ask anything about this class, or pick a suggested question from the left.</div></div>
-      <div class="chat-composer">
-        <input type="text" id="chat-composer-input" class="bucket-picker-input" autocomplete="off" placeholder="${esc(srT("smart_v2_input_placeholder"))}" onkeydown="if(event.key==='Enter'){event.preventDefault();smartChatSubmit();}">
-        <button type="button" class="btn btn-primary" onclick="smartChatSubmit()">Submit</button>
-      </div>
-    </div>
+    <div class="shell-empty-state" style="padding:48px 20px;text-align:center;font-size:14px" data-i18n="smart_search_pro_notice">${esc(srT("smart_search_pro_notice"))}</div>
   `);
-  // One-time data-load gate — distinct from the per-message thinking beat
-  // (§4.4): this is honest "the question bank itself isn't loaded yet",
-  // not a manufactured delay.
-  if(!SmartQueryV2.isReady()){
-    $("#chat-thread").html(`<div class="chat-empty-hint">Loading questions…</div>`);
-    ensureSmartQueryLoaded(function(){
-      if(isSmartBucketActive()) $("#chat-thread").html(`<div class="chat-empty-hint">Ask anything about this class, or pick a suggested question from the left.</div>`);
-    });
-  }
 }
 function smartChatScrollToBottom(){
   const el=document.getElementById("chat-thread");

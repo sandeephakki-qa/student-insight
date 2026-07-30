@@ -359,4 +359,31 @@
   .shell-panel[data-collapsed="true"] .shell-panel-title{display:inline} /* room for it here, unlike the 28px desktop column */
   .shell-panel[data-collapsed="true"] .shell-panel-content{display:none}
   .shell-panel[data-collapsed="false"] .shell-panel-content{display:block}
+
+  /* first-visit discoverability hint (screenshot follow-up, 2026-07-30) —
+     gated entirely by body.shell-first-visit, added/removed by
+     initMobileFirstVisitHint()/dismissShellHint() in js/vs-shell.js.
+     Purely additive: a looping pulse on the existing drawer-handle pill,
+     plus a short inline caption next to the title. Never shown again
+     after the first tap (localStorage-remembered), so this whole block
+     is inert for returning visitors and for desktop at any time. */
+  .shell-panel-toggle-hint{
+    display:none;
+    font-size:10px;
+    font-weight:600;
+    font-style:italic;
+    color:var(--c-primary);
+    opacity:.85;
+    margin-inline-start:4px;
+  }
+  .shell-first-visit .shell-panel[data-collapsed="true"] .shell-panel-toggle-hint{
+    display:inline;
+  }
+  .shell-first-visit .shell-panel-toggle::before{
+    animation:shellHintHandlePulse 1.8s ease-in-out infinite;
+  }
+  @keyframes shellHintHandlePulse{
+    0%,100%{opacity:.45;width:32px}
+    50%{opacity:1;width:52px}
+  }
 }

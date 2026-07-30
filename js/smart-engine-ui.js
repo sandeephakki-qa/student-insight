@@ -42,26 +42,8 @@ function renderSmartSearchScreen(){
       ${esc(srT('smart_search_back'))}
     </button>
     <div class="bucket-list-title">${esc(srT('smart_search_title'))}</div>
-    <div style="font-size:12.5px;color:var(--c-text2);margin-bottom:16px;line-height:1.5">${esc(srT('smart_search_subtitle'))}</div>
-    <div id="smart-category-switch" style="display:flex;gap:8px;margin-bottom:14px"></div>
-    <div id="smart-student-picker" style="margin-bottom:14px"></div>
-    <div id="smart-question-chips" style="display:flex;flex-direction:column;gap:10px"></div>
-    <div id="smart-loading" style="display:none;font-size:13px;color:var(--c-text2)">Loading Smart Search…</div>
-    <div id="smart-error" style="display:none;font-size:13px;color:var(--c-danger,#e03131)"></div>
+    <div class="shell-empty-state" style="padding:48px 20px;text-align:center;font-size:14px" data-i18n="smart_search_pro_notice">${esc(srT('smart_search_pro_notice'))}</div>
   `);
-
-  if(_smartEngineLoaded){ renderSmartCategorySwitch(); renderSmartChips(); return; }
-  $("#smart-loading").show();
-  SmartEngine.loadKnowledge().then(()=>{
-    _smartEngineLoaded = true;
-    $("#smart-loading").hide();
-    if(APP.setup.mode==="individual") _smartCategory = "per_student";
-    renderSmartCategorySwitch();
-    renderSmartChips();
-  }).catch(()=>{
-    $("#smart-loading").hide();
-    $("#smart-error").text(srT('smart_search_load_error')).show();
-  });
 }
 
 function renderSmartCategorySwitch(){
