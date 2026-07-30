@@ -1,77 +1,88 @@
 /* ════ ANALYSIS ════ */
 async function runAnalysis(){
-  document.getElementById("btn-home-run-analysis")?.classList.remove("btn-glow");
-  if(APP.compareMode){await runCompareAnalysisCore();return;}
-  if(!APP.rawData){toast("Upload data first.","warn");return;}
-  // Only collect from form if the form has been filled (has subjects in DOM)
-  // Otherwise keep APP.setup as loaded from Excel import
-  const domSubjects=$("#subjects-list .subj-row input").map(function(){return $(this).val().trim();}).get().filter(Boolean);
-  if(domSubjects.length){collectSetupForm();}
-  if(!APP.setup.subjects.length||!APP.setup.tests.length){autoInferSetup();}
-  if(!APP.setup.subjects.length){const isIndividual=APP.setup.mode==="individual";toast(isIndividual?"We couldn't find your subjects — go back to Setup and re-generate the template.":"Cannot detect subjects. Check SETUP tab or fill Step 1.","warn");return;}
-  if(!APP.setup.tests.length){const isIndividual=APP.setup.mode==="individual";toast(isIndividual?"We couldn't find your tests — go back to Setup and re-generate the template.":"Cannot detect tests. Check SETUP tab or fill Step 1.","warn");return;}
-  if(!APP.aiFeatures.size)selectAllAI();
-  // Data validation
-  const _vw=validateData();
-  if(_vw.some(w=>w.e)){
-    const vhtml=_vw.map(w=>`<div style="padding:5px 0;font-size:12px"><span style="color:${w.e?'var(--c-danger)':'var(--c-warn)'}">●</span> ${w.m}</div>`).join("");
-    const el=document.getElementById("validation-warnings");
-    if(el){el.innerHTML=`<div class="card" style="border-color:var(--c-danger);margin-bottom:12px"><b style="color:var(--c-danger)">Data errors found</b>${vhtml}</div>`;el.style.display="block";}
-    // v2.4: the Analyse/checkbox screen is no longer visited by default —
-    // if analysis can't proceed, surface it there anyway (it still exists,
-    // it's just not the default stop) rather than failing silently on
-    // whatever screen the user happened to be on when this ran.
-    goStep("ai");
-    toast("Fix the data error(s) shown below before analysis can run.","error");
-    return;
+  const _runBtn=document.getElementById("btn-home-run-analysis");
+  // M1 fix (robustness audit): guard against double-submit (fast re-click /
+  // slow mobile double-tap) re-entering this function before the first run
+  // finishes. Disabled here, unconditionally re-enabled in the finally below
+  // so an exception mid-run (see the global error handler in
+  // app-utils-init.js) can never leave it stuck disabled.
+  if(_runBtn){if(_runBtn.disabled)return;_runBtn.disabled=true;}
+  _runBtn?.classList.remove("btn-glow");
+  try{
+    if(APP.compareMode){await runCompareAnalysisCore();return;}
+    if(!APP.rawData){toast("Upload data first.","warn");return;}
+    // Only collect from form if the form has been filled (has subjects in DOM)
+    // Otherwise keep APP.setup as loaded from Excel import
+    const domSubjects=$("#subjects-list .subj-row input").map(function(){return $(this).val().trim();}).get().filter(Boolean);
+    if(domSubjects.length){collectSetupForm();}
+    if(!APP.setup.subjects.length||!APP.setup.tests.length){autoInferSetup();}
+    if(!APP.setup.subjects.length){const isIndividual=APP.setup.mode==="individual";toast(isIndividual?"We couldn't find your subjects — go back to Setup and re-generate the template.":"Cannot detect subjects. Check SETUP tab or fill Step 1.","warn");return;}
+    if(!APP.setup.tests.length){const isIndividual=APP.setup.mode==="individual";toast(isIndividual?"We couldn't find your tests — go back to Setup and re-generate the template.":"Cannot detect tests. Check SETUP tab or fill Step 1.","warn");return;}
+    if(!APP.aiFeatures.size)selectAllAI();
+    // Data validation
+    const _vw=validateData();
+    if(_vw.some(w=>w.e)){
+      const vhtml=_vw.map(w=>`<div style="padding:5px 0;font-size:12px"><span style="color:${w.e?'var(--c-danger)':'var(--c-warn)'}">●</span> ${w.m}</div>`).join("");
+      const el=document.getElementById("validation-warnings");
+      if(el){el.innerHTML=`<div class="card" style="border-color:var(--c-danger);margin-bottom:12px"><b style="color:var(--c-danger)">Data errors found</b>${vhtml}</div>`;el.style.display="block";}
+      // v2.4: the Analyse/checkbox screen is no longer visited by default —
+      // if analysis can't proceed, surface it there anyway (it still exists,
+      // it's just not the default stop) rather than failing silently on
+      // whatever screen the user happened to be on when this ran.
+      goStep("ai");
+      toast("Fix the data error(s) shown below before analysis can run.","error");
+      return;
+    }
+    const _warnings=validateData().filter(w=>!w.e);
+    if(_warnings.length){
+      const el=document.getElementById("validation-warnings");
+      if(el){el.innerHTML=`<div class="card" style="border-color:var(--c-warn);margin-bottom:12px"><b style="color:var(--c-warn)">⚠ Data warnings (analysis will proceed)</b>`+_warnings.map(w=>`<div style="font-size:12px;margin-top:4px">● ${w.m}</div>`).join("")+`</div>`;el.style.display="block";}
+    } else {const el=document.getElementById("validation-warnings");if(el)el.style.display="none";}
+    // Nothing else stops a workbook with thousands of rows from freezing the
+    // tab — computeAnalysis() and renderStudentCards() both run synchronously
+    // over every student. Estimate the row count up front (before the heavier
+    // parse/compute work below) and give the teacher a heads-up, since this
+    // app's stated target environment is often lower-end classroom hardware.
+    const _estMarkKey=Object.keys(APP.rawData).find(k=>k.includes("MARK"))||"";
+    const estStudentRows=(APP.rawData["MARKS+CONTEXT"]||APP.rawData["MARKS_CONTEXT"]||APP.rawData[_estMarkKey]||[]).length;
+    if(estStudentRows>1500){
+      if(!confirm(`This file looks like it has ${estStudentRows}+ student rows. Analysing a class this large may take a while and could freeze the tab on slower computers. Continue anyway?`))return;
+    } else if(estStudentRows>300){
+      toast(`Large class detected (~${estStudentRows} students) — analysis may take longer than usual.`,"warn");
+    }
+    goStep("ai"); // v2.4: bring the loader on-screen even though this step is no longer a manual stop in the normal flow
+    $("#ai-loader").show();
+    // btn-analyse / phase-actionbar-btns removed (v3.2) — panel-ai is now a pure progress screen, nothing to disable.
+    // Bring the loader into view (respecting the fixed header) so the user
+    // actually sees the progress instead of staring at a checkbox list that
+    // looks frozen while work happens off-screen above them.
+    scrollToEl(document.getElementById("ai-loader"));
+    const steps=["Reading uploaded file…","Parsing student records…","Computing marks & percentages…","Running trend detection…","Calculating percentile ranks…","Detecting students requiring support…","Sentiment analysis on remarks…","Running stress & wellbeing scoring…","Generating AI-assisted insights…","Estimating next-test trajectory…","Finalising academic insights…"];
+    for(let i=0;i<steps.length;i++){
+      $("#ai-loader-msg").text(steps[i]);
+      $("#ai-loader-step").text("Step "+(i+1)+" of "+steps.length);
+      const pct=Math.round(((i+1)/steps.length)*100);
+      $("#ai-prog").css("width",pct+"%");$("#ai-prog-label").text(pct+"%");
+      await sleep(420+Math.random()*280);
+    }
+    parseStudents();computeAnalysis();computeGenderAnalysis();
+    $("#ai-loader").hide();
+    // btn-analyse / phase-actionbar-btns removed (v3.2) — panel-ai is now a pure progress screen, nothing to re-enable.
+    if(APP.students.length){unlockStep("dashboard");unlockStep("export");}
+    updateExportGate();
+    // GOTCHA FIX (v4.3): markClean() existed but was never called anywhere,
+    // so the #unsaved-dot lit on the first Setup edit and stayed lit for the
+    // rest of the session regardless of what happened after. Product
+    // decision: a completed analysis is the point the current Setup form
+    // values get captured into something the user can actually see (the
+    // dashboard about to render) — same idea as a "save," for an app with
+    // no persistence. Editing Setup again after this still re-dirties via
+    // the existing markDirty() calls, so the dot stays meaningful.
+    markClean();
+    toast("Analysis complete - "+APP.students.length+" students processed.","success");goStep("dashboard");
+  } finally {
+    if(_runBtn)_runBtn.disabled=false;
   }
-  const _warnings=validateData().filter(w=>!w.e);
-  if(_warnings.length){
-    const el=document.getElementById("validation-warnings");
-    if(el){el.innerHTML=`<div class="card" style="border-color:var(--c-warn);margin-bottom:12px"><b style="color:var(--c-warn)">⚠ Data warnings (analysis will proceed)</b>`+_warnings.map(w=>`<div style="font-size:12px;margin-top:4px">● ${w.m}</div>`).join("")+`</div>`;el.style.display="block";}
-  } else {const el=document.getElementById("validation-warnings");if(el)el.style.display="none";}
-  // Nothing else stops a workbook with thousands of rows from freezing the
-  // tab — computeAnalysis() and renderStudentCards() both run synchronously
-  // over every student. Estimate the row count up front (before the heavier
-  // parse/compute work below) and give the teacher a heads-up, since this
-  // app's stated target environment is often lower-end classroom hardware.
-  const _estMarkKey=Object.keys(APP.rawData).find(k=>k.includes("MARK"))||"";
-  const estStudentRows=(APP.rawData["MARKS+CONTEXT"]||APP.rawData["MARKS_CONTEXT"]||APP.rawData[_estMarkKey]||[]).length;
-  if(estStudentRows>1500){
-    if(!confirm(`This file looks like it has ${estStudentRows}+ student rows. Analysing a class this large may take a while and could freeze the tab on slower computers. Continue anyway?`))return;
-  } else if(estStudentRows>300){
-    toast(`Large class detected (~${estStudentRows} students) — analysis may take longer than usual.`,"warn");
-  }
-  goStep("ai"); // v2.4: bring the loader on-screen even though this step is no longer a manual stop in the normal flow
-  $("#ai-loader").show();
-  // btn-analyse / phase-actionbar-btns removed (v3.2) — panel-ai is now a pure progress screen, nothing to disable.
-  // Bring the loader into view (respecting the fixed header) so the user
-  // actually sees the progress instead of staring at a checkbox list that
-  // looks frozen while work happens off-screen above them.
-  scrollToEl(document.getElementById("ai-loader"));
-  const steps=["Reading uploaded file…","Parsing student records…","Computing marks & percentages…","Running trend detection…","Calculating percentile ranks…","Detecting students requiring support…","Sentiment analysis on remarks…","Running stress & wellbeing scoring…","Generating AI-assisted insights…","Estimating next-test trajectory…","Finalising academic insights…"];
-  for(let i=0;i<steps.length;i++){
-    $("#ai-loader-msg").text(steps[i]);
-    $("#ai-loader-step").text("Step "+(i+1)+" of "+steps.length);
-    const pct=Math.round(((i+1)/steps.length)*100);
-    $("#ai-prog").css("width",pct+"%");$("#ai-prog-label").text(pct+"%");
-    await sleep(420+Math.random()*280);
-  }
-  parseStudents();computeAnalysis();computeGenderAnalysis();
-  $("#ai-loader").hide();
-  // btn-analyse / phase-actionbar-btns removed (v3.2) — panel-ai is now a pure progress screen, nothing to re-enable.
-  if(APP.students.length){unlockStep("dashboard");unlockStep("export");}
-  updateExportGate();
-  // GOTCHA FIX (v4.3): markClean() existed but was never called anywhere,
-  // so the #unsaved-dot lit on the first Setup edit and stayed lit for the
-  // rest of the session regardless of what happened after. Product
-  // decision: a completed analysis is the point the current Setup form
-  // values get captured into something the user can actually see (the
-  // dashboard about to render) — same idea as a "save," for an app with
-  // no persistence. Editing Setup again after this still re-dirties via
-  // the existing markDirty() calls, so the dot stays meaningful.
-  markClean();
-  toast("Analysis complete - "+APP.students.length+" students processed.","success");goStep("dashboard");
 }
 /* ════════════════════════════════════════════════════════════════════
    OLD SINGLE-SHEET SCHEMA — validateData()
@@ -322,7 +333,20 @@ function parseStudents(){
     if(!rawId)return; // blank ID — unused template sample row, skip silently
     const key=normId(rawId);
     if(studentData[key])return; // duplicate roster ID — validateData() surfaces this as a blocking error separately
-    const nm=String(row["Full Name"]||"").trim();
+    let nm=String(row["Full Name"]||"").trim();
+    // M2/L1 fix (robustness audit): an unbounded Full Name (thousands of
+    // characters, whether pasted by mistake or adversarially crafted) is
+    // displayed as-is everywhere `.name` is read — dashboard cards, PDF
+    // headers/footers, Smart Search — and a fixed-width PDF layout box has
+    // no wrap/ellipsis of its own, so it can silently overflow or corrupt
+    // that page. Cap defensively and surface it as a visible data issue
+    // rather than letting it distort rendering downstream.
+    const NAME_MAX=120;
+    if(nm.length>NAME_MAX){
+      APP.dataIssues.push({studentId:rawId,studentName:nm.slice(0,NAME_MAX),test:"",subject:"",
+        message:`Full Name is ${nm.length} characters — truncated to ${NAME_MAX} for display/export.`});
+      nm=nm.slice(0,NAME_MAX);
+    }
     // Full Name is optional by design — falls back to the ID everywhere
     // `.name` is displayed (dashboard, PDFs, remarks, Smart Search…) since
     // they all already read this one field.
@@ -396,7 +420,16 @@ function parseStudents(){
       const ab=getVal(row,"Absent Days");
       if(ab!==null&&ab!=="")studentData[key].testData[t.name].absents=parseInt(ab)||0;
       const rm=getRawVal(row,"Remark")||getRawVal(row,"Teacher Remark");
-      if(rm!==null&&rm!=="")studentData[key].testData[t.name].remark=String(rm);
+      if(rm!==null&&rm!==""){
+        let remarkStr=String(rm);
+        const REMARK_MAX=1000;
+        if(remarkStr.length>REMARK_MAX){
+          APP.dataIssues.push({studentId:rawId,studentName:studentData[key].name,test:t.name,subject:"",
+            message:`Remark is ${remarkStr.length} characters — truncated to ${REMARK_MAX} for display/export.`});
+          remarkStr=remarkStr.slice(0,REMARK_MAX);
+        }
+        studentData[key].testData[t.name].remark=remarkStr;
+      }
       const ch=getRawVal(row,"Chapter");
       if(ch!==null&&ch!=="")studentData[key].testData[t.name].chapter=String(ch).trim();
     });

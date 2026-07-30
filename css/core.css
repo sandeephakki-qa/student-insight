@@ -520,8 +520,18 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
 .db-subtitle{font-size:12px;color:var(--c-text3);margin-top:2px}
 .db-kpi-strip{display:flex;gap:10px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .db-kpi-strip .kpi-card{flex:1;min-width:110px;border-radius:12px;background:var(--c-surface);
-  border:1px solid var(--c-border);padding:14px 16px;position:relative;overflow:hidden}
+  border:1px solid var(--c-border);padding:14px 16px;position:relative;overflow:hidden;box-shadow:var(--e-1)}
 .db-kpi-strip .kpi-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--kpi-accent,var(--c-primary))}
+/* bento-style hierarchy: the first card is the class's headline metric —
+   give it a bit more room and a larger value so the strip reads "one
+   important number, several supporting ones" instead of a uniform row
+   of equally-weighted tiles. */
+.db-kpi-strip .kpi-card:first-child{flex:1.5 1 150px}
+.db-kpi-strip .kpi-card:first-child .kpi-val{font-size:26px}
+@media(prefers-reduced-motion:no-preference){
+  .db-kpi-strip .kpi-card{transition:box-shadow var(--dur-base) var(--ease-standard),transform var(--dur-base) var(--ease-standard)}
+  .db-kpi-strip .kpi-card:hover{box-shadow:var(--e-2);transform:translateY(-2px)}
+}
 .db-kpi-strip .kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--c-text3);font-weight:600;margin-bottom:6px}
 .db-kpi-strip .kpi-val{font-size:22px;font-weight:700;color:var(--c-text);line-height:1}
 .db-kpi-strip .kpi-sub{font-size:11px;color:var(--c-text3);margin-top:3px}
@@ -540,6 +550,9 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
 .db-tab.active{color:var(--c-primary);border-bottom-color:var(--c-primary)}
 .db-tab-panel{display:none}
 .db-tab-panel.active{display:block}
+@media(prefers-reduced-motion:no-preference){
+  .db-tab-panel.active{animation:screenFadeIn var(--dur-slow) var(--ease-standard)}
+}
 .db-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;
   background:var(--c-danger);color:#fff;border-radius:99px;font-size:10px;font-weight:700;
   padding:0 5px;margin-left:4px;vertical-align:middle}
@@ -585,8 +598,8 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
 }
 /* ════ SMART REVEAL — buckets / filtered list / full answer ════ */
 .bucket-list{display:flex;flex-direction:column;gap:10px;margin-top:4px}
-.bucket-row{display:flex;align-items:center;gap:14px;padding:16px;min-height:64px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-md);cursor:pointer;text-align:left}
-.bucket-row:hover,.bucket-row:focus-visible{border-color:var(--c-primary);box-shadow:var(--c-shadow)}
+.bucket-row{display:flex;align-items:center;gap:14px;padding:16px;min-height:64px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-md);cursor:pointer;text-align:left;box-shadow:var(--e-1)}
+.bucket-row:hover,.bucket-row:focus-visible{border-color:var(--c-primary);box-shadow:var(--e-2)}
 .bucket-row:focus-visible{outline:2px solid var(--c-primary);outline-offset:2px}
 .bucket-icon{flex-shrink:0;color:var(--c-primary);display:flex}
 .bucket-text{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
@@ -606,8 +619,8 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
 .bucket-picker-row:hover,.bucket-picker-row:focus-visible{border-color:var(--c-primary);background:var(--c-primary-soft)}
 .bucket-empty{padding:20px;font-size:15px;color:var(--c-text2);background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-md)}
 .finding-list{display:flex;flex-direction:column;gap:8px}
-.finding-row{min-height:52px;display:flex;align-items:center;padding:14px 16px;font-size:15px;line-height:1.4;color:var(--c-text);background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-md);cursor:pointer;text-align:left}
-.finding-row:hover,.finding-row:focus-visible{border-color:var(--c-primary)}
+.finding-row{min-height:52px;display:flex;align-items:center;padding:14px 16px;font-size:15px;line-height:1.4;color:var(--c-text);background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-md);cursor:pointer;text-align:left;box-shadow:var(--e-1)}
+.finding-row:hover,.finding-row:focus-visible{border-color:var(--c-primary);box-shadow:var(--e-2)}
 .finding-row:focus-visible{outline:2px solid var(--c-primary);outline-offset:2px}
 /* BUG 6b FIX (studin-ui-bugs-prompt v1.0): "Who Needs Help" — bold student
    name distinct from the flag text, and inline accordion for the expanded
@@ -637,7 +650,11 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
 .cluster-group-card summary{font-size:13px}
 .cluster-group-scroll{max-height:260px;overflow-y:auto}
 .subject-row{display:flex;justify-content:space-between;padding:10px 14px;font-size:14px;background:var(--c-surface2);border-radius:var(--r-sm);color:var(--c-text)}
-@media(prefers-reduced-motion:no-preference){.bucket-row,.finding-row{transition:border-color .15s,box-shadow .15s}}
+@media(prefers-reduced-motion:no-preference){
+  .bucket-row,.finding-row{transition:border-color var(--dur-base) var(--ease-standard),box-shadow var(--dur-base) var(--ease-standard),transform var(--dur-base) var(--ease-standard)}
+  .bucket-row:hover,.bucket-row:focus-visible,.finding-row:hover,.finding-row:focus-visible{transform:translateY(-2px)}
+  .bucket-picker-row{transition:border-color var(--dur-fast) var(--ease-standard),background var(--dur-fast) var(--ease-standard)}
+}
 
 /* ── Setup Wizard ── */
 .sw-step { margin-bottom: 14px; }

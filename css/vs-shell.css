@@ -25,6 +25,14 @@
   --panel-collapsed-width:28px;
   --shell-divider-width:6px;
   --footer-h:40px;
+  /* v5.0-modernization: dedicated motion tokens for sheet-scale surfaces
+     (the mobile top-strip/bottom-sheet panels) — a full-panel slide is a
+     materially larger, more visible movement than a button/card hover, so
+     it earns its own duration/easing pair instead of overloading
+     --dur-slow. ease-out-quint: fast start, long gentle settle — reads as
+     a deliberate slide, not a snap. */
+  --dur-sheet:.42s;
+  --ease-sheet:cubic-bezier(.22,1,.36,1);
 }
 
 #app-shell-body{
@@ -115,6 +123,19 @@
 .shell-kv-label{color:var(--c-text2);font-size:11px}
 .shell-kv-value{color:var(--c-text);font-weight:600;word-break:break-word}
 .shell-empty-state{color:var(--c-text2);font-size:12px;text-align:center;padding:20px 8px}
+.shell-empty-state::before{
+  content:"";
+  display:block;
+  width:26px;height:26px;
+  margin:0 auto 8px;
+  background-color:var(--c-text3);
+  opacity:.55;
+  -webkit-mask-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>');
+  mask-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>');
+  -webkit-mask-size:contain;mask-size:contain;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-position:center;mask-position:center;
+}
 
 /* ---- ui-prompt-template.md item 3: Home rail pitch bullets ---- */
 /* ---- Home rail pitch rows: icon-chip rows, not a bullet list ---- */
@@ -303,7 +324,7 @@
     z-index:400;
     border-inline:none;
     box-shadow:0 0 12px rgba(0,0,0,.18);
-    transition:height .18s ease;
+    transition:height var(--dur-sheet) var(--ease-sheet);
   }
   /* start (left) panel -> top info strip, expands downward from under
      the header/breadcrumb */
@@ -313,7 +334,7 @@
   }
   #shell-panel-start[data-collapsed="true"]{height:36px}
   #shell-panel-start[data-collapsed="false"]{
-    height:min(70vh, calc(100vh - var(--content-top)));
+    height:var(--shell-sheet-h, min(70vh, calc(100vh - var(--content-top))));
   }
   /* end (right) panel -> bottom sheet, expands upward from the
      bottom edge */
@@ -324,7 +345,27 @@
   }
   #shell-panel-end[data-collapsed="true"]{height:36px}
   #shell-panel-end[data-collapsed="false"]{
-    height:min(70vh, calc(100vh - var(--content-top)));
+    height:var(--shell-sheet-h, min(70vh, calc(100vh - var(--content-top))));
+  }
+  /* content used to pop via instant display:none/block, completely out
+     of step with the height slide above — that mismatch (content
+     snapping while the sheet was still visibly mid-motion) was the main
+     source of the "banging the wall" feel. Cross-fading it instead, with
+     a delay on each side, keeps it invisible until the sheet has mostly
+     finished opening, and hidden again just before it finishes closing —
+     so the content never appears to slam in or get chopped off. */
+  .shell-panel-content{
+    transition:opacity calc(var(--dur-sheet) * .55) var(--ease-sheet),
+               visibility 0s linear var(--dur-sheet);
+  }
+  .shell-panel[data-collapsed="true"] .shell-panel-content{
+    opacity:0;
+    visibility:hidden;
+  }
+  .shell-panel[data-collapsed="false"] .shell-panel-content{
+    opacity:1;
+    visibility:visible;
+    transition-delay:calc(var(--dur-sheet) * .45),0s;
   }
 
   /* toggle bar becomes the full-width strip/pill itself on mobile,
@@ -357,8 +398,11 @@
   #shell-panel-end .shell-panel-toggle svg{transform:rotate(90deg)}
   #shell-panel-end[data-collapsed="false"] .shell-panel-toggle svg{transform:rotate(-90deg)}
   .shell-panel[data-collapsed="true"] .shell-panel-title{display:inline} /* room for it here, unlike the 28px desktop column */
-  .shell-panel[data-collapsed="true"] .shell-panel-content{display:none}
-  .shell-panel[data-collapsed="false"] .shell-panel-content{display:block}
+  /* .shell-panel-content visibility is now handled by the synced
+     opacity/visibility cross-fade defined earlier in this block (see
+     "content used to pop via instant display:none/block" comment above)
+     — no display:none/block toggle here anymore, that was the second
+     half of the "banging the wall" bug. */
 
   /* first-visit discoverability hint (screenshot follow-up, 2026-07-30) —
      gated entirely by body.shell-first-visit, added/removed by

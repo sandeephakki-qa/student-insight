@@ -10,7 +10,7 @@
 // splitTextToSize() is sanitized once, centrally — not at each of the
 // 100+ individual call sites across this file.
 function sanitizePdfDoc(doc){
-  const stripUnsupported=v=>String(v==null?"":v).replace(/[^\x00-\xFF]/g,"▯");
+  const stripUnsupported=v=>String(v==null?"":v).replace(/[^\x00-\xFF]/g,"?");
   const sanitizeArg=a=>{
     if(typeof a==="string")return stripUnsupported(a);
     if(Array.isArray(a))return a.map(sanitizeArg);

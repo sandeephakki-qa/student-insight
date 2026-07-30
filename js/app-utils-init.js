@@ -158,7 +158,91 @@ $("#modal-overlay").on("click",function(e){if($(e.target).is("#modal-overlay"))c
 // the current document URL automatically, so it registers correctly under
 // any hosting shape (root domain, GH Pages project subpath, local folder)
 // with zero env-detection code needed here.
-if("serviceWorker" in navigator&&location.protocol!=="file:"){navigator.serviceWorker.register("sw.js").catch(()=>{});}
+if("serviceWorker" in navigator&&location.protocol!=="file:"){
+  navigator.serviceWorker.register("sw.js").then(function(reg){
+    // H3 fix (robustness audit): sw.js's skipWaiting()/clients.claim() take
+    // over immediately with no notice — if this tab is open (mid-Setup, mid-
+    // Insights, or mid-analysis of a large file) when a new version deploys,
+    // it could silently start being served by a different SW version than
+    // the JS already loaded in memory. Rather than removing skipWaiting()
+    // (which would delay every user's update until their next full reload
+    // regardless of whether they're mid-session), tell the user an update
+    // landed and let them choose when to reload — NO_PERSISTENCE means
+    // nothing in progress is actually lost either way.
+    function showUpdateBanner(){
+      if(document.getElementById("sw-update-banner"))return;
+      const bar=document.createElement("div");
+      bar.id="sw-update-banner";
+      bar.setAttribute("role","status");
+      bar.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:99999;background:var(--c-primary,#1e40af);color:#fff;padding:10px 16px;display:flex;gap:12px;align-items:center;justify-content:center;font-size:13px;flex-wrap:wrap;box-shadow:0 -2px 8px rgba(0,0,0,.15)";
+      bar.innerHTML='<span>A new version of Student Insight is available.</span>';
+      const btn=document.createElement("button");
+      btn.textContent="Refresh now";
+      btn.style.cssText="background:#fff;color:#111;border:0;border-radius:6px;padding:4px 12px;font-weight:600;cursor:pointer";
+      btn.onclick=function(){location.reload();};
+      const dismiss=document.createElement("button");
+      dismiss.textContent="Later";
+      dismiss.setAttribute("aria-label","Dismiss update notice");
+      dismiss.style.cssText="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:6px;padding:4px 12px;cursor:pointer";
+      dismiss.onclick=function(){bar.remove();};
+      bar.appendChild(btn);bar.appendChild(dismiss);
+      document.body.appendChild(bar);
+    }
+    reg.addEventListener("updatefound",function(){
+      const newWorker=reg.installing;
+      if(!newWorker)return;
+      newWorker.addEventListener("statechange",function(){
+        // "installed" + an existing controller means this is an update to an
+        // already-open tab, not the very first install — that's the only
+        // case worth interrupting the user for.
+        if(newWorker.state==="installed"&&navigator.serviceWorker.controller){
+          showUpdateBanner();
+        }
+      });
+    });
+  }).catch(()=>{});
+}
+
+/* ════ FAQ ACCORDION REVEAL (v5.0-modernization step 2) ════
+   Native <details>/<summary> already gives correct open/close behavior
+   and accessibility for free — this only adds a visual reveal to the
+   answer content once it opens, reusing the exact same showScreen()/
+   .screen-fade-in mechanism every other screen swap in the app already
+   uses (see above), rather than inventing a second animation system.
+   Close stays instant (native <details> collapsing has no content to
+   animate anyway once hidden) — only the open direction gets the reveal. */
+document.addEventListener("DOMContentLoaded", function(){
+  document.querySelectorAll(".faq-item").forEach(function(details){
+    details.addEventListener("toggle", function(){
+      if(!details.open) return;
+      const answer = details.querySelector(".faq-a");
+      if(answer) showScreen($(answer));
+    });
+  });
+});
+
+/* ════ GLOBAL ERROR HANDLER (C2, robustness audit) ════
+   No window.onerror/unhandledrejection handler existed anywhere before
+   this. An uncaught exception mid-runAnalysis() (malformed cell data, an
+   unexpected undefined, a third-party library edge case) could leave the
+   loader animation frozen forever with zero explanation — and because
+   this app has NO_PERSISTENCE, the only recovery was a full reload,
+   silently losing whatever was in progress. Logs to console only (never
+   to any remote endpoint — nothing here compromises NO_PERSISTENCE). */
+let _lastGlobalErrorToastAt=0;
+function _reportGlobalError(kind,err,extra){
+  console.error("["+kind+"] Unhandled error — current step: "+(typeof APP!=="undefined"&&APP.currentStep||"unknown"),err,extra||"");
+  const now=Date.now();
+  if(now-_lastGlobalErrorToastAt<4000)return; // avoid a toast storm if several fire at once
+  _lastGlobalErrorToastAt=now;
+  try{
+    $("#ai-loader").hide();
+    document.getElementById("btn-home-run-analysis")?.removeAttribute("disabled");
+    toast("Something went wrong and the app couldn't continue. Your data was never saved, so nothing is lost beyond needing to re-upload — please reload and try again.","error");
+  }catch(e){/* toast()/jQuery unavailable this early — nothing more we can do client-side */}
+}
+window.addEventListener("error",function(e){_reportGlobalError("error",e.error||e.message,{file:e.filename,line:e.lineno});});
+window.addEventListener("unhandledrejection",function(e){_reportGlobalError("unhandledrejection",e.reason);});
 
 /* ════ INIT ════ */
 $(function(){

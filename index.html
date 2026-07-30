@@ -25,7 +25,7 @@
      Web Analytics dashboard (Analytics & Logs > Web Analytics > Add site,
      "I'll add the JavaScript snippet myself" / manual setup). -->
 <!-- Cloudflare Web Analytics -->
- <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "5d1b88ed8f544c49995869f42e8d127c"}'></script>
+ <!-- <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "5d1b88ed8f544c49995869f42e8d127c"}'></script> -->
  <!-- End Cloudflare Web Analytics -->
 <!--
   "Offline-first"/"privacy-first" in this app's copy = data never leaves
@@ -1660,7 +1660,7 @@
         <div id="t1" class="trust-body" style="display:block;font-size:11px;color:rgba(255,255,255,.9);line-height:1.5" data-i18n="home_trust_detail">Nothing to comply with, because nothing is transmitted — all computation happens on the device, marks and names never leave the browser, there's no server to breach.</div>
       </div>
       <h1 style="font-family:var(--font-display);font-size:clamp(17px,3vw + 6px,22px);font-weight:800;color:#fff;margin-bottom:4px;line-height:1.2" data-i18n="home_hero_title">Turn your students' marks into actionable insight</h1>
-      <p style="font-size:12px;color:rgba(255,255,255,.82);line-height:1.5;margin-bottom:0" data-i18n="home_hero_sub">Upload a filled Excel workbook and Student Insight identifies learning gaps, flags at-risk students, tracks progress over time, and generates ready-to-share reports — computed instantly, entirely in your browser, with your data never uploaded anywhere — and once loaded, it keeps working even with no internet connection.</p>
+      <p style="font-size:12px;color:rgba(255,255,255,.82);line-height:1.5;margin-bottom:0" data-i18n="home_hero_sub">Upload an Excel sheet. Get learning gaps, at-risk flags, and ready-to-share reports — instantly, privately, offline-capable.</p>
       <p style="font-size:11px;color:rgba(255,255,255,.68);line-height:1.4;margin-top:6px" data-i18n="home_hero_position">Not a school management system or an app to sign up for — no accounts, no data upload, works the moment you open it.</p>
     </div>
   </div>
@@ -2339,7 +2339,7 @@
 
     <!-- IT -->
     <details class="faq-section"><summary class="faq-audience"><div class="icon-badge"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='2' y='4' width='20' height='13' rx='2'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='12' y1='17' x2='12' y2='21'/></svg></div><div class="txt" data-i18n="faq_audience_it">From the IT-in-charge</div><div class="cnt" data-i18n="faq_cnt_it">Hosting & data location</div><span class="faq-section-chevron">▾</span></summary><div class="faq-list">
-      <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span><span data-i18n="faq_q_it_1">Where exactly is our data stored?</span><span class="faq-tag serious" data-i18n="faq_tag_serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a" data-i18n="faq_a_it_1">Nowhere, by design. The app doesn't save student data to any server, database, or even the browser's local storage — it exists only in the browser tab's memory while in use, and disappears when the tab closes. The uploaded Excel file is the only persistent copy, and it stays wherever it already was.</div></details>
+      <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span><span data-i18n="faq_q_it_1">Where exactly is our data stored?</span><span class="faq-tag serious" data-i18n="faq_tag_serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a" data-i18n="faq_a_it_1">Nowhere, by design. The app doesn't save student data to any server, database, or even the browser's local storage — it exists only in the browser tab's memory while in use, and disappears when the tab closes. The uploaded Excel file is the only persistent copy, and it stays wherever it already was. One honest caveat: "nothing is stored" isn't the same as "nothing is ever visible to anyone else" — on a shared or public computer, anything genuinely in memory during an active session could still be seen via the browser's back/forward cache, open DevTools, or a screen-share/remote-support tool. That's inherent to any browser-based tool, not something this app can fix on its own — close the tab when you're done on a shared machine.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span><span data-i18n="faq_q_it_2">Is this hosted on a government-approved server?</span><span class="faq-tag serious" data-i18n="faq_tag_serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a" data-i18n="faq_a_it_2">It's hosted on GitHub Pages, a standard public web-hosting service — not on any government-empanelled cloud.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span><span data-i18n="faq_q_it_3">You said no login — so how do you stop misuse?</span><span class="faq-tag serious" data-i18n="faq_tag_serious">Serious</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a" data-i18n="faq_a_it_3">There's no authentication layer. Access control is entirely on the school's side (who has the link, who has the Excel file). This tool doesn't provide role-based access.</div></details>
       <details class="faq-item"><summary><span class="faq-q-mark">Q</span><span><span data-i18n="faq_q_it_4">Installed app, or does it run in a browser?</span><span class="faq-tag practical" data-i18n="faq_tag_practical">Practical</span></span><span class="faq-chevron">▾</span></summary><div class="faq-a" data-i18n="faq_a_it_4">Browser only — it's a website, not an install from a store. It is technically a PWA (progressive web app), so it can be "Added to Home Screen" for an app-like icon, but it's still a web page underneath.</div></details>
@@ -2461,7 +2461,7 @@
 
 <!-- FOOTER -->
 <footer id="footer">
-  <a id="footer-project-link" href="https://studin.in/" target="_blank" rel="noopener">Student Insight</a> — Free &amp; Open Source (see source &amp; license: [repo URL]) · Version [X.X] · [Privacy Policy] · [Accessibility Statement] · Contact: <a href="mailto:sandeep@hakki.in">sandeep@hakki.in</a>
+  <a id="footer-project-link" href="https://studin.in/" target="_blank" rel="noopener">Student Insight</a> — Free &amp; Open Source · Contact: <a href="mailto:sandeep@hakki.in">sandeep@hakki.in</a>
 </footer>
 
 <!-- PERF: library scripts moved from <head> so they no longer block initial

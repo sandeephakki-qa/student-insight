@@ -159,8 +159,77 @@ const SmartQueryV2 = (function(){
       return { ok:false, text: q.unavailableMessage || "Not enough data yet to answer this." };
     }
 
+    const student = (currentMode()==="individual" && window.APP && APP.students && APP.students[0]) || null;
+    const vars = { name: student ? student.name : "" };
+
+    // "This Student" questions use a comma-joined computeKey (e.g.
+    // "student.analysis.rank,topperGap") or a function-call string
+    // (weakestSubjectsInfo(student)) — resolveComputeKey's generic dotted-path
+    // walker can only follow a single "." chain, so it can never resolve these
+    // and every per-student question fell through to emptyMessage regardless
+    // of what was asked. Answered directly off student.analysis instead,
+    // mirroring the per-question logic js/smart-engine.js already gets right
+    // (same notes/thresholds), just filled into this engine's template/vars.
+    if(q._categoryId === "per_student"){
+      if(!student) return { ok:false, text: "Select a student first." };
+      const a = student.analysis || {};
+      switch(q.id){
+        case "rank_gap":
+          vars.rank = a.rank; vars.n = (APP.students||[]).length; vars.topperGap = Math.round(a.topperGap);
+          vars.gapNote = a.topperGap<=5 ? "Very close to the top — small, consistent gains could close this gap." :
+                         a.topperGap<=20 ? "A moderate gap — steady improvement in weaker subjects should narrow this." :
+                         "A significant gap — worth a focused improvement plan rather than broad effort.";
+          return { ok:true, text: fillTemplate(q.answerTemplate, vars) };
+        case "trend":
+          vars.trend = a.trend;
+          vars.trendNote = a.trend==="improving" ? "Keep reinforcing what's working." :
+                            a.trend==="declining" ? "Worth a check-in before this becomes a pattern." :
+                            "Performance is stable — fine unless a change is expected soon.";
+          return { ok:true, text: fillTemplate(q.answerTemplate, vars) };
+        case "predicted_next":
+          if(a.predictedNext==null) return { ok:false, text: q.unavailableMessage || "Needs at least 2 tests recorded to project a next score." };
+          vars.predictedNext = a.predictedNext;
+          vars.predictionNote = a.predictedNext < ((APP.setup||{}).passThreshold) ? "This projection is below the pass threshold — worth early attention." : "";
+          return { ok:true, text: fillTemplate(q.answerTemplate, vars) };
+        case "consistency":
+          vars.consistencyScore = a.consistencyScore;
+          vars.consistencyNote = a.consistencyScore>=80 ? "Very steady — a reliable performer test to test." :
+                                  a.consistencyScore>=50 ? "Reasonably steady, with some fluctuation." :
+                                  "Quite volatile — investigating what's causing the swings may help more than more content.";
+          return { ok:true, text: fillTemplate(q.answerTemplate, vars) };
+        case "weakest_subject_student": {
+          const info = (typeof weakestSubjectsInfo==="function") ? weakestSubjectsInfo(student) : null;
+          if(!info || !info.weakest || !info.weakest.length) return { ok:false, text: "Not enough subject data for this student yet." };
+          vars.subjectOrSubjects = info.weakest.length>1 ? "subjects are" : "subject is";
+          vars.isAre = ""; vars.subjectList = info.weakest.join(", ");
+          vars.broadNote = info.broad ? "This is spread evenly rather than one weak spot — a broader support plan may help more than single-subject tutoring." : "";
+          return { ok:true, text: fillTemplate(q.answerTemplate, vars) };
+        }
+        case "wellbeing":
+          vars.wellbeingFlag = a.wellbeingFlag; vars.stressScore = a.stressScore;
+          vars.wellbeingNote = a.wellbeingFlag==="high" ? "Worth a supportive conversation soon — academics aside." :
+                                a.wellbeingFlag==="moderate" ? "Keep an eye on this — not urgent, but worth noting." :
+                                "No particular concern at this time.";
+          return { ok:true, text: fillTemplate(q.answerTemplate, vars) };
+        case "health_score":
+          vars.healthScore = a.healthScore; vars.healthBand = a.healthBand;
+          return { ok:true, text: fillTemplate(q.answerTemplate, vars) };
+        case "subject_deltas": {
+          const deltas = a.subjectDeltas || {};
+          const parts = Object.entries(deltas).map(([subj,d]) => subj + " (" + (d>=0?"+":"") + d + ")");
+          if(!parts.length) return { ok:false, text: "No subject comparison data available yet." };
+          vars.deltaSummary = parts.join(", ");
+          return { ok:true, text: fillTemplate(q.answerTemplate, vars) };
+        }
+        case "rank_movement_student":
+          if(a.rankMovement==null) return { ok:false, text: q.unavailableMessage || "Needs at least 2 tests recorded to compare rank movement." };
+          vars.direction = a.rankMovement>0 ? "moved up" : a.rankMovement<0 ? "moved down" : "not changed";
+          vars.absMovement = Math.abs(a.rankMovement);
+          return { ok:true, text: fillTemplate(q.answerTemplate, vars) };
+      }
+    }
+
     const value = resolveComputeKey(q.computeKey);
-    const vars = { name: (currentMode()==="individual" && window.APP && APP.students && APP.students[0]) ? APP.students[0].name : "" };
 
     if(value === undefined || value === null || (Array.isArray(value) && value.length===0)){
       return { ok:false, text: q.emptyMessage || q.unavailableMessage || "Nothing to report here yet — needs more data." };

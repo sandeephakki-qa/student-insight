@@ -247,6 +247,7 @@
     attachMobileAutoClose("start");
     attachMobileAutoClose("end");
     initMobileFirstVisitHint();
+    initMobileSheetHeightVar();
     // Item 2 fix (ui-prompt-template.md §4.1): the rails weren't showing
     // any text on Home. goStep("home") already calls
     // renderShellLeftRail()/renderShellRightRail(), but that boot call
@@ -259,6 +260,33 @@
     // content), fixes it if goStep() silently no-op'd.
     if(typeof renderShellLeftRail === "function") renderShellLeftRail((window.APP && APP.currentStep) || "home");
     if(typeof renderShellRightRail === "function") renderShellRightRail((window.APP && APP.currentStep) || "home");
+  }
+
+  // mobile fix (still-banging follow-up, 2026-07-30): the CSS height
+  // transition between 36px (collapsed) and min(70vh, calc(100vh - var(
+  // --content-top))) (expanded) still read as a snap rather than a slide
+  // on mobile Safari — animating `height` to a min()/calc()/vh-based
+  // target is exactly the case WebKit doesn't interpolate smoothly on;
+  // it recomputes the expression each frame instead of gliding between
+  // two known numbers. Fix: resolve that expression down to a concrete
+  // pixel number in JS, once at load and again on resize/orientation
+  // change, and expose it as --shell-sheet-h for the CSS transition to
+  // animate toward instead. The CSS keeps the old min()/calc() as a
+  // fallback default (var(--shell-sheet-h, min(...))) so nothing breaks
+  // if this runs before the variable is set, or on very old browsers
+  // without CSS custom property support.
+  function computeMobileSheetHeightPx(){
+    const contentTop = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--content-top")) || 96;
+    const px = Math.min(window.innerHeight * 0.7, window.innerHeight - contentTop);
+    document.documentElement.style.setProperty("--shell-sheet-h", Math.round(px) + "px");
+  }
+  function initMobileSheetHeightVar(){
+    computeMobileSheetHeightPx();
+    let resizeTimer = null;
+    window.addEventListener("resize", function(){
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(computeMobileSheetHeightPx, 120);
+    });
   }
 
   // mobile fix (screenshot follow-up, 2026-07-30): a first-time mobile
