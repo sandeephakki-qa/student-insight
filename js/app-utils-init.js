@@ -1,9 +1,18 @@
+import { applyCompareModeUI } from './compute-compare.js';
+import { runAnalysis } from './compute-stats.js';
+import { getSubjects, setUsageMode } from './project-setup.js';
+import { closeModal, destroyCharts, filterStudents, renderCharts } from './render-core.js';
+import { swRefresh } from './setup-wizard.js';
+import { srT } from './render-i18n.js';
+import { APP, goStep, initThemeToggle, populateCountryDropdown } from './state-nav.js';
+import { AI_FEATURES, renderAICheckboxes, selectAllAI } from './template-upload.js';
+
 /* ════ SAVE (stateless app — no persistence by design) ════
    Per the privacy-first/offline-first direction, Student Insight never
    writes student data to localStorage or any server. "Save" simply tells
    the user their Excel file IS the save — nothing is silently stored. */
 function saveSession(){
-  toast("Student Insight doesn't store data — your Excel file is your save. Use Export to generate reports.","warn");
+  toast(srT("val_no_data_stored"),"warn");
 }
 
 /* ════ UTILS ════ */
@@ -49,7 +58,7 @@ function validateSetup(){
   const tests=$("#tests-list .test-row-wrap .test-name-inp").map(function(){return $(this).val().trim();}).get().filter(Boolean);
 
   // inline field errors
-  $("#err-inst-name").toggle(!instName).text(isIndividual?"⚠ Student / Aspirant name is required":"⚠ Institution name is required");
+  $("#err-inst-name").toggle(!instName).text(isIndividual?srT("val_student_name_required_short"):srT("val_institution_name_required_short"));
   if(!instName) $("#inst-name").css("border-color","var(--c-danger)"); else $("#inst-name").css("border-color","");
   // Class / Batch is only mandatory in Institution mode — an individual
   // aspirant/parent may have no "batch" at all, and forcing a fake one
@@ -77,23 +86,23 @@ function validateSetup(){
   const dupeTests=findDupes(tests);
 
   const missing=[];
-  if(!instName) missing.push(isIndividual?"Student/Aspirant Name":"Institution Name");
-  if(classRequired&&!className) missing.push("Class / Batch");
-  if(!year) missing.push("Academic Year");
-  if(!subjects.length) missing.push("at least one Subject");
-  if(!tests.length) missing.push("at least one Test");
-  if(dupeSubjects.length) missing.push("duplicate Subject name(s): "+dupeSubjects.join(", "));
-  if(dupeTests.length) missing.push("duplicate Test name(s): "+dupeTests.join(", "));
+  if(!instName) missing.push(isIndividual?srT("setup_student_name_label"):srT("setup_institution_name_label"));
+  if(classRequired&&!className) missing.push(srT("setup_class_batch"));
+  if(!year) missing.push(srT("db_academic_year"));
+  if(!subjects.length) missing.push(srT("val_at_least_one_subject"));
+  if(!tests.length) missing.push(srT("val_at_least_one_test"));
+  if(dupeSubjects.length) missing.push(srT("val_dupe_subject_names",{names:dupeSubjects.join(", ")}));
+  if(dupeTests.length) missing.push(srT("val_dupe_test_names",{names:dupeTests.join(", ")}));
 
   const valid=missing.length===0;
   $("#btn-download-template").prop("disabled",!valid).css({opacity:valid?1:.45,cursor:valid?"pointer":"not-allowed"}).toggleClass("btn-glow",valid);
   const errEl=document.getElementById("sw-err-4");
-  if(errEl){ errEl.style.display=valid?"none":""; errEl.textContent=valid?"":"Still needed: "+missing.join(", ")+"."; }
+  if(errEl){ errEl.style.display=valid?"none":""; errEl.textContent=valid?"":srT("val_still_needed",{items:missing.join(", ")}); }
   if(typeof swRefresh==="function") swRefresh();
   return valid;
 }
 function toast(msg,type=""){const el=$(`<div class="toast ${type}" role="${type==="error"?"alert":"status"}">${msg}</div>`);$("#toast-wrap").append(el);setTimeout(()=>el.fadeOut(300,()=>el.remove()),3500);}
-function initEnvBadge(){const env=(window.APP_CONFIG&&APP_CONFIG.env)||"PROD";if(env!=="PROD"){$("#env-badge").text(env).show();}$("#project-page-link,#footer-project-link").attr("href",(window.APP_CONFIG&&APP_CONFIG.projectPageUrl)||"https://studin.in/");}
+function initEnvBadge(){const env=(window.APP_CONFIG&&window.APP_CONFIG.env)||"PROD";if(env!=="PROD"){$("#env-badge").text(env).show();}$("#project-page-link,#footer-project-link").attr("href",(window.APP_CONFIG&&window.APP_CONFIG.projectPageUrl)||"https://studin.in/");}
 
 
 /* TRUST ACCORDION */
@@ -175,14 +184,14 @@ if("serviceWorker" in navigator&&location.protocol!=="file:"){
       bar.id="sw-update-banner";
       bar.setAttribute("role","status");
       bar.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:99999;background:var(--c-primary,#1e40af);color:#fff;padding:10px 16px;display:flex;gap:12px;align-items:center;justify-content:center;font-size:13px;flex-wrap:wrap;box-shadow:0 -2px 8px rgba(0,0,0,.15)";
-      bar.innerHTML='<span>A new version of Student Insight is available.</span>';
+      bar.innerHTML='<span>'+esc(srT('val_new_version_available'))+'</span>';
       const btn=document.createElement("button");
-      btn.textContent="Refresh now";
+      btn.textContent=srT("btn_refresh_now");
       btn.style.cssText="background:#fff;color:#111;border:0;border-radius:6px;padding:4px 12px;font-weight:600;cursor:pointer";
       btn.onclick=function(){location.reload();};
       const dismiss=document.createElement("button");
-      dismiss.textContent="Later";
-      dismiss.setAttribute("aria-label","Dismiss update notice");
+      dismiss.textContent=srT("btn_later");
+      dismiss.setAttribute("aria-label",srT("aria_dismiss_update_notice"));
       dismiss.style.cssText="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:6px;padding:4px 12px;cursor:pointer";
       dismiss.onclick=function(){bar.remove();};
       bar.appendChild(btn);bar.appendChild(dismiss);
@@ -257,3 +266,15 @@ $(function(){
   // default (as it always was); Setup's mode-select card is still the
   // real place to switch, same as before v1.4 ever existed.
 });
+
+
+// --- ES module exports (added for module-system conversion, HANDOVER #4) ---
+export { _activeTrust, _lastGlobalErrorToastAt, _reportGlobalError, emptyStateHtml, esc, initEnvBadge, saveSession, showScreen, switchDbTab, toast, toggleTrust, validateSetup };
+
+// Legacy-global compatibility shim: modules don't leak top-level
+// declarations onto window the way classic scripts did. The handful of
+// inline onkeydown=/oninput=/onchange= attributes intentionally left as-is
+// (out of scope for HANDOVER #3 — only onclick was converted) still need a
+// bare global to resolve, so every exported name is also mirrored onto
+// window here. Harmless duplication for anything already imported properly.
+if(typeof window!=='undefined'){window._activeTrust=_activeTrust;window._lastGlobalErrorToastAt=_lastGlobalErrorToastAt;window._reportGlobalError=_reportGlobalError;window.emptyStateHtml=emptyStateHtml;window.esc=esc;window.initEnvBadge=initEnvBadge;window.saveSession=saveSession;window.showScreen=showScreen;window.switchDbTab=switchDbTab;window.toast=toast;window.toggleTrust=toggleTrust;window.validateSetup=validateSetup;}
