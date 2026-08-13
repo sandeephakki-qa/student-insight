@@ -1,4 +1,4 @@
-import { esc, toast } from './app-utils-init.js';
+import { esc, startAiLoaderCardCycle, stopAiLoaderCardCycle, toast } from './app-utils-init.js';
 import { deriveRosterStatus } from './compute-continuity.js';
 import { computeAnalysis, computeGenderAnalysis, parseStudents, runAnalysis, scrollToEl, sleep } from './compute-stats.js';
 import { bcp47TagFor, srT } from './render-i18n.js';
@@ -282,6 +282,7 @@ async function runCompareAnalysisCore(){
   if(!APP.aiFeatures.size)selectAllAI();
   goStep("ai"); // v2.4: bring the loader on-screen even without a manual stop here
   $("#ai-loader").show();
+  startAiLoaderCardCycle();
   // btn-analyse removed (v3.2) — panel-ai is now a pure progress screen.
   scrollToEl(document.getElementById("ai-loader"));
   for(let i=0;i<validSections.length;i++){
@@ -301,7 +302,7 @@ async function runCompareAnalysisCore(){
     sec.students=APP.students;sec.classStats=APP.classStats;sec.genderAnalysis=APP.genderAnalysis;sec.dataIssues=APP.dataIssues;sec.cohortClusters=APP.cohortClusters;
   }
   $("#ai-loader").hide();
-  // btn-analyse removed (v3.2) — panel-ai is now a pure progress screen.
+  stopAiLoaderCardCycle();
   computeCompareGroups();
   unlockStep("dashboard");unlockStep("export");
   const comparable=APP.compareGroups.filter(g=>g.sections.length>=2);

@@ -1,4 +1,4 @@
-import { toast } from './app-utils-init.js';
+import { startAiLoaderCardCycle, stopAiLoaderCardCycle, toast } from './app-utils-init.js';
 import { computePercentiles, generateStrengthsLetter, runCompareAnalysisCore } from './compute-compare.js';
 import { getStudentContinuityContext } from './compute-continuity.js';
 import { collectSetupForm, markClean, markDirty, startCompareMode, unlockStep } from './project-setup.js';
@@ -72,6 +72,7 @@ async function runAnalysis(){
     }
     goStep("ai"); // v2.4: bring the loader on-screen even though this step is no longer a manual stop in the normal flow
     $("#ai-loader").show();
+    startAiLoaderCardCycle();
     // btn-analyse / phase-actionbar-btns removed (v3.2) — panel-ai is now a pure progress screen, nothing to disable.
     // Bring the loader into view (respecting the fixed header) so the user
     // actually sees the progress instead of staring at a checkbox list that
@@ -100,6 +101,7 @@ async function runAnalysis(){
     }
     computeAnalysis();computeGenderAnalysis();
     $("#ai-loader").hide();
+    stopAiLoaderCardCycle();
     // btn-analyse / phase-actionbar-btns removed (v3.2) — panel-ai is now a pure progress screen, nothing to re-enable.
     if(APP.students.length){unlockStep("dashboard");unlockStep("export");}
     updateExportGate();

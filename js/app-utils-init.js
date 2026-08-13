@@ -18,6 +18,47 @@ function saveSession(){
 /* ════ UTILS ════ */
 function esc(v){return String(v||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 
+/* FIX (review #6): the two ".ai-loader-formula-card" boxes in #ai-loader
+   (index.html) used to be blank ".skeleton-card" shimmer rectangles.
+   Now they cycle through short symbol+label pairs drawn from metrics the
+   app actually computes/displays elsewhere (reusing existing i18n keys —
+   no new translation strings needed), giving the loading screen a sense
+   of live activity without inventing a number that might not match the
+   real result a moment later. Runs on its own fixed-cadence interval
+   rather than being wired to compute-stats.js's specific step array, so
+   the same two helpers work unmodified from both runAnalysis() (10
+   fake steps) and the Compare-mode per-section loader in
+   compute-compare.js (N sections) — call start when #ai-loader is shown,
+   stop right before it's hidden (see both call sites), and also from the
+   global error handler above so a mid-analysis crash can't leave the
+   interval running forever. */
+const AI_LOADER_FORMULA_SETS=[
+  [{symbol:"x̄",key:"kpi_average"},{symbol:"Δ",key:"kpi_trend"},{symbol:"P",key:"pdf_kpi_percentile"}],
+  [{symbol:"%",key:"kpi_pass_rate"},{symbol:"⚑",key:"detail_flags_label"},{symbol:"#",key:"th_rank"}]
+];
+let _aiLoaderCardInterval=null;
+let _aiLoaderCardTick=0;
+function _renderAiLoaderFormulaCards(){
+  AI_LOADER_FORMULA_SETS.forEach((set,i)=>{
+    const el=document.getElementById("ai-loader-formula-"+(i+1));
+    if(!el)return;
+    const item=set[_aiLoaderCardTick%set.length];
+    const symEl=el.querySelector(".ai-loader-formula-symbol");
+    const labelEl=el.querySelector(".ai-loader-formula-label");
+    if(symEl)symEl.textContent=item.symbol;
+    if(labelEl){labelEl.setAttribute("data-i18n",item.key);labelEl.textContent=srT(item.key);}
+  });
+}
+function startAiLoaderCardCycle(){
+  stopAiLoaderCardCycle(); // guard against a stray interval if start is ever called twice without an intervening stop
+  _aiLoaderCardTick=0;
+  _renderAiLoaderFormulaCards();
+  _aiLoaderCardInterval=setInterval(function(){_aiLoaderCardTick++;_renderAiLoaderFormulaCards();},900);
+}
+function stopAiLoaderCardCycle(){
+  if(_aiLoaderCardInterval){clearInterval(_aiLoaderCardInterval);_aiLoaderCardInterval=null;}
+}
+
 /* Shared screen-swap helper — jQuery .show() plus the .screen-fade-in
    transition class (see css/core.css), used by every bucket/legacy/Smart
    Search screen swap so the whole app transitions the same way, not just
@@ -246,6 +287,7 @@ function _reportGlobalError(kind,err,extra){
   _lastGlobalErrorToastAt=now;
   try{
     $("#ai-loader").hide();
+    stopAiLoaderCardCycle();
     document.getElementById("btn-home-run-analysis")?.removeAttribute("disabled");
     toast("Something went wrong and the app couldn't continue. Your data was never saved, so nothing is lost beyond needing to re-upload — please reload and try again.","error");
   }catch(e){/* toast()/jQuery unavailable this early — nothing more we can do client-side */}
@@ -269,7 +311,7 @@ $(function(){
 
 
 // --- ES module exports (added for module-system conversion, HANDOVER #4) ---
-export { _activeTrust, _lastGlobalErrorToastAt, _reportGlobalError, emptyStateHtml, esc, initEnvBadge, saveSession, showScreen, switchDbTab, toast, toggleTrust, validateSetup };
+export { _activeTrust, _lastGlobalErrorToastAt, _reportGlobalError, emptyStateHtml, esc, initEnvBadge, saveSession, showScreen, startAiLoaderCardCycle, stopAiLoaderCardCycle, switchDbTab, toast, toggleTrust, validateSetup };
 
 // Legacy-global compatibility shim: modules don't leak top-level
 // declarations onto window the way classic scripts did. The handful of

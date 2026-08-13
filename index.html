@@ -2068,6 +2068,8 @@
         Drop your class's filled Excel file below. Managing more than one section or batch? Drop 2 or more files at once — matching ones are compared automatically, and any that don't match still get their own individual analysis.
       </div>
       <div id="home-drop-zone" class="drop-zone"
+       
+       
         data-action="triggerHomeImport" role="button" tabindex="0">
         <div class="drop-zone-icon" data-tip="Drop 2 or more files at once to auto-compare matching sections"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 21V9'/><polyline points='7 14 12 9 17 14'/><path d='M4 21h16'/></svg></div>
         <div class="drop-zone-title" data-i18n="home_dropzone_label">Click to browse or drag &amp; drop your filled Excel file(s)</div>
@@ -2284,11 +2286,23 @@
       <div style="text-align:center;font-size:11px;color:var(--c-text3);margin-top:5px" id="ai-prog-label">0%</div>
     </div>
     <div class="loader-hint" data-i18n="setup_progress_crunching">Crunching numbers in your browser — this only takes a few seconds.</div>
-    <div style="max-width:520px;margin:18px auto 0;display:grid;gap:10px;grid-template-columns:1fr 1fr" aria-hidden="true">
-      <div class="skeleton skeleton-card"></div>
-      <div class="skeleton skeleton-card"></div>
-      <div class="skeleton skeleton-card"></div>
-      <div class="skeleton skeleton-card"></div>
+    <div class="ai-loader-cards" aria-hidden="true">
+      <div class="ai-loader-kpi-card">
+        <div class="ai-loader-kpi-label" data-i18n="kpi_class_avg">Class Avg</div>
+        <div class="skeleton skeleton-bar"></div>
+      </div>
+      <div class="ai-loader-kpi-card">
+        <div class="ai-loader-kpi-label" data-i18n="kpi_pass_rate">Pass Rate</div>
+        <div class="skeleton skeleton-bar"></div>
+      </div>
+      <div class="ai-loader-formula-card" id="ai-loader-formula-1">
+        <div class="ai-loader-formula-symbol">x̄</div>
+        <div class="ai-loader-formula-label" data-i18n="kpi_average">Average</div>
+      </div>
+      <div class="ai-loader-formula-card" id="ai-loader-formula-2">
+        <div class="ai-loader-formula-symbol">%</div>
+        <div class="ai-loader-formula-label" data-i18n="kpi_pass_rate">Pass Rate</div>
+      </div>
     </div>
   </div>
   <div id="ai-checkbox-cards" style="display:none;flex-direction:column;gap:16px">
