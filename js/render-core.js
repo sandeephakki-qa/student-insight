@@ -636,21 +636,21 @@ function showSampleFiles(){
   if(APP.currentStep==="dashboard"||APP.currentStep==="export"){toast(srT("val_home_only"),"warn");return;}
   const base=(window.APP_CONFIG&&window.APP_CONFIG.assetBase!==undefined)?window.APP_CONFIG.assetBase:"https://studin.in/";
   const files=[
-    {name:"Sample 1 — UPSC/IAS Coaching.xlsx",file:"Sample_1_For_UPSC_IAS_Coaching.xlsx",desc:srT("sample_1_desc"),mode:"Institution"},
-    {name:"Sample 2 — MBBS College Lecturer.xlsx",file:"Sample_2_For_MBBS_College_Lecturer.xlsx",desc:srT("sample_2_desc"),mode:"Institution"},
-    {name:"Sample 3 — International Masters College.xlsx",file:"Sample_3_For_International_Masters_College.xlsx",desc:srT("sample_3_desc"),mode:"Institution"},
-    {name:"Sample 4 — School Class Teacher.xlsx",file:"Sample_4_For_School_Class_Teacher.xlsx",desc:srT("sample_4_desc"),mode:"Institution"},
-    {name:"Sample 5 — Parent, Two Children (Different Grades).xlsx",file:"Sample_5_For_Individual_Two_Children.xlsx",desc:srT("sample_5_desc"),mode:"Individual"},
-    {name:"Sample 6 — Competitive Exam Aspirant (UPSC).xlsx",file:"Sample_6_For_Individual_UPSC_Aspirant.xlsx",desc:srT("sample_6_desc"),mode:"Individual"},
-    {name:"Sample 7 — Management: Class 7 Section A.xlsx",file:"Sample_7_For_School_Management_Section_A_Class7.xlsx",desc:srT("sample_7_desc"),mode:"Compare"},
-    {name:"Sample 8 — Management: Class 7 Section B.xlsx",file:"Sample_8_For_School_Management_Section_B_Class7.xlsx",desc:srT("sample_8_desc"),mode:"Compare"},
-    {name:"Sample 9 — Management: Class 7 Section C.xlsx",file:"Sample_9_For_School_Management_Section_C_Class7.xlsx",desc:srT("sample_9_desc"),mode:"Compare"},
-    {name:"Sample 10 — Large Scale (100 Students × 10 Tests).xlsx",file:"Sample_10_For_Large_Scale_100_Students.xlsx",desc:srT("sample_10_desc"),mode:"Scale"},
-    {name:"Sample 11 — Pre-Primary / Playschool (UKG).xlsx",file:"Sample_11_For_PrePrimary_Playschool.xlsx",desc:srT("sample_11_desc"),mode:"Institution"},
-    {name:"Sample 12 — High School, Class 10.xlsx",file:"Sample_12_For_High_School_Class10.xlsx",desc:srT("sample_12_desc"),mode:"Institution"},
-    {name:"Sample 13 — PUC / Junior College (II PUC Science).xlsx",file:"Sample_13_For_PUC_Junior_College.xlsx",desc:srT("sample_13_desc"),mode:"Institution"},
-    {name:"Sample 14 — UG, B.Sc Computer Science.xlsx",file:"Sample_14_For_UG_BSc_Computer_Science.xlsx",desc:srT("sample_14_desc"),mode:"Institution"},
-    {name:"Sample 15 — Engineering College, Semester 1-5 (Continuity).xlsx",file:"Sample_15_For_Engineering_College_Sem1to5_CONTINUITY.xlsx",desc:srT("sample_15_desc"),mode:"Continuity"}
+    {name:"Sample 1 — Pre-Primary / Playschool (UKG).xlsx",file:"Sample_01_For_PrePrimary_Playschool.xlsx",desc:srT("sample_11_desc"),mode:"Institution"},
+    {name:"Sample 2 — School Class Teacher.xlsx",file:"Sample_02_For_School_Class_Teacher.xlsx",desc:srT("sample_4_desc"),mode:"Institution"},
+    {name:"Sample 3 — Management: Class 7 Section A.xlsx",file:"Sample_03_For_School_Management_Section_A_Class7.xlsx",desc:srT("sample_7_desc"),mode:"Compare"},
+    {name:"Sample 4 — Management: Class 7 Section B.xlsx",file:"Sample_04_For_School_Management_Section_B_Class7.xlsx",desc:srT("sample_8_desc"),mode:"Compare"},
+    {name:"Sample 5 — Management: Class 7 Section C.xlsx",file:"Sample_05_For_School_Management_Section_C_Class7.xlsx",desc:srT("sample_9_desc"),mode:"Compare"},
+    {name:"Sample 6 — High School, Class 10.xlsx",file:"Sample_06_For_High_School_Class10.xlsx",desc:srT("sample_12_desc"),mode:"Institution"},
+    {name:"Sample 7 — PUC / Junior College (II PUC Science).xlsx",file:"Sample_07_For_PUC_Junior_College.xlsx",desc:srT("sample_13_desc"),mode:"Institution"},
+    {name:"Sample 8 — Large Scale (100 Students × 10 Tests).xlsx",file:"Sample_08_For_Large_Scale_100_Students.xlsx",desc:srT("sample_10_desc"),mode:"Scale"},
+    {name:"Sample 9 — MBBS College Lecturer.xlsx",file:"Sample_09_For_MBBS_College_Lecturer.xlsx",desc:srT("sample_2_desc"),mode:"Institution"},
+    {name:"Sample 10 — UG, B.Sc Computer Science.xlsx",file:"Sample_10_For_UG_BSc_Computer_Science.xlsx",desc:srT("sample_14_desc"),mode:"Institution"},
+    {name:"Sample 11 — Engineering College, Semester 1-5 (Continuity).xlsx",file:"Sample_11_For_Engineering_College_Sem1to5_CONTINUITY.xlsx",desc:srT("sample_15_desc"),mode:"Continuity"},
+    {name:"Sample 12 — International Masters College.xlsx",file:"Sample_12_For_International_Masters_College.xlsx",desc:srT("sample_3_desc"),mode:"Institution"},
+    {name:"Sample 13 — UPSC/IAS Coaching.xlsx",file:"Sample_13_For_UPSC_IAS_Coaching.xlsx",desc:srT("sample_1_desc"),mode:"Institution"},
+    {name:"Sample 14 — Competitive Exam Aspirant (UPSC).xlsx",file:"Sample_14_For_Individual_UPSC_Aspirant.xlsx",desc:srT("sample_6_desc"),mode:"Individual"},
+    {name:"Sample 15 — Parent, Two Children (Different Grades).xlsx",file:"Sample_15_For_Individual_Two_Children.xlsx",desc:srT("sample_5_desc"),mode:"Individual"}
   ];
   const badge={Institution:{bg:"#eafaf1",fg:"#1e8a5f"},Individual:{bg:"#e8edfb",fg:"var(--c-primary)"},Compare:{bg:"#fdf1e3",fg:"#b5690a"},Scale:{bg:"#f1ecf9",fg:"#7b5ea7"},Continuity:{bg:"#e6f7f5",fg:"#0f7a6e"}};
   const compareFiles=files.filter(f=>f.mode==="Compare").map(f=>f.file);

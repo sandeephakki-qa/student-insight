@@ -76,7 +76,7 @@ async function main() {
   // path an actual user hits clicking "Try Sample Data".
   if (typeof window.runSampleFile === "function") {
     try {
-      await window.runSampleFile(["Sample_4_For_School_Class_Teacher.xlsx"]);
+      await window.runSampleFile(["Sample_02_For_School_Class_Teacher.xlsx"]);
     } catch (e) {
       errors.push(`runSampleFile threw: ${e.message}`);
     }

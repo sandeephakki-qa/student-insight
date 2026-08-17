@@ -859,7 +859,7 @@ function parseWorkbookSheets(wb){
    instead of a <input type=file>, and success chains straight into
    runAnalysis() (which defaults to "select all AI features" when none
    have been chosen) so the teacher never has to click through Setup/
-   Data/AI Analysis manually. Sample_4 (School Class Teacher) was picked
+   Data/AI Analysis manually. Sample_02 (School Class Teacher) was picked
    as the default because it's a plain single-section Institution-mode
    class, the closest match to the non-power-user persona this feature
    is designed around. */

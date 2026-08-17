@@ -168,7 +168,7 @@ async function main() {
     window.APP_CONFIG = window.APP_CONFIG || {};
     window.APP_CONFIG.assetBase = "http://127.0.0.1:8899/samples/";
 
-    await window.runSampleFile(["Sample_4_For_School_Class_Teacher.xlsx"]);
+    await window.runSampleFile(["Sample_02_For_School_Class_Teacher.xlsx"]);
     await wait(300); // let handleHomeImportFiles()'s own DOM updates (enabling the Run Analysis button) settle
 
     const runBtn = document.getElementById("btn-home-run-analysis");

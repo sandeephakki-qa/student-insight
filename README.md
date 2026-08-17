@@ -76,15 +76,15 @@ Any static server works (`npx serve`, VS Code's Live Server extension, etc).
 
 15 sample spreadsheets are hosted in the `samples/` folder of this repo and linked from the "Sample Files" button next to About in the app — covering pre-primary through PG/professional programs (UPSC coaching, MBBS, an international Master's program, primary/high school, PU/junior college, plain UG, a 100-student scale example, and two individual/parent examples), plus Compare-Sections examples for the same class split into three sections. They're handy for trying the app out or as a template for formatting your own class data. See `samples/README.md` for the full breakdown of what each one demonstrates.
 
-One of the 15 (`Sample_15_..._CONTINUITY.xlsx`) uses a different, multi-period schema — see "Continuity feature" below. It works with the app (as of v4.36) but isn't yet in the one-click "Sample Files" picker; download it from `samples/` and use "Import Filled Excel" instead.
+One of the 15 (`Sample_11_..._CONTINUITY.xlsx`) uses a different, multi-period schema — see "Continuity feature" below. It works with the app (as of v4.36) and is included in the one-click "Sample Files" picker as Sample 11, which only works live once this file is uploaded to studin.in; until then, download it from `samples/` and use "Import Filled Excel" instead.
 
 ---
 
 ## Continuity feature
 
-Tracks one cohort across multiple periods (a class across school years, a section across semesters) in a single workbook — roster continuity (who joined/left), cohort trend charts, per-student trajectory + trend projection, and terminology that adapts to school vs. college automatically. As of v4.36 this works end-to-end on a real file: upload a workbook whose `SETUP` tab has `Period Count` > 1 (repeated `Period N Label`/`Subjects`/`Tests` blocks) plus a shared `STUDENTS` roster and `<PeriodLabel>-Test<N>` marks tabs, and the Continuity tab appears with real data — see `samples/Sample_15_For_Engineering_College_Sem1to5_CONTINUITY.xlsx` for a working example. The current (most recent) period gets the full detailed dashboard/PDF treatment; earlier periods feed the lighter Continuity trend view only.
+Tracks one cohort across multiple periods (a class across school years, a section across semesters) in a single workbook — roster continuity (who joined/left), cohort trend charts, per-student trajectory + trend projection, and terminology that adapts to school vs. college automatically. As of v4.36 this works end-to-end on a real file: upload a workbook whose `SETUP` tab has `Period Count` > 1 (repeated `Period N Label`/`Subjects`/`Tests` blocks) plus a shared `STUDENTS` roster and `<PeriodLabel>-Test<N>` marks tabs, and the Continuity tab appears with real data — see `samples/Sample_11_For_Engineering_College_Sem1to5_CONTINUITY.xlsx` for a working example. The current (most recent) period gets the full detailed dashboard/PDF treatment; earlier periods feed the lighter Continuity trend view only.
 
-Still open: there's no in-app way to *build up* a multi-period file incrementally (re-upload last year's file, add this year's data, get a new period appended automatically) — you construct the multi-period workbook by hand today, following Sample 15's structure. See the PIB in `index.html` (§7 `parseContinuityPeriods`, §9 `continuity-schema-now-built-v4.36`) for full technical status.
+Still open: there's no in-app way to *build up* a multi-period file incrementally (re-upload last year's file, add this year's data, get a new period appended automatically) — you construct the multi-period workbook by hand today, following Sample 11's structure. See the PIB in `index.html` (§7 `parseContinuityPeriods`, §9 `continuity-schema-now-built-v4.36`) for full technical status.
 
 ---
 
@@ -95,10 +95,24 @@ Still open: there's no in-app way to *build up* a multi-period file incrementall
 - Excel/CSV import & export via SheetJS (xlsx 0.18.5)
 - PDF generation via jsPDF 2.5.1 (with JSZip 3.10.1 as a supporting dependency)
 - Charts via Chart.js 4.4.1
-- Fonts: Google Fonts "Inter" + "DM Sans"
+- Fonts: SF Pro Display / SF Pro Text (native on Apple devices, falls back to system-ui/-apple-system elsewhere)
 - PWA: manifest + service worker (app shell cached for offline use)
 
 > **Known open item:** jQuery, SheetJS (xlsx-js-style), jsPDF, and JSZip are SRI-pinned (hashes verified against each package's npm-published dist file). Chart.js remains unpinned — its dist file changes across versions in a way that made guessing a stable hash unsafe. Contributions welcome.
+
+---
+
+## Design system
+
+The UI follows an Apple-inspired visual language (tokens live in `css/core.css`, all under the existing `--c-*`/`--r-*`/`--e-*` variable names, so no markup changes were needed):
+
+- **Colour** — single blue accent `#0066cc` (`#2997ff` in dark mode) for every interactive element; ink `#1d1d1f` on white/`#f5f5f7` canvases; true-black `#000` page background in dark mode with `#1d1d1f` tile surfaces.
+- **Typography** — SF Pro Display (headings, weight 600, tight negative letter-spacing) / SF Pro Text (body, weight 400), falling back to `-apple-system`/`system-ui` on non-Apple platforms.
+- **Shape** — pill-radius (`--r-pill`) buttons and chips, `8px`/`11px`/`18px` step radii for compact/utility/card surfaces.
+- **Depth** — soft neutral shadow scale (`--e-1`…`--e-4`); a single stronger `--c-product-shadow` token reserved for product-style imagery.
+- **Motion** — buttons scale to `0.95` on press (`:active`); cards lift `-2px` with a shadow bump on hover.
+- **Glass** — the top bar, step nav, and sticky phase action bar use real frosted glass (`backdrop-filter: saturate(180%) blur(20px)` over an 80%-opacity surface) instead of a flat background.
+- Dark mode is a token-only override (`[data-theme="dark"]`) — no structural CSS duplication.
 
 ---
 
