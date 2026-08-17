@@ -150,10 +150,20 @@ function updateTestSubjectCols(){
   });
 }
 function collectSetupForm(){
-  APP.setup.instName=$("#inst-name").val().trim();APP.setup.instType=$("#inst-type").val();
-  APP.setup.location=$("#inst-location").val().trim();APP.setup.contact=$("#inst-contact").val().trim();
-  APP.setup.className=$("#class-name").val().trim();APP.setup.section=$("#class-section").val().trim();
-  APP.setup.year=$("#class-year").val().trim();APP.setup.teacher=$("#class-teacher").val().trim();
+  // Same length-cap defense as autoInferSetup() (js/template-upload.js) —
+  // a maxlength HTML attribute helps but isn't guaranteed against every
+  // paste path, and this keeps both ingestion routes consistent.
+  const FIELD_MAX=120;
+  const capField=(raw,label)=>{
+    const s=String(raw||"");
+    if(s.length<=FIELD_MAX)return s;
+    toast(srT("val_setup_fields_truncated",{fields:label,max:FIELD_MAX}),"warn");
+    return s.slice(0,FIELD_MAX);
+  };
+  APP.setup.instName=capField($("#inst-name").val().trim(),"Institution Name");APP.setup.instType=$("#inst-type").val();
+  APP.setup.location=capField($("#inst-location").val().trim(),"Location");APP.setup.contact=capField($("#inst-contact").val().trim(),"Contact");
+  APP.setup.className=capField($("#class-name").val().trim(),"Class / Batch");APP.setup.section=capField($("#class-section").val().trim(),"Section");
+  APP.setup.year=capField($("#class-year").val().trim(),"Academic Year");APP.setup.teacher=capField($("#class-teacher").val().trim(),"Class Teacher");
   // clampNum: the HTML min/max attributes on these <input type="number">
   // fields are visual hints only — most browsers don't strictly enforce
   // them on typed or pasted values — so a pasted "-20" or "500" would

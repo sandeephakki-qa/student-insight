@@ -471,6 +471,27 @@ function parseStudents(){
   });
 
   APP.students=rosterOrder.map(k=>studentData[k]);
+  // Template-generator bug fix: buildStudentsSheet()/buildTestSheet()
+  // (js/template-upload.js) pre-fill 5 reference rows ("SAMPLE-1".."SAMPLE-5",
+  // was "STU001".."STU005") so the download isn't a blank, confusing grid.
+  // A user who fills in their real marks but never notices/replaces those
+  // rows got them silently counted as 5 real students with zero marks
+  // everywhere — dragging the class average down and inflating headcount,
+  // with no error shown. Auto-drop them here, but ONLY when they're
+  // genuinely untouched (reserved ID AND zero marks in every test AND no
+  // absents/remark/chapter) — a real student who happens to reuse one of
+  // these IDs with actual data entered is never at risk of being dropped,
+  // since real marks anywhere on the row disqualifies it from this check.
+  const SAMPLE_STUDENT_IDS=new Set(["SAMPLE-1","SAMPLE-2","SAMPLE-3","SAMPLE-4","SAMPLE-5"]);
+  let sampleRowsSkipped=0;
+  APP.students=APP.students.filter(st=>{
+    if(!SAMPLE_STUDENT_IDS.has(normId(st.id)))return true;
+    const untouched=Object.values(st.testData).every(td=>
+      Object.keys(td.marks).length===0&&!td.absents&&!td.remark&&!td.chapter);
+    if(untouched){sampleRowsSkipped++;return false;}
+    return true; // has real data despite the reserved-looking ID — keep it, don't guess
+  });
+  if(sampleRowsSkipped>0)toast(srT("val_sample_rows_skipped",{n:sampleRowsSkipped}),"info");
   if(orphanCount>0)toast(srT("val_orphan_rows_skipped",{n:orphanCount}),"warn");
 }
 
@@ -982,8 +1003,8 @@ function computeClassStats(){
    tool should avoid by default. */
 function normGender(raw){
   const s=String(raw||"").trim().toLowerCase();
-  if(["m","male","boy","b"].includes(s))return "Male";
-  if(["f","female","girl","g"].includes(s))return "Female";
+  if(["m","male","boy","b","men"].includes(s))return "Male";
+  if(["f","female","girl","g","women"].includes(s))return "Female";
   return null; // blank / "Other" / non-binary / typos — excluded from the
                // binary comparison rather than guessed at
 }
@@ -993,12 +1014,18 @@ function computeGenderAnalysis(){
   const MIN_GENDER_GROUP=3;
   const {subjects,passThreshold}=APP.setup;
   const groups={Male:[],Female:[]};
-  APP.students.forEach(st=>{const g=normGender(st.gender);if(g)groups[g].push(st);});
+  let unrecognizedCount=0;
+  APP.students.forEach(st=>{
+    const g=normGender(st.gender);
+    if(g)groups[g].push(st);
+    else if(String(st.gender||"").trim())unrecognizedCount++; // non-blank but didn't normalize — a typo/garbage value, not just "left blank"
+  });
   const eligible=Object.entries(groups).filter(([,arr])=>arr.length>=MIN_GENDER_GROUP);
   if(eligible.length<2){
     APP.genderAnalysis={available:false,
       reason:!Object.values(groups).some(a=>a.length)?srT("val_no_gender_column"):
-        srT("val_not_enough_gendered_students",{n:MIN_GENDER_GROUP})};
+        srT("val_not_enough_gendered_students",{n:MIN_GENDER_GROUP}),
+      unrecognizedCount};
     return APP.genderAnalysis;
   }
   const stats={};
@@ -1012,7 +1039,7 @@ function computeGenderAnalysis(){
     });
     stats[label]={count:arr.length,avg,passRate,subjectAvgs};
   });
-  const result={available:true,groups:stats};
+  const result={available:true,groups:stats,unrecognizedCount};
   const labels=Object.keys(stats);
   if(labels.length===2){
     const [a,b]=labels;

@@ -48,7 +48,7 @@
   script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://static.cloudflareinsights.com;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com;
-  img-src 'self' data: blob:;
+  img-src 'self' data: blob: https://api.qrserver.com;
   connect-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://cloudflareinsights.com;
   object-src 'none';
   base-uri 'self';
@@ -514,6 +514,12 @@
    generateTemplate() 2539 — fresh blank .xlsx (SETUP+MARKS+CONTEXT
      sheets) from current Setup form; branches to
      generateMergedTemplate() instead when APP.mergeMode.
+   generateBulkSectionTemplates()/toggleBulkSectionsUI() (v4.37,
+     js/template-upload.js) — "Generate/update multiple sections"
+     checkbox (index.html Class/Batch step) branch of generateTemplate();
+     one shared Setup form, one ZIP of N per-section .xlsx files. Fresh-
+     creation only — see §10 NOT BUILT "BULK ACTIONS ON ALREADY-EXISTING
+     FILES" for the separate, not-yet-built bulk-update counterpart.
    parseWorkbookSheets() 2791 / parseStudents() 3386 — import + per-
      student row parsing; isGrouped/posMap = grouped-header disambig
      (see §4 rawData._hdr_).
@@ -1124,6 +1130,48 @@
       don't assume a photo field exists on `student`)
     Automatic subject+test addition in "Update Existing Sheet" (see §7
       merge KNOWN LIMITATION — subject+test together isn't supported)
+    BULK ACTIONS ON ALREADY-EXISTING FILES ("Update Existing Sheet" bulk
+      mode — e.g. a school re-uploading last year's 7A/7B/7C.xlsx at once
+      to do "Add a test" or "Start a new class/semester" on all three
+      together). Deliberately NOT built — bulk template CREATION for
+      fresh files (the "Generate/update multiple sections" checkbox,
+      generateBulkSectionTemplates(), js/template-upload.js) WAS built
+      and is unrelated; this is the other half the person confirmed they
+      want built later, with the full plan captured here so it's not
+      re-scoped from scratch:
+        - Needs multi-file upload on the "Update Existing Sheet" screen
+          (currently single-file only — handleUpdateUpload()/
+          loadMergeSourceFromArrayBuffer() assume one file).
+        - The ONE fork question (chooseMergeFork) still applies, but
+          asked ONCE for the whole batch, not per file — same "Add a
+          test" vs "Start a new class/semester" choice, applied
+          identically to every uploaded file.
+        - Each file needs its OWN independent origPeriodSnapshot/
+          origTestSheetNames/dupeIds — do NOT let one file's state leak
+          into another's (this is the same double-mutation risk
+          generateBulkSectionTemplates() had to guard against for fresh
+          creation — deep-clone per file, never share objects across
+          iterations).
+        - "Add a test": each file gets whatever NEW test(s) the shared
+          Setup form defines, appended onto that file's own existing
+          tabs — old tabs/marks in EVERY file stay untouched (same
+          copy-the-worksheet-object safety generateMergedTemplate()
+          already guarantees for one file).
+        - "Start a new class/semester": same Class/Batch-must-differ
+          validation (case-insensitive) applies per file, checked
+          against THAT file's own previous period label — a file
+          already on "Class 6" and one still on "Class 5" can't both be
+          validated against one shared "new" label.
+        - A real product question that needs answering when this is
+          built (not yet asked): do all N files share the exact same
+          Section list order as the "Generate multiple sections" bulk-
+          create checkbox did, or does each upload just carry its own
+          existing Section value forward unchanged? (Most likely the
+          latter — Section shouldn't need re-entering if it's already
+          correct in each file's own SETUP — but confirm before coding.)
+        - Output: one ZIP, one file per input file, same
+          "<InstName>_<Class><Section>_TEMPLATES_<timestamp>.zip"
+          convention as the bulk-create path.
     Any shipped automated test harness for the merge feature (removed;
       verify manually against a real file before trusting a code read)
     Dark mode toggle — SHIPPED v2.2, not missing; see the theme-preload
@@ -1188,6 +1236,43 @@
 
 12. CHANGELOG — terse, append-only; full reasoning for pre-v2.0 items
     lived in an earlier PIB revision, ask if needed
+    v4.37 note: several real fixes landed between v4.36 and this entry
+      without individual PIB updates (repeated user reports of: sample-
+      file tabs still unprefixed on their actual deployed codebase — the
+      v4.35 rename had only touched a different snapshot; the "Start a
+      new class/semester" fork leaving old pre-filled tests uncleared,
+      silently creating extra unwanted tabs; a `<b>` tag rendering as
+      literal text in the fork modal from wrapping an already-safe
+      translated string in an extra esc()). Each was delivered as a
+      single-file fix without a full changelog pass — flagging the gap
+      rather than fabricating entries for changes not fully re-verified
+      against this exact file. v4.37 itself: bulk section template
+      creation — generateBulkSectionTemplates()/toggleBulkSectionsUI()
+      (js/template-upload.js), a "Generate/update multiple sections"
+      checkbox in the Class/Batch step (index.html) for a school with
+      e.g. 7A/7B/7C needing to build the Setup form once instead of 3
+      times. One shared Institution/Class/Subjects/Tests/Scoring/Teacher
+      (Teacher stays a single editable field, no per-section override —
+      confirmed with the person), only Section differs per output file;
+      downloads as one ZIP (JSZip, already a pinned dependency). Fixed a
+      real bug caught during testing before shipping: applyTabPrefix()
+      mutates test-name objects in place and is only idempotent against
+      its OWN prefix, so reusing the same test objects across sections
+      would have double-prefixed everything after the first ("Class7B-
+      Class7A-Test1") — each section now clones from one pristine,
+      never-mutated snapshot. Also caught and fixed a CSP violation
+      before shipping: first draft used an inline onchange="" attribute,
+      which this repo's actual CSP (script-src has no 'unsafe-inline' —
+      checked the real meta tag, not assumed) would silently block:
+      moved to the existing CHANGE_HANDLERS delegation map in
+      js/inline-actions.js, the same pattern every other Setup-form
+      input already uses. Deliberately scoped to FRESH template creation
+      only — bulk actions on files that already exist (bulk "Add a
+      test"/"Start a new class-semester" across several already-filled
+      section files) is a related but separate, larger feature the
+      person wants built later — full plan captured in §10 NOT BUILT
+      under "BULK ACTIONS ON ALREADY-EXISTING FILES" so it doesn't need
+      re-scoping from scratch when picked up.
     v4.30-v4.35 note: this repo's changelog top entry was v4.19 when the
       continuity feature arc (prompt-01 through prompt-05, plus this
       samples/docs merge pass) started, but the actual code had already
@@ -1984,8 +2069,23 @@
 -->
 <link rel="stylesheet" href="css/core.css">
 <link rel="stylesheet" href="css/vs-shell.css">
+<link rel="stylesheet" href="css/onboarding-slider.css">
 </head>
 <body>
+<!-- Onboarding / demo slider container — filled in by js/onboarding-slider.js.
+     Stays empty markup here so this file only owns the single insertion
+     point; all content/behavior lives in the JS module. -->
+<div id="si-onboard" hidden>
+  <div class="si-topbar">
+    <div class="si-dots" id="si-dots"></div>
+    <button class="si-skip" data-i18n="onboard_skip">Skip</button>
+  </div>
+  <div class="si-stage" id="si-stage"></div>
+  <div class="si-bottombar" id="si-bottombar">
+    <button class="si-btn si-btn-ghost" id="si-back" data-i18n="onboard_back">Back</button>
+    <button class="si-btn si-btn-primary" id="si-next" data-i18n="onboard_next">Next</button>
+  </div>
+</div>
 <a href="#main" class="skip-link" data-i18n="shell_skip_to_content">Skip to main content</a>
 
 
@@ -2212,6 +2312,24 @@
           <div id="err-class-year" style="display:none;font-size:11px;color:var(--c-danger);margin-top:3px;min-height:14px">⚠ <span data-i18n="setup_class_year_error">Academic year is required</span></div>
         </div>
         <div class="form-group" style="margin-bottom:0"><label id="class-teacher-label" data-i18n="setup_class_teacher_label">Teacher Name</label><input id="class-teacher" type="text"/></div>
+      </div>
+      <!-- Bulk sections (e.g. a school with 7A/7B/7C): one Setup form,
+           N output files in one ZIP. Deliberately scoped to fresh
+           template generation only — bulk actions on ALREADY-uploaded
+           files (bulk "Add a test"/"Start a new class-semester" across
+           several existing sections) is a separate, not-yet-built
+           feature — see PIB §10/§9 bulk-section-actions-not-built-yet. -->
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--c-border)">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:600">
+          <input type="checkbox" id="bulk-sections-toggle" style="accent-color:var(--c-primary)"/>
+          <span data-i18n="setup_bulk_sections_toggle">Generate/update multiple sections</span>
+        </label>
+        <div id="bulk-sections-fields" style="display:none;margin-top:8px">
+          <label style="font-size:11.5px;color:var(--c-text3)" data-i18n="setup_bulk_sections_label">Section names (comma-separated)</label>
+          <input id="bulk-sections-list" type="text" placeholder="e.g. A, B, C" data-i18n-placeholder="setup_bulk_sections_placeholder"/>
+          <div style="font-size:11px;color:var(--c-text3);margin-top:4px" data-i18n="setup_bulk_sections_hint">Same Class/Batch, Subjects, Tests, and Teacher apply to every section — only the Section changes per file. Downloads as one ZIP.</div>
+          <div id="err-bulk-sections" style="display:none;font-size:11px;color:var(--c-danger);margin-top:3px" data-i18n="setup_bulk_sections_error">Enter at least 2 section names, separated by commas</div>
+        </div>
       </div>
       <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--c-border)">
         <div style="font-size:11px;font-weight:700;color:var(--c-text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px" data-i18n="setup_scoring_title">Scoring</div>
@@ -2689,6 +2807,7 @@
             </a>
             <a href="mailto:sandeep@hakki.in" class="btn btn-primary btn-sm"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='2' y='4' width='20' height='16' rx='2'/><path d='M2 6l10 7 10-7'/></svg> <span data-i18n="about_bio_email_btn">sandeep@hakki.in</span></a>
             <a id="project-page-link" href="https://studin.in/" target="_blank" rel="noopener" class="btn btn-secondary btn-sm"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10'/><line x1='2' y1='12' x2='22' y2='12'/><path d='M12 2a15 15 0 0 1 0 20a15 15 0 0 1 0-20z'/></svg> <span data-i18n="about_bio_projectpage_btn">Project Page</span></a>
+            <button type="button" id="si-replay-btn" class="btn btn-sm" style="background:#2b3a67;color:#fff;border:none"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polygon points='5 3 19 12 5 21 5 3'/></svg> <span data-i18n="onboard_replay_btn">Replay intro / demo mode</span></button>
          </div>
         </div>
       </div>
@@ -2924,5 +3043,6 @@
 <script type="module" src="js/setup-wizard.js"></script>
 <script type="module" src="js/vs-shell.js"></script>
 <script type="module" src="js/inline-actions.js"></script>
+<script type="module" src="js/onboarding-slider.js"></script>
 </body>
 </html>

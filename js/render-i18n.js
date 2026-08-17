@@ -1089,6 +1089,19 @@ const SR_STRINGS_EN={
   val_subjects_list_changed:"Your Subjects list is different from the loaded file's. Existing test tabs are untouched either way, but double-check this was intentional.",
   val_missing_orig_tests:"Test tab(s) from the loaded file aren't in your current Setup form: {{names}}. That tab and its marks are still kept exactly as-is in the new file — this just means it wasn't recognised as matching a test in your Setup form. If you meant to keep the same test, re-add it with the exact original name instead of a new one.",
   val_dupe_ids_students_tab:"Duplicate Student ID(s) already existed on the STUDENTS tab: {{ids}}.",
+  merge_fork_title:"Adding another test, or a new class/semester?",
+  merge_fork_desc:"You're updating <b>{{fileName}}</b>. Pick one — this only asks once, right now.",
+  merge_fork_add_test_label:"Add a test",
+  merge_fork_add_test_desc:"Same class/semester as this file — you're just adding another test tab (Unit Test 2, Mid-Term, etc).",
+  merge_fork_new_period_label:"Start a new class/semester",
+  merge_fork_new_period_desc:"Students moving on (e.g. Class 5 -> Class 6, Semester 1 -> Semester 2). Keeps every prior period's marks untouched and adds this as a new one alongside them.",
+  merge_fork_new_period_banner:"Loaded <b>{{fileName}}</b> — <b>{{count}}</b> student(s) on the prior roster. Update the Class/Batch (and Subjects/Tests if they've changed) below for the NEW class/semester, then use <b>Update & Download</b>.",
+  val_new_period_same_class:"Class/Batch is still \"{{label}}\" — same as the period you're moving on from. For a new class/semester this needs to actually change (e.g. Class 5 -> Class 6).",
+  merge_fork_confirm_title:"Review before downloading",
+  merge_fork_confirm_desc:"Nothing has been saved yet. Every prior period's tabs are copied through unchanged — only the new period's blank test tab(s) are added.",
+  merge_fork_period_count:"Periods (total)",
+  merge_fork_new_period_is:"New period:",
+  merge_fork_new_joiners_note:"New students joining this period aren't added here — add their rows directly to the STUDENTS tab in the downloaded file.",
   merge_review_title:"Review before downloading",
   merge_review_desc:"Nothing has been saved yet. Every existing tab is copied through unchanged — only new blank test tab(s) are added. Check this matches what you expected, then confirm.",
   merge_students_on_roster:"Students on roster",
@@ -1276,6 +1289,16 @@ const SR_STRINGS_EN={
   val_name_truncated:"Full Name is {{len}} characters — truncated to {{max}} for display/export.",
   val_remark_truncated:"Remark is {{len}} characters — truncated to {{max}} for display/export.",
   val_orphan_rows_skipped:"{{n}} row(s) had a Student ID not on the roster and were skipped — see Data Issues.",
+  val_sample_rows_skipped:"{{n}} unused template sample row(s) (SAMPLE-1..5) were skipped — replace them with your real students before uploading next time.",
+  val_setup_fields_truncated:"{{fields}} was too long and got shortened to {{max}} characters — check it still reads correctly.",
+  setup_bulk_sections_toggle:"Generate/update multiple sections",
+  setup_bulk_sections_label:"Section names (comma-separated)",
+  setup_bulk_sections_placeholder:"e.g. A, B, C",
+  setup_bulk_sections_hint:"Same Class/Batch, Subjects, Tests, and Teacher apply to every section — only the Section changes per file. Downloads as one ZIP.",
+  setup_bulk_sections_error:"Enter at least 2 section names, separated by commas",
+  val_bulk_sections_need_two:"Enter at least 2 section names, separated by commas (e.g. A, B, C) — or uncheck bulk mode for a single file.",
+  toast_bulk_templates_downloaded:"Downloaded {{n}} section templates in {{fname}}.",
+  bucket_gender_unrecognized_count:"{{n}} student(s) have a Gender value that wasn't recognized (expected M/F/Male/Female/Boy/Girl) and were left out of this comparison.",
   val_outlier_reason:"{{name}}'s overall average ({{pct}}%) is a statistical outlier vs the class — z-score {{z}} against a class mean of {{mean}}% (SD {{sd}}). {{dir}} peers — worth a closer look either way.",
   val_far_ahead:"Unusually far ahead of",
   val_far_below:"Unusually far below",
@@ -1509,6 +1532,7 @@ function loadLanguage(code){
   // synchronous render (before this fetch resolves) isn't blank.
   if(window.I18N_TABLES[code] && code!=="en"){ // already fetched (non-English only — English always refetches once, below)
     window.SR_LANG = code;
+    syncLanguageDropdown(code);
     reapplyI18nStrings();
     return Promise.resolve();
   }
@@ -1519,6 +1543,7 @@ function loadLanguage(code){
       window.I18N_TABLES[code] = json;
       window.SR_LANG = code;
       window.I18N_LOADING = false;
+      syncLanguageDropdown(code);
       reapplyI18nStrings();
     })
     .catch(err=>{
@@ -1529,11 +1554,29 @@ function loadLanguage(code){
         // sitting in window.I18N_TABLES.en so English still renders correctly
         // even though i18n/en.json couldn't be fetched.
         window.SR_LANG = "en";
+        syncLanguageDropdown("en");
         reapplyI18nStrings();
         return;
       }
       toast("Couldn't load that language — staying on "+(SR_LANG_TABLES_LABEL(window.SR_LANG))+".","warn");
     });
+}
+// BUG FIX (studin-ui-bugs-2): loadLanguage() is called from several places
+// that are NOT the #language-select <select> itself changing (e.g. the
+// onboarding/demo-slide language picker calling window.onLanguageChange()
+// directly on "Get started"/"Skip"). The dropdown's own onchange handler
+// keeps it in sync when the USER drives it, but nothing previously wrote
+// the new language back into the <select>'s value when a language change
+// came from elsewhere — so after finishing the onboarding tour in e.g.
+// Hindi, the app WAS correctly switched to Hindi (translations applied,
+// AI-translation notice shown) but the Home screen's language dropdown
+// still displayed "English", contradicting the app's actual state. Calling
+// this from every place loadLanguage() sets window.SR_LANG (not just the
+// dropdown's own handler) keeps the visible control truthful regardless of
+// which caller triggered the switch.
+function syncLanguageDropdown(code){
+  const sel = document.getElementById("language-select");
+  if(sel && sel.value!==code) sel.value = code;
 }
 // AI-translation disclosure popup — shown whenever the user switches from
 // India/English into any regional language (see onLanguageChange in

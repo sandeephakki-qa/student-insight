@@ -11,7 +11,7 @@ import { shareInsightAsImage } from './render-i18n.js';
 import { swBack, swNext, swRefresh } from './setup-wizard.js';
 import { closeSmartSearchScreen, openSmartSearchScreen } from './smart-engine-ui.js';
 import { APP, goStep, onCountryChange, onLanguageChange, setThemeChoice } from './state-nav.js';
-import { cancelMergeMode, confirmMergedDownload, generateTemplate, handleHomeImportFiles, handleUpdateUpload, toggleAI } from './template-upload.js';
+import { cancelMergeMode, chooseMergeFork, confirmMergedDownload, generateTemplate, handleHomeImportFiles, handleUpdateUpload, toggleAI, toggleBulkSectionsUI } from './template-upload.js';
 import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-shell.js';
 
 // FIX (review #4, item 3): replaces the 51 static inline onclick="" handlers
@@ -52,6 +52,7 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
         document.getElementById('update-sheet-input').click();
         break;
       case 'cancelMergeMode': cancelMergeMode(); break;
+      case 'chooseMergeFork': chooseMergeFork(arg); break;
       case 'swNext': swNext(); break;
       case 'swBack': swBack(); break;
       case 'setUsageMode': setUsageMode(arg); break;
@@ -177,6 +178,7 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
     'pass-threshold': function(){ markDirty(); },
     'absent-alert': function(){ markDirty(); },
     'drop-alert': function(){ markDirty(); },
+    'bulk-sections-toggle': function(el){ toggleBulkSectionsUI(el.checked); },
     'search-student': function(){ filterStudents(); },
     'faq-search': function(el){ filterFAQ(el.value); }
   };

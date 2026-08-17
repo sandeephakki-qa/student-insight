@@ -71,7 +71,7 @@ function sanitizePdfDoc(doc){
     const pxFont=state.fontSize*scale;
     const weight=state.fontStyle&&state.fontStyle.indexOf("bold")>=0?"bold ":"";
     const style=state.fontStyle&&state.fontStyle.indexOf("italic")>=0?"italic ":"";
-    const fontStack="'Noto Sans','Noto Sans Devanagari','Noto Sans Tamil','Noto Sans Bengali','Noto Sans Kannada','Noto Sans Malayalam','Noto Sans Telugu','Noto Sans Gujarati','Noto Sans Gurmukhi','Noto Sans Oriya','Noto Nastaliq Urdu',sans-serif";
+    const fontStack="'Noto Sans','Noto Sans Devanagari','Noto Sans Tamil','Noto Sans Bengali','Noto Sans Kannada','Noto Sans Malayalam','Noto Sans Telugu','Noto Sans Gujarati','Noto Sans Gurmukhi','Noto Sans Oriya','Noto Nastaliq Urdu','sans-serif'";
     const measure=document.createElement("canvas").getContext("2d");
     measure.font=style+weight+pxFont+"px "+fontStack;
     const textW=Math.max(1,measure.measureText(line).width);

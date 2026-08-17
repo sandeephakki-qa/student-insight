@@ -301,6 +301,9 @@ function renderClassAnswer(){
   }
   if(APP.genderAnalysis){
     parts.push(`<p>${esc(srT("bucket_gender_comparison_available"))}</p>`);
+    if(APP.genderAnalysis.unrecognizedCount>0){
+      parts.push(`<p>${esc(srT("bucket_gender_unrecognized_count",{n:APP.genderAnalysis.unrecognizedCount}))}</p>`);
+    }
   }
   if(!parts.length)parts.push(`<p>${esc(srT("bucket_all_good"))}</p>`);
   const sts=APP.students||[];
