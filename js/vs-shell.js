@@ -288,6 +288,57 @@ import { APP, goStep } from './state-nav.js';
     // content), fixes it if goStep() silently no-op'd.
     if(typeof renderShellLeftRail === "function") renderShellLeftRail((window.APP && APP.currentStep) || "home");
     if(typeof renderShellRightRail === "function") renderShellRightRail((window.APP && APP.currentStep) || "home");
+    initMainScrollGuard();
+  }
+
+  // Bug fix (reported 2026-08-17): "any selection scrolls the middle
+  // section up, and it only ever goes up." Root cause: dozens of
+  // selection handlers app-wide (selectIndividualStudent,
+  // selectContinuityStudent, selectCompareSection/Group,
+  // renderCompareResult, switchDbTab, etc.) rebuild content inside
+  // #main via $(...).html(...). When the freshly-rebuilt content is
+  // shorter than what the user had scrolled down into, the browser
+  // clamps #main's scrollTop down to the new max — which reads as an
+  // unwanted snap-to-top, and only ever moves upward since it's a
+  // clamp, never a restore.
+  //
+  // Fix, applied once app-wide instead of patching every handler
+  // individually: track the user's real scroll position on #main via
+  // a plain 'scroll' listener, then after *any* DOM mutation inside
+  // #main, restore scrollTop back to that last known position (clamped
+  // by the browser automatically if the new content is genuinely
+  // shorter — that's expected; what we're removing is the *forced*
+  // reset when the new content is still tall enough to hold the old
+  // position).
+  function initMainScrollGuard(){
+    const main = document.getElementById("main");
+    if(!main || main._scrollGuardInit) return;
+    main._scrollGuardInit = true;
+    let lastScrollTop = main.scrollTop;
+    let restoring = false;
+    main.addEventListener("scroll", function(){
+      if(restoring) return; // don't record our own corrective scroll as "user intent"
+      lastScrollTop = main.scrollTop;
+    }, {passive:true});
+    const observer = new MutationObserver(function(){
+      if(main.scrollTop === lastScrollTop) return;
+      restoring = true;
+      main.scrollTop = lastScrollTop;
+      // Browser may have clamped to a smaller value if content is
+      // genuinely shorter now — keep lastScrollTop in sync with reality
+      // so the next mutation doesn't fight it.
+      lastScrollTop = main.scrollTop;
+      restoring = false;
+    });
+    observer.observe(main, {childList:true, subtree:true});
+    // Explicit navigation (switching Home/Setup/Dashboard/Export/etc. via
+    // goStep()) SHOULD reset to the top of the new panel — that's a real
+    // page change, not a same-panel selection refresh. state-nav.js's
+    // goStep() toggles the .active panel class right before rendering the
+    // new panel's content, so treat that as the one deliberate reset point.
+    document.addEventListener("stepnav:panelchanged", function(){
+      lastScrollTop = 0;
+    });
   }
 
   // mobile fix (still-banging follow-up, 2026-07-30): the CSS height

@@ -44,20 +44,29 @@ function renderBuckets(){
   if(APP.compareMode){
     $("#bucket-screen,#bucket-list-screen").hide();
     $("#panel-export").hide();
-    // v4.22-compare-mode-shell-parity §2/§3/§4: restore whichever
-    // section/group was last active (re-entry — e.g. leaving to Setup and
-    // coming back), or default to the first valid section on fresh entry
-    // ("BUILD spec §3: default landing is the first uploaded file's own
-    // result, never the Compare overview" — same rule as before, just
-    // driven from here instead of goStep()). Both helpers handle their
-    // own show/hide + rail refresh, mirroring openBucket()/openIndividualBucket().
-    if(APP._activeCompareGroupId && APP.sectionComparison && APP.sectionComparison.length){
+    // v4.24-compare-mode-default: fresh entry now defaults to the Compare
+    // group view (side-by-side ranking) when a matching group of 2+
+    // sections exists — that's the whole point of uploading multiple
+    // files for Compare. Falls back to the first valid section only when
+    // nothing matched (singleton uploads). Re-entry (leaving to Setup and
+    // coming back) still restores whichever section/group was last
+    // active, unchanged.
+    const stillActiveGroup=APP._activeCompareGroupId && (APP.compareGroups||[]).some(g=>g.id===APP._activeCompareGroupId&&g.sections.length>=2);
+    if(stillActiveGroup && APP.sectionComparison && APP.sectionComparison.length){
       selectCompareGroup(APP._activeCompareGroupId);
     } else {
       const validSecs=(APP.sections||[]).filter(s=>s.valid&&s.students);
-      const stillValid=APP._activeCompareSectionId && validSecs.some(s=>s.id===APP._activeCompareSectionId);
-      const targetId=stillValid ? APP._activeCompareSectionId : (validSecs[0]&&validSecs[0].id);
-      if(targetId) selectCompareSection(targetId);
+      const stillValidSection=APP._activeCompareSectionId && validSecs.some(s=>s.id===APP._activeCompareSectionId);
+      if(stillValidSection){
+        selectCompareSection(APP._activeCompareSectionId);
+      } else {
+        const firstGroup=(APP.compareGroups||[]).find(g=>g.sections.length>=2);
+        if(firstGroup) selectCompareGroup(firstGroup.id);
+        else{
+          const targetId=validSecs[0]&&validSecs[0].id;
+          if(targetId) selectCompareSection(targetId);
+        }
+      }
     }
     return;
   }

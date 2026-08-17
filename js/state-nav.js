@@ -118,6 +118,11 @@ function goStep(step){
     console.error("Shell rail render failed for step:",step,err);
   }
   $(".panel").removeClass("active screen-fade-in");$("#panel-"+step).addClass("active screen-fade-in");
+  // Tell vs-shell.js's #main scroll guard this is a real panel switch
+  // (should land at the top), as opposed to a same-panel selection
+  // refresh (should keep the user's scroll position). See
+  // initMainScrollGuard() in vs-shell.js for the fix this supports.
+  document.dispatchEvent(new CustomEvent("stepnav:panelchanged", {detail:{step:step}}));
   $(".step-item").removeClass("active").removeAttr("aria-current");$("[data-step='"+step+"']").addClass("active").removeClass("locked").attr("aria-current","step");
   updateNavHomeOnlyState();
   // v4.2: re-render AI feature checkboxes fresh in the current language on

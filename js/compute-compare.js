@@ -167,7 +167,12 @@ function addCompareSection(fileName,rawData,peek){
   // no shared/adopted schema anymore. computeCompareGroups() (run once
   // analysis starts) is what decides which sections' schemas match closely
   // enough to be silently compared against each other.
-  const schema=errors.length?null:{subjects:peek.subjects.slice(),tests:peek.tests.map(t=>({name:t.name,date:"",maxMarks:Object.assign({},t.maxMarks)}))};
+  // className/section carried alongside subjects/tests purely so
+  // schemaSignature() can strip THIS file's own "<Class><Section>-" tab
+  // prefix (applyTabPrefix()'s convention, baked into every generated
+  // template's Test N Name) before comparing test names across files —
+  // see schemaSignature() for why this matters.
+  const schema=errors.length?null:{subjects:peek.subjects.slice(),tests:peek.tests.map(t=>({name:t.name,date:"",maxMarks:Object.assign({},t.maxMarks)})),className:peek.className,section:peek.section};
   APP.sections.push({id,fileName,rawData,label:peek.label||fileName.replace(/\.[^.]+$/,""),
     valid:errors.length===0,errors,rowCount,schema,students:null,classStats:null,genderAnalysis:null,dataIssues:null,_fp:fp});
   invalidateStaleComparison();
@@ -324,13 +329,31 @@ async function runCompareAnalysisCore(){
 // the actual content does. Two sections landing in the same group is what
 // triggers a silent side-by-side comparison; sections with no match in the
 // batch just stay standalone (still fully analysed, still in the dropdown).
+// Every generated template names its test tabs "<Class><Section>-<Test
+// Name>" (applyTabPrefix() in template-upload.js — e.g. "Class7A-Final
+// Exam"), so two otherwise-identical sections (same subjects/tests/max
+// marks, different section) NEVER had equal t.name strings — the whole
+// point of Compare Mode (silently grouping "same class, different
+// section" files) could never fire. Strip each file's OWN class+section
+// prefix (reconstructed the same way applyTabPrefix built it, from that
+// file's own peeked SETUP tab — schema.className/section) before hashing
+// test names, so the comparison is on the test's real name, not on which
+// section it came from. Falls back to the untouched name if the test
+// wasn't actually prefixed (e.g. an older/manually-edited file).
+function stripSectionTestPrefix(name,schema){
+  const prefix=(String((schema&&schema.className)||"")+String((schema&&schema.section)||"")).replace(/[^a-zA-Z0-9]/g,"").slice(0,18);
+  if(prefix&&name.toLowerCase().startsWith(prefix.toLowerCase()+"-"))return name.slice(prefix.length+1);
+  return name;
+}
 function schemaSignature(schema){
   const subjectsLc=(schema.subjects||[]).map(s=>s.trim().toLowerCase()).sort();
+  const maxMarksLookup=Object.create(null);
+  (schema.subjects||[]).forEach(s=>{maxMarksLookup[s.trim().toLowerCase()]=s;});
   const testsSig=(schema.tests||[]).map(t=>{
-    const orig=(schema.subjects||[]).find(s=>s.trim().toLowerCase()===subjectsLc[0])||"";
     const mm=(schema.subjects||[]).slice().sort((a,b)=>a.trim().toLowerCase().localeCompare(b.trim().toLowerCase()))
       .map(s=>s.trim().toLowerCase()+":"+((t.maxMarks&&t.maxMarks[s])||100)).join(",");
-    return t.name.trim().toLowerCase()+"["+mm+"]";
+    const bareName=stripSectionTestPrefix(t.name.trim(),schema);
+    return bareName.toLowerCase()+"["+mm+"]";
   }).sort();
   return JSON.stringify({subjectsLc,testsSig});
 }
