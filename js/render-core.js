@@ -30,7 +30,10 @@ function renderDashboard(){
   // Chrome that only makes sense when comparing many students against
   // each other gets hidden entirely in Individual mode, rather than shown
   // with misleading/empty cohort numbers.
-  $("#individual-student-switcher").css("display",isIndividual?"flex":"none");
+  // Individual mode is one child per workbook (enforced at import), so the
+  // switcher only has a reason to appear for an older file saved before
+  // that rule existed and never re-exported since.
+  $("#individual-student-switcher").css("display",(isIndividual&&APP.students.length>1)?"flex":"none");
   $("#db-filter-bar").toggle(!isIndividual);
   $("#dbtab-insights").toggle(!isIndividual);
   $("#cohort-charts-row").toggle(!isIndividual);
@@ -650,7 +653,7 @@ function showSampleFiles(){
     {name:"Sample 12 — International Masters College.xlsx",file:"Sample_12_For_International_Masters_College.xlsx",desc:srT("sample_3_desc"),mode:"Institution"},
     {name:"Sample 13 — UPSC/IAS Coaching.xlsx",file:"Sample_13_For_UPSC_IAS_Coaching.xlsx",desc:srT("sample_1_desc"),mode:"Institution"},
     {name:"Sample 14 — Competitive Exam Aspirant (UPSC).xlsx",file:"Sample_14_For_Individual_UPSC_Aspirant.xlsx",desc:srT("sample_6_desc"),mode:"Individual"},
-    {name:"Sample 15 — Parent, Two Children (Different Grades).xlsx",file:"Sample_15_For_Individual_Two_Children.xlsx",desc:srT("sample_5_desc"),mode:"Individual"}
+    {name:"Sample 15 — Parent, One Child (Individual Mode).xlsx",file:"Sample_15_For_Individual_School_Going_Child.xlsx",desc:srT("sample_5_desc"),mode:"Individual"}
   ];
   const badge={Institution:{bg:"#eafaf1",fg:"#1e8a5f"},Individual:{bg:"#e8edfb",fg:"var(--c-primary)"},Compare:{bg:"#fdf1e3",fg:"#b5690a"},Scale:{bg:"#f1ecf9",fg:"#7b5ea7"},Continuity:{bg:"#e6f7f5",fg:"#0f7a6e"}};
   const compareFiles=files.filter(f=>f.mode==="Compare").map(f=>f.file);

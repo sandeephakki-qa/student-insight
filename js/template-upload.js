@@ -1016,6 +1016,16 @@ function validateSetupData(){
   if(!s.tests||!s.tests.length){errs.push({required:true,msg:srT("val_setup_no_tests")});}
   if(!s.teacher){errs.push({required:false,msg:srT("val_setup_teacher_not_set")});}
   if(!s.passThreshold){errs.push({required:false,msg:srT("val_setup_pass_threshold_not_set")});}
+  // Individual mode is one workbook per child — Subjects/Max Marks in
+  // SETUP are workbook-global, so a second child in the same STUDENTS tab
+  // silently inherits the first child's subject list and max-marks scale
+  // (wrong for two kids in different grades). Enforced here, the same
+  // choke point every import path (Home quick-import, Step 2 drop-zone,
+  // sample-file load) already runs through.
+  if(s.mode==="individual"){
+    const rosterRows=(APP.rawData&&APP.rawData["STUDENTS"])||[];
+    if(rosterRows.length>1){errs.push({required:true,msg:srT("val_individual_one_child_per_file")});}
+  }
   // Duplicate subject/test names (case-insensitive) silently corrupt
   // per-subject aggregation downstream since it's keyed by name — flag
   // as a warning rather than blocking, since the import can still proceed.

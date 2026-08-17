@@ -37,7 +37,10 @@ function bucketIsTop(st){
 
 function renderBuckets(){
   updateExportGate(); // EXPORT_GATE invariant: re-derive every time the Dashboard step is entered, same as renderDashboard() does — buckets is now an alternate entry point, not a replacement for the gate check.
-  $("#individual-student-switcher").css("display", APP.setup.mode==="individual" ? "flex" : "none");
+  // See render-core.js renderDashboard() — one child per workbook is now
+  // enforced at import, so this only ever shows for a pre-existing file
+  // saved before that rule and never re-exported since.
+  $("#individual-student-switcher").css("display", (APP.setup.mode==="individual"&&APP.students.length>1) ? "flex" : "none");
   if(APP.compareMode){
     $("#bucket-screen,#bucket-list-screen").hide();
     $("#panel-export").hide();

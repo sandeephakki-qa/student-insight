@@ -33,7 +33,7 @@ because these files carry multiple periods.
 | 12 | Sample_12_For_International_Masters_College.xlsx | Institution | College / University | 30 | 4 Module Assessments @100 |
 | 13 | Sample_13_For_UPSC_IAS_Coaching.xlsx | Institution | Coaching Centre | 30 | 4 (Prelims x2, Mains x2 @200) |
 | 14 | Sample_14_For_Individual_UPSC_Aspirant.xlsx | Individual | — | 1 (deliberate — not scaled up) | 4 (Prelims/Mains @200) |
-| 15 | Sample_15_For_Individual_Two_Children.xlsx | Individual | — | 2 (deliberate — not scaled up), Class 3 & Class 6 | 4 Terms @100 |
+| 15 | Sample_15_For_Individual_School_Going_Child.xlsx | Individual | — | 1 (deliberate — not scaled up), Class 6 | 4 Terms @100 |
 
 (11 is the Continuity file — see its own section below, out of numeric order in this table since it uses a different schema.)
 
