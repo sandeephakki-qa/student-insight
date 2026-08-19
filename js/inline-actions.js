@@ -9,7 +9,6 @@ import { closeModal, dbTabKeyNav, downloadUpdatedSheet, filterStudents, runSampl
 import { filterPickerList, onBucketStudentPick, onBucketSubjectPick, openFinding } from './render-findings.js';
 import { shareInsightAsImage } from './render-i18n.js';
 import { swBack, swNext, swRefresh } from './setup-wizard.js';
-import { closeSmartSearchScreen, openSmartSearchScreen } from './smart-engine-ui.js';
 import { APP, goStep, onCountryChange, onLanguageChange, setThemeChoice } from './state-nav.js';
 import { cancelMergeMode, chooseMergeFork, confirmMergedDownload, generateTemplate, handleHomeImportFiles, handleUpdateUpload, toggleAI, toggleBulkSectionsUI } from './template-upload.js';
 import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-shell.js';
@@ -99,14 +98,11 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
       case 'smartChatAskCanned':
         smartChatAskCanned(arg, el.getAttribute('data-arg2'));
         break;
-      // FIX (Smart Search "no value" report): the chat window's own Send
-      // button was never wired here — renderDashboardSmartSearch() adds a
-      // data-action="smartChatSubmit" button, but this dispatcher had no
-      // matching case, so clicking it silently did nothing (Enter-to-submit
-      // still worked via the input's own onkeydown, which is why the
-      // composer wasn't obviously broken to a quick glance).
+      // The chat window's own Send button (renderDashboardSmartSearch()) is
+      // data-action="smartChatSubmit" — Enter-to-submit is handled by the
+      // dedicated keydown case above, not here (see its comment: inline
+      // onkeydown="" on the input is CSP-blocked in this document).
       case 'smartChatSubmit': smartChatSubmit(); break;
-      case 'openSmartSearchScreen': openSmartSearchScreen(); break;
       case 'selectAllExpStudents': $('.exp-student-cb').prop('checked', true); break;
       case 'unselectAllExpStudents': $('.exp-student-cb').prop('checked', false); break;
       case 'generateAllPDFs': generateAllPDFs(); break;
@@ -114,7 +110,6 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
       case 'smartQueryRailAsk': smartQueryRailAsk(); break;
       case 'selectContinuityPeriod': selectContinuityPeriod(Number(arg)); break;
       case 'selectContinuityStudent': selectContinuityStudent(arg); break;
-      case 'closeSmartSearchScreen': closeSmartSearchScreen(); break;
       case 'deleteSubjectRow':
         $(el).closest('.subj-row').remove();
         updateTestSubjectCols();
@@ -180,8 +175,7 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
     switchDbTab: 1, setFilter: 1, sortStudents: 1,
     selectContinuityPeriod: 1, selectContinuityStudent: 1,
     onBucketStudentPick: 1, onBucketSubjectPick: 1, openFinding: 1,
-    backToBuckets: 1, backToBucketList: 1,
-    openSmartSearchScreen: 1, closeSmartSearchScreen: 1
+    backToBuckets: 1, backToBucketList: 1
     // smartChatAskCanned / smartQueryRailAnswer / smartQueryRailAsk are
     // deliberately NOT here: those append to a running chat/answer
     // transcript and already scroll themselves to the BOTTOM (new
@@ -263,6 +257,19 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
   document.addEventListener('keydown', function(ev){
     var tabEl = ev.target.closest('.db-tab[data-action]');
     if (tabEl) { dbTabKeyNav(ev, tabEl); return; }
+    // FIX: the chat composer's Enter-to-submit was written as an inline
+    // onkeydown="" attribute on the <input> (js/render-buckets.js
+    // renderDashboardSmartSearch()) — this document's own CSP has no
+    // 'unsafe-inline' in script-src (see the CSP <meta> in index.html and
+    // its "no per-element inline JS is left anywhere in this document"
+    // comment), so the browser silently drops that attribute and Enter
+    // does nothing. Delegated here instead, same pattern as every other
+    // keyed handler in this file.
+    if (ev.key === 'Enter' && ev.target.id === 'chat-composer-input') {
+      ev.preventDefault();
+      smartChatSubmit();
+      return;
+    }
     if (ev.key !== 'Enter' && ev.key !== ' ') return;
     var btn = ev.target.closest('[role="button"][data-action]');
     if (!btn) return;

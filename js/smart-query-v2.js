@@ -27,6 +27,12 @@ const SmartQueryV2 = (function(){
 
   let _bank = null;         // parsed knowledge/smart-questions.json
   let _loadPromise = null;
+  // Set fresh by every match() call from the actual query text (institution
+  // mode only — individual mode always resolves to APP.students[0] instead,
+  // see answerQuestionImpl). Read by answerQuestionImpl() immediately after,
+  // synchronously, within the same call — see match()'s comment below for
+  // why this doesn't go stale between the two calls.
+  let _lastMatchedStudent = null;
 
   /* ── Load & parse the question bank (same file smart-engine.js uses) ── */
   function load(){
@@ -158,11 +164,26 @@ const SmartQueryV2 = (function(){
     if(!questionAiFeatureOk(q)){
       return { ok:false, text: q.unavailableMessage || srT("smart_needs_ai_feature") };
     }
-    if(q._requires && !evalRequires(q._requires)){
+    // FIX (report: chat only ever surfaces class-wide questions, never
+    // student ones): q._requires for every per_student question is the
+    // category-level "selectedStudent" guard, and evalRequires() only
+    // ever returns true for that guard in individual mode (see its
+    // switch case below) — it has no notion of "a student was named in
+    // this chat message". That's fine for the canned/left-rail list
+    // (which has no query text to read a name from and correctly stays
+    // class-only there in institution mode), but it silently blocked
+    // per_student questions from EVER being answered via free-text chat
+    // in institution mode, even when a student was explicitly named
+    // ("how is Priya doing"). Skipped here specifically for per_student —
+    // student-presence is checked directly below via _lastMatchedStudent
+    // instead, which match() sets from the actual query text.
+    if(q._requires && !evalRequires(q._requires) && q._categoryId !== "per_student"){
       return { ok:false, text: q.unavailableMessage || srT("smart_not_enough_data") };
     }
 
-    const student = (currentMode()==="individual" && window.APP && APP.students && APP.students[0]) || null;
+    const student = currentMode()==="individual"
+      ? ((window.APP && APP.students && APP.students[0]) || null)
+      : (_lastMatchedStudent || null);
     const vars = { name: student ? student.name : "" };
 
     // "This Student" questions use a comma-joined computeKey (e.g.
@@ -377,13 +398,55 @@ const SmartQueryV2 = (function(){
     return !queryTokens.some(t => vocab.has(t));
   }
 
+  // FIX (report: chat only ever surfaces class-wide questions, never
+  // student ones — "should be all mix"): institution mode has many
+  // students, so there's no single "the student" the way individual mode
+  // has APP.students[0] — this scans the query text itself for a name.
+  // Matches on any single name-token (first or last name) at least 3
+  // chars long, so "Priya" or "Sharma" both work; picks the longest
+  // matching token if more than one student's name appears, since a
+  // longer/more specific name match is less likely to be a coincidence.
+  function resolveStudentByName(queryTokens){
+    if(!window.APP || !APP.students || !APP.students.length) return null;
+    let best = null, bestLen = 0;
+    APP.students.forEach(function(s){
+      if(!s || !s.name) return;
+      tokenize(s.name).forEach(function(nt){
+        if(nt.length >= 3 && nt.length > bestLen && queryTokens.indexOf(nt) !== -1){
+          best = s; bestLen = nt.length;
+        }
+      });
+    });
+    return best;
+  }
+
   function match(queryText, limit){
     limit = limit || 5;
     if(!_bank) return { ok:false, results:[], deflected:false, text:srT("smart_question_bank_not_loaded") };
     const qTokens = tokenize(queryText);
     if(!qTokens.length) return { ok:false, results:[], deflected:false, text:"" };
 
-    const candidates = availableQuestions();
+    // FIX (report: chat only ever surfaces class-wide questions, never
+    // student ones): availableQuestions() alone never includes per_student
+    // questions in institution mode (its "selectedStudent" requires guard
+    // only ever passes in individual mode — that's correct for the
+    // canned/left-rail list, which has no query text to find a name in).
+    // Here, where there IS query text, a named student widens the
+    // candidate pool to include per_student questions too, so "how is
+    // Priya doing" can actually match one instead of being invisible to
+    // the scorer entirely. _lastMatchedStudent is read straight back by
+    // answerQuestionImpl() right after this returns (same synchronous
+    // call chain in smartChatRunQuery — see its module-state comment).
+    const namedStudent = currentMode()==="institution" ? resolveStudentByName(qTokens) : null;
+    _lastMatchedStudent = namedStudent;
+    let candidates = availableQuestions();
+    if(namedStudent){
+      // Put per_student questions first — a query that named a student is
+      // almost certainly about that student, so their questions should be
+      // what gets suggested first, not buried after all the class-wide ones.
+      candidates = flatQuestions().filter(q => q._categoryId==="per_student" && questionAiFeatureOk(q))
+        .concat(candidates);
+    }
     const scored = candidates.map(q => {
       const labelTokens = tokenize(q.label);
       const catTokens = tokenize(q._categoryLabel);
@@ -394,6 +457,14 @@ const SmartQueryV2 = (function(){
         else if(keywordTokens.indexOf(t) !== -1) score += 2;
         else if(catTokens.indexOf(t) !== -1) score += 1;
       });
+      // A named student is a strong signal the question is about THEM —
+      // without this, a class-wide question that happens to share an
+      // incidental keyword (e.g. "doing") can outscore the actual
+      // per-student questions and auto-answer with something unrelated to
+      // who was actually asked about. Only applied once real (non-zero)
+      // topic overlap already exists, so this doesn't resurrect the
+      // score:0 "no real overlap" case handled separately below.
+      if(namedStudent && score>0 && q._categoryId==="per_student") score += 3;
       return { question: q, score };
     }).filter(r => r.score > 0);
 
@@ -425,7 +496,11 @@ const SmartQueryV2 = (function(){
     // chips, not an auto-answer) instead of a dead end; true gibberish
     // (no domain word at all) still gets the flat deflection.
     if(!results.length){
-      if(!isOutOfDomain(qTokens) && candidates.length){
+      // A named student counts as "on-topic" even if isOutOfDomain()
+      // wouldn't otherwise recognize the rest of the sentence (a name
+      // isn't in domainVocabulary) — "how is Priya doing" should offer
+      // Priya's questions as suggestions, not hit the flat gibberish wall.
+      if((namedStudent || !isOutOfDomain(qTokens)) && candidates.length){
         return {
           ok:true,
           results: candidates.slice(0,limit).map(q => ({ id:q.id, label:q.label, category:q._categoryLabel, score:0 })),

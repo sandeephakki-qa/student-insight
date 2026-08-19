@@ -172,7 +172,7 @@ textarea:focus-visible,[tabindex]:focus-visible,[role="button"]:focus-visible,
 .panel{display:none}.panel.active{display:block}
 
 /* CARDS — single system; variants layer on top instead of new one-off card styles */
-.card{background:var(--c-bg-raised);border:1px solid var(--c-border);border-radius:var(--r-md);padding:var(--sp-5) var(--sp-6);box-shadow:var(--e-1);margin-bottom:var(--sp-4);transition:box-shadow var(--dur-base) var(--ease-standard),border-color var(--dur-base) var(--ease-standard)}
+.card{background:var(--c-bg-raised);border:1px solid var(--c-border);border-radius:var(--r-md);padding:var(--sp-4) var(--sp-5);box-shadow:var(--e-1);margin-bottom:var(--sp-3);transition:box-shadow var(--dur-base) var(--ease-standard),border-color var(--dur-base) var(--ease-standard)}
 .card-title{font-family:var(--font-display);font-weight:700;font-size:var(--fs-md);margin-bottom:var(--sp-3);display:flex;align-items:center;gap:6px}
 .icon{font-size:16px}
 .ic{vertical-align:-0.15em;flex-shrink:0}

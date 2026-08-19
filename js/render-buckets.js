@@ -464,9 +464,10 @@ function buildSmartQueryCannedQuestionsHtml(){
   const questions=SmartQueryV2.availableQuestions();
   if(!questions.length) return "";
   const rows=questions.map(function(q){
-    const idJs=String(q.id).replace(/'/g,"\\'");
-    const labelJs=String(q.label).replace(/'/g,"\\'");
-    return `<div class="bucket-row" role="button" tabindex="0" data-action="smartChatAskCanned" data-arg="${esc(q.id)}" data-arg2="${esc(q.label)}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();smartChatAskCanned('${idJs}','${labelJs}');}">
+    // No inline onkeydown here — this doc's CSP blocks it anyway (see the
+    // delegated Enter/Space handler in js/inline-actions.js, which already
+    // covers any [role="button"][data-action] element, this one included).
+    return `<div class="bucket-row" role="button" tabindex="0" data-action="smartChatAskCanned" data-arg="${esc(q.id)}" data-arg2="${esc(q.label)}">
       <span class="bucket-text"><span class="bucket-label">${esc(q.label)}</span></span>
     </div>`;
   }).join("");
@@ -543,10 +544,9 @@ function renderDashboardSmartSearch(){
     <div class="chat-window">
       <div class="chat-thread" id="chat-thread"><div class="chat-empty-hint">${esc(srT("smart_v2_chat_empty_hint"))}</div></div>
       <div class="chat-composer">
-        <input id="chat-composer-input" class="input" type="text" autocomplete="off" placeholder="${esc(srT("smart_v2_input_placeholder"))}" onkeydown="if(event.key==='Enter'){event.preventDefault();smartChatSubmit();}"/>
+        <input id="chat-composer-input" class="input" type="text" autocomplete="off" placeholder="${esc(srT("smart_v2_input_placeholder"))}"/>
         <button type="button" class="btn btn-primary" data-action="smartChatSubmit">${esc(srT("smart_v2_send"))}</button>
       </div>
-      <button type="button" class="btn btn-secondary btn-sm shell-action-btn" style="margin-top:8px;align-self:flex-start" data-action="openSmartSearchScreen">${esc(srT("smart_v2_legacy_link"))}</button>
     </div>
   `);
   ensureSmartQueryLoaded();
