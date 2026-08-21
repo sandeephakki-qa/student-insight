@@ -436,7 +436,22 @@ const SmartQueryV2 = (function(){
 
   function isOutOfDomain(queryTokens){
     if(!_bank || !Array.isArray(_bank.domainVocabulary) || !_bank.domainVocabulary.length) return false;
-    const vocab = new Set(_bank.domainVocabulary.map(v=>v.toLowerCase()));
+    // BUG FIX (report: "english topper"/"maths topper" hit the flat
+    // deflection wall even though "topper" is literally in
+    // domainVocabulary): queryTokens here are already stemmed (tokenize()
+    // stems every token — "topper" -> "topp"), but this vocab set was
+    // built straight off the raw domainVocabulary strings ("topper"
+    // unstemmed), so "topp" never matched the literal "topper" entry and
+    // every query containing a stem-strippable domain word (any word
+    // ending in "er"/"ing"/"s"/etc — "toppers", "scoring", "students"...)
+    // was wrongly treated as out-of-domain. Run each vocab word through
+    // the same tokenize() pipeline the query already went through so both
+    // sides of the comparison are in the same (stemmed) space. A prior fix
+    // attempt (see the comment in match() above, near "topper got the
+    // same flat wall as gibberish") added the soft-suggestion path but
+    // missed that isOutOfDomain() itself was still the thing returning the
+    // wrong answer, so it never got a chance to run.
+    const vocab = new Set(_bank.domainVocabulary.flatMap(v => tokenize(v)));
     return !queryTokens.some(t => vocab.has(t));
   }
 
