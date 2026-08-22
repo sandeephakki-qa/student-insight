@@ -4,7 +4,7 @@ import { getStudentContinuityContext } from './compute-continuity.js';
 import { sleep } from './compute-stats.js';
 import { renderContinuityBucket } from './continuity-dashboard.js';
 import { startNewSession } from './project-setup.js';
-import { populateIndividualSwitcher, renderBucketStudentTrendChart, renderDashboard, updateExportGate } from './render-core.js';
+import { populateIndividualSwitcher, renderBucketStudentTrendChart, renderBucketSubjectDistChart, renderDashboard, updateExportGate } from './render-core.js';
 import { renderClusterGroups, renderFilteredList, renderStudentPicker, renderSubjectPicker } from './render-findings.js';
 import { generateHomePlan, generateParentMessage, generateSchoolPlan, generateTrendFacts, generateWhatChangedSummary, i18nLabel, shareInsightAsImage, srT } from './render-i18n.js';
 import { SmartQueryV2 } from './smart-query-v2.js';
@@ -263,7 +263,13 @@ function individualBucketDefs(st){
   if(st && st.analysis && st.analysis.wellbeingFlag){
     buckets.push({id:"wellbeing",label:i18nLabel("individual_bucket_wellbeing_label","Wellbeing"),desc:i18nLabel("individual_bucket_wellbeing_desc","Stress and engagement signals")});
   }
-  buckets.push({id:"smart",label:i18nLabel("bucket_smart_label","Smart Search ✨"),desc:i18nLabel("bucket_smart_desc","Ask anything about this student")});
+  // UI Bugs report: Smart Search removed from Individual mode — with a
+  // single child already fully visible across Report/Subjects/Plan/
+  // Wellbeing, a free-text search across "students" has nothing extra to
+  // offer a parent (unlike Institution mode, where it searches across a
+  // whole class). Institution mode's Smart Search bucket is unaffected —
+  // that's built by a separate function (buildDashboardControlsHtml),
+  // not this one.
   return buckets;
 }
 // v4.21-individual-mode-shell-parity §1: left-rail builder for Individual
@@ -319,6 +325,20 @@ function openIndividualBucket(id){
 // it anymore, so it's gone rather than kept as permanent dead weight.
 function renderIndividualReportAnswer(st){
   const a=st.analysis||{};
+  const validTestCount=(a.testAvgs||[]).filter(v=>v!==null&&v!==undefined).length;
+  const hasTrend=validTestCount>=2;
+  // Single-test students: a line chart with one dot looks broken, not
+  // "not enough data yet" — swap it for the subject breakdown (genuinely
+  // informative from test 1 onward) and say plainly what unlocks with a
+  // second test, instead of leaving a sparse chart to imply something's
+  // wrong.
+  const chartTitle=hasTrend?"Progress Trend":"Subject Breakdown";
+  const chartHtml=hasTrend
+    ? `<canvas id="bucket-chart-student-trend"></canvas>`
+    : `<canvas id="bucket-chart-student-subjectdist"></canvas>`;
+  const nextTestPrompt=hasTrend?"":`<div class="card" style="padding:12px 16px;margin-top:14px;background:var(--c-primary-soft);border-color:var(--c-primary)">
+    <div style="font-size:12.5px;color:var(--c-text)"><strong>One test so far.</strong> Add the next test's marks (Setup → Update Existing Template) to unlock progress trend, next-test prediction, and consistency scoring — all set up already, just waiting on more data.</div>
+  </div>`;
   $("#bucket-answer-screen").html(`
     <div class="bucket-answer-title">Progress Report — ${esc(st.name)}</div>
     <div class="bucket-answer-sub">Overall: ${esc(String(a.overallAvg))}% · Grade ${esc(a.grade||"-")} · Trend: ${esc(a.trend||"-")}</div>
@@ -329,14 +349,20 @@ function renderIndividualReportAnswer(st){
     </div>
     <div class="chart-container" style="margin-top:14px">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div class="card-title">Progress Trend</div>
+        <div class="card-title">${esc(chartTitle)}</div>
         <button class="btn btn-secondary btn-sm" data-action="shareInsightAsImage" data-arg="${esc(st.id)}"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 15V3'/><path d='M7 8l5-5 5 5'/><path d='M4 21h16'/></svg> Share as Image</button>
       </div>
-      <canvas id="bucket-chart-student-trend"></canvas>
+      ${chartHtml}
     </div>
+    ${nextTestPrompt}
     <div class="card" id="target-score-card" style="padding:14px 16px;margin-top:14px"></div>
   `).addClass("screen-fade-in").show();
-  renderBucketStudentTrendChart("bucket-chart-student-trend",st);
+  if(hasTrend){
+    renderBucketStudentTrendChart("bucket-chart-student-trend",st);
+  } else {
+    const rows=Object.entries(a.subjectAvgs||{}).map(([subj,val])=>({name:subj,avg:val})).sort((x,y)=>x.avg-y.avg);
+    renderBucketSubjectDistChart("bucket-chart-student-subjectdist",rows);
+  }
   renderTargetScoreCard(st.id);
 }
 // TASK (Project Bible v2 §5, "target-score tracker"): "Let a parent type
@@ -389,14 +415,22 @@ function renderTargetScoreGap(studentId){
 function renderIndividualSubjectsAnswer(st){
   const avgs=(st.analysis&&st.analysis.subjectAvgs)||{};
   const rows=Object.entries(avgs).sort((a,b)=>a[1]-b[1]).map(([subj,val])=>`<div class="subject-row"><span>${esc(subj)}</span><span>${esc(String(val))}%</span></div>`).join("");
+  const validTestCount=((st.analysis&&st.analysis.testAvgs)||[]).filter(v=>v!==null&&v!==undefined).length;
+  const hasTrend=validTestCount>=2;
+  const chartTitle=hasTrend?"Progress Trend":"Subject Breakdown";
   $("#bucket-answer-screen").html(`
     <div class="bucket-answer-title">Subjects & Marks — ${esc(st.name)}</div>
     <div class="bucket-answer-body">
       <div class="subject-row-list">${rows||"<p>No subject data available yet.</p>"}</div>
     </div>
-    <div class="chart-container" style="margin-top:14px"><div class="card-title">Progress Trend</div><canvas id="bucket-chart-student-trend2"></canvas></div>
+    <div class="chart-container" style="margin-top:14px"><div class="card-title">${esc(chartTitle)}</div><canvas id="bucket-chart-student-trend2"></canvas></div>
   `).addClass("screen-fade-in").show();
-  renderBucketStudentTrendChart("bucket-chart-student-trend2",st);
+  if(hasTrend){
+    renderBucketStudentTrendChart("bucket-chart-student-trend2",st);
+  } else {
+    const distRows=Object.entries(avgs).map(([subj,val])=>({name:subj,avg:val})).sort((x,y)=>x.avg-y.avg);
+    renderBucketSubjectDistChart("bucket-chart-student-trend2",distRows);
+  }
 }
 function renderIndividualPlanAnswer(st){
   $("#bucket-answer-screen").html(`

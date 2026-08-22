@@ -350,7 +350,7 @@ async function runCompareAnalysisCore(){
     $("#ai-loader-msg").text("Analysing "+sec.label+"…");
     $("#ai-loader-step").text("Section "+(i+1)+" of "+validSections.length);
     const pct=Math.round(((i+1)/validSections.length)*100);
-    $("#ai-prog").css("width",pct+"%");$("#ai-prog-label").text(pct+"%");
+    $("#ai-prog").css("transform","scaleX("+(pct/100)+")");$("#ai-prog-label").text(pct+"%");
     await sleep(280+Math.random()*220);
     // Each file is parsed against its OWN schema (not a shared one) — a
     // UPSC aspirant's file and a Class 7 file can both be analysed
@@ -598,7 +598,7 @@ function renderManagementGrid(mg){
       const row=c.secs.find(r=>r.sec===sk);
       if(!row)return `<td style="text-align:center;color:var(--c-text3)">—</td>`;
       return `<td style="text-align:center;cursor:pointer" data-action="selectCompareSection" data-arg="${row.id}" title="${esc(srT("title_click_to_open",{label:row.label}))}">
-        <div style="background:${cellColor(row.avg)};color:${cellText(row.avg)};border-radius:6px;padding:6px 4px;font-weight:700">${row.avg}%<div style="font-size:9px;font-weight:500;opacity:.8">${row.n} students</div></div>
+        <div style="background:${cellColor(row.avg)};color:${cellText(row.avg)};border-radius:6px;padding:6px 4px;font-weight:700">${row.avg}%<div style="font-size:11px;font-weight:500;opacity:.8">${row.n} students</div></div>
       </td>`;
     }).join("");
     return `<tr><td style="font-weight:700;white-space:nowrap">${esc(c.cls)}</td>${cells}<td style="text-align:center;font-weight:800;color:${cellText(c.avg)}">${c.avg}%</td></tr>`;
@@ -656,7 +656,7 @@ function renderWeakSubjectsCard(weakest){
 }
 function renderFlaggedSectionsCard(flagged){
   if(!flagged.length)return "";
-  return `<div class="card" style="margin-bottom:16px;border-left:3px solid var(--c-danger)">
+  return `<div class="card" style="margin-bottom:16px;background:var(--c-danger-bg)">
     <div class="card-title" style="margin-bottom:8px">🚩 Sections Needing Attention</div>
     ${flagged.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--c-border);cursor:pointer" data-action="selectCompareSection" data-arg="${r.id}">
       <span style="font-weight:600">${esc(r.label)}</span>
@@ -695,7 +695,7 @@ function renderCompareOverview(){
   </div>`;
   const tableRows=rows.map(r=>`<tr style="cursor:pointer" data-action="selectCompareSection" data-arg="${r.id}" title="${esc(srT("title_click_to_open",{label:r.label}))}">
     <td style="font-weight:700">#${r.rank}</td>
-    <td style="font-weight:600">${esc(r.label)} <span style="color:var(--c-primary);font-size:10px">↗</span></td>
+    <td style="font-weight:600">${esc(r.label)} <span style="color:var(--c-primary);font-size:11px">↗</span></td>
     <td>${r.n}</td>
     <td style="font-weight:700;color:${r.avg>=60?"var(--c-success)":r.avg>=35?"var(--c-warn)":"var(--c-danger)"}">${r.avg}%</td>
     <td>${r.passRate}%</td>

@@ -189,7 +189,7 @@ function renderClusterGroups(){
     const c=g.centroid;
     const names=g.students.map(st=>`<div class="subject-row"><span>${esc(st.name)}</span><span>${esc(String(st.analysis.overallAvg))}% · Rank #${esc(String(st.analysis.rank))}</span></div>`).join("");
     return `<details class="shell-details cluster-group-card" name="cluster-group-accordion"${i===0?" open":""}>
-      <summary class="shell-panel-title" style="cursor:pointer"><b>${esc(g.label)}</b> — ${g.students.length} student${g.students.length===1?"":"s"} · ${c.overallAvg}% avg · ${c.consistency} consistency</summary>
+      <summary class="shell-panel-title shell-panel-title-summary" style="cursor:pointer"><b>${esc(g.label)}</b> — ${g.students.length} student${g.students.length===1?"":"s"} · ${c.overallAvg}% avg · ${c.consistency} consistency</summary>
       <p style="font-size:12px;color:var(--c-text2);margin:8px 0">Group averages: ${c.overallAvg}% overall, trend ${c.slope>=0?"+":""}${c.slope} pts/test, ${c.absenceRate.toFixed(2)} absence days per test.</p>
       <div class="subject-row-list cluster-group-scroll">${names}</div>
     </details>`;

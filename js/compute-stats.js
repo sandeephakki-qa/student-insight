@@ -84,7 +84,7 @@ async function runAnalysis(){
       $("#ai-loader-msg").text(steps[i]);
       $("#ai-loader-step").text("Step "+(i+1)+" of "+steps.length);
       const pct=Math.round(((i+1)/steps.length)*100);
-      $("#ai-prog").css("width",pct+"%");$("#ai-prog-label").text(pct+"%");
+      $("#ai-prog").css("transform","scaleX("+(pct/100)+")");$("#ai-prog-label").text(pct+"%");
       await sleep(420+Math.random()*280);
     }
     parseStudents();

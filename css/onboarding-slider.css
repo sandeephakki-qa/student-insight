@@ -39,7 +39,7 @@
 .si-btn{border:none;border-radius:var(--r-md);padding:12px 26px;font-size:14px;font-weight:700;
   cursor:pointer;font-family:var(--font);}
 .si-btn-primary{background:var(--c-success);color:#fff;}
-.si-btn-primary:hover{background:#25a99d;}
+.si-btn-primary:hover{background:#1c837a;}
 .si-btn-ghost{background:none;color:var(--c-text3);}
 .si-btn-ghost:hover{color:var(--c-text2);}
 .si-dark-screen .si-btn-ghost{color:#8890b5;}
@@ -103,7 +103,7 @@
 .si-closing-box{background:none;border:1.5px solid var(--c-success);border-radius:var(--r-lg);
   padding:18px 24px;text-align:center;margin:20px 0;}
 .si-closing-box strong{font-family:var(--font-display);font-size:20px;color:var(--c-success);}
-.si-source{font-size:10.5px;color:var(--c-text3);font-style:italic;margin-top:10px;}
+.si-source{font-size:12px;color:var(--c-text3);font-style:italic;margin-top:10px;}
 .si-dark-screen .si-source{color:#7078a0;}
 
 /* ---------- Merged 3-row closing screen (founder / QR / thank-you) ---------- */
@@ -115,7 +115,7 @@
 
 .si-founder-wrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
 .si-founder-photo{width:64px;height:64px;flex:0 0 64px;border-radius:50%;overflow:hidden;
-  border:2px solid var(--c-success);box-shadow:0 4px 16px rgba(43,58,103,.18);}
+  border:2px solid var(--c-success);box-shadow:0 2px 8px rgba(0,0,0,.3);}
 .si-founder-photo img{width:100%;height:100%;object-fit:cover;display:block;}
 .si-founder-text{flex:1;min-width:220px;}
 .si-founder-name{font-family:var(--font-display);font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;}
@@ -131,7 +131,7 @@
 .si-qr-card img{width:120px;height:120px;border-radius:var(--r-sm);}
 .si-qr-label{font-family:var(--font-display);font-size:14px;font-weight:700;color:#fff;margin-top:8px;}
 .si-qr-url{font-size:11px;color:#9aa3c6;margin-top:2px;}
-.si-qr-tag{display:inline-block;margin-bottom:6px;font-size:10px;font-weight:700;letter-spacing:.05em;
+.si-qr-tag{display:inline-block;margin-bottom:6px;font-size:11px;font-weight:700;letter-spacing:.05em;
   text-transform:uppercase;padding:3px 10px;border-radius:var(--r-pill);background:#1c2440;color:#7fe9de;}
 
 .si-close-row-thanks{text-align:center;padding-top:18px;}

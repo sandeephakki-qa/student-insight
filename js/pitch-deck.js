@@ -79,7 +79,7 @@ const StudInPitchDeck = (function () {
         <button class="si-deck-close" id="si-deck-close" aria-label="Close">\u2715</button>
       </div>
       <div class="si-deck-stage">
-        <img class="si-deck-img" id="si-deck-img" alt="StudIn pitch deck slide">
+        <img class="si-deck-img" id="si-deck-img" alt="StudIn pitch deck slide" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBTAA7">
       </div>
       <div class="si-deck-bottombar">
         <button class="si-btn si-btn-ghost" id="si-deck-back">Back</button>

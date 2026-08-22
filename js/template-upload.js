@@ -56,7 +56,17 @@ function safeSheetName(name,usedNames){
 // an earlier "Add Test" round-trip), it's left alone instead of doubling
 // up into "Sem1-Sem1-Test 1".
 function classPrefixForTabs(){
-  let base=(String(APP.setup.className||"")+String(APP.setup.section||"")).replace(/[^a-zA-Z0-9]/g,"");
+  const rawClassName=String(APP.setup.className||"");
+  const rawSection=String(APP.setup.section||"");
+  let className=rawClassName.replace(/[^a-zA-Z0-9]/g,"");
+  let section=rawSection.replace(/[^a-zA-Z0-9]/g,"");
+  // Bug found via real uploaded files (Class / Batch "Class 6-B" + Section
+  // "B" produced tab name "Class6BB"): if the class name already ends
+  // with the section (a very common way people fill in "Class / Batch",
+  // e.g. "6-B" or "6B"), appending Section again just duplicates that
+  // last bit rather than adding new information — drop it in that case.
+  if(section && className.toLowerCase().endsWith(section.toLowerCase())) section="";
+  let base=className+section;
   if(!base)base="Class";
   return base.slice(0,18); // leaves room for a reasonably long test name within Excel's 31-char sheet-name limit
 }
@@ -256,13 +266,38 @@ function generateTemplate(){
   XLSX.utils.book_append_sheet(wb,buildReadmeSheet(),"README");
   const fname=(instName+" "+APP.setup.className+" "+APP.setup.year).replace(/[^\w\s-]/g,"").replace(/\s+/g,"_")+".xlsx";
   XLSX.writeFile(wb,fname);toast(srT("toast_template_downloaded",{fname:fname}),"success");
-  // BUG FIX (v3.9, item #4): Download Template is the real end of this
-  // flow — the person leaves to fill the file offline and comes back to
-  // Home later. Leaving the wizard's in-memory state sitting around meant
-  // a later "Back" or "Create New Template" could pick up stale
-  // setup/mergeMode data instead of a clean slate. The download itself is
-  // a synchronous blob save, so it's unaffected by the reload that follows.
-  setTimeout(()=>location.reload(),900);
+  // BUG FIX (screenshot review): used to auto-reload to Home 900ms later
+  // unconditionally, silently erasing a correctly-filled form even when
+  // the teacher still needed to revisit/correct it. Now ask instead — see
+  // showPostDownloadPrompt().
+  setTimeout(()=>showPostDownloadPrompt(),400);
+}
+// BUG FIX (screenshot review): auto-reloading straight to Home right after
+// a download silently erased a correctly-filled-in form — if the teacher
+// realizes a subject/mark is wrong, or wants to add one more test, that
+// state is just gone. Instead of location.reload() firing unconditionally,
+// ask: go to Home (clears the form, same as the old behavior) or Stay Here
+// (keep everything exactly as filled, so they can revisit/correct and
+// generate again). No timeout, no auto-navigation — the user decides.
+function showPostDownloadPrompt(){
+  $("#modal-content").html(`
+    <h3 style="font-family:var(--font-display);font-size:17px;margin-bottom:8px">✔ ${esc(srT("post_download_title"))}</h3>
+    <div style="font-size:12.5px;color:var(--c-text2);margin-bottom:16px">${esc(srT("post_download_desc"))}</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary btn-sm" data-action="stayAfterDownload">${esc(srT("btn_stay_here"))}</button>
+      <button class="btn btn-success btn-sm" data-action="goHomeAfterDownload">${esc(srT("btn_go_home"))}</button>
+    </div>`);
+  $("#modal-overlay").addClass("open");
+  setTimeout(()=>{const f=document.querySelector('#modal-overlay.open .modal-close');if(f)f.focus();},0);
+}
+function goHomeAfterDownload(){
+  if(typeof closeModal==="function")closeModal();
+  location.reload();
+}
+function stayAfterDownload(){
+  if(typeof closeModal==="function")closeModal();
+  // Deliberately a no-op beyond closing the modal — the form/state is
+  // untouched so the user can keep editing right where they left off.
 }
 function toggleBulkSectionsUI(checked){
   const el=document.getElementById("bulk-sections-fields");
@@ -332,7 +367,9 @@ function generateBulkSectionTemplates(){
     document.body.appendChild(link);link.click();link.remove();
     setTimeout(()=>URL.revokeObjectURL(url),4000);
     toast(srT("toast_bulk_templates_downloaded",{n:sectionNames.length,fname:zipFname}),"success");
-    setTimeout(()=>location.reload(),900);
+    // BUG FIX (screenshot review): same reasoning as generateTemplate() —
+    // ask before wiping the form instead of auto-reloading.
+    setTimeout(()=>showPostDownloadPrompt(),400);
   });
 }
 
@@ -441,6 +478,14 @@ function loadMergeSourceFromArrayBuffer(arrayBuffer,fileName){
   const origTestSheetNames=wb.SheetNames.filter(n=>!reservedUpper.has(n.toUpperCase().trim()));
   APP.mergeSource={
     workbook:wb, // the real parsed workbook — existing tabs get copied through untouched, not re-diffed row-by-row
+    // BUG FIX (backup file loses all formatting): the backup download used
+    // to be XLSX.write(workbook) of this same parsed `wb` — but XLSX.read()
+    // here doesn't preserve original cell styles (fills/bold/borders), so
+    // every re-serialized "backup" came out completely unstyled even though
+    // the original upload was fine. Stash the untouched original bytes so
+    // the backup can be the literal source file, not a lossy round-trip
+    // through the parser.
+    origArrayBuffer:arrayBuffer,
     studentsSheetName,studentsHeader,studentsRows,
     origTestSheetNames,
     sourceFileName:fileName,
@@ -509,7 +554,13 @@ function continueLoadMergeSource(){
   $("#btn-load-existing").html("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 21V9'/><polyline points='7 14 12 9 17 14'/><path d='M4 21h16'/></svg> "+i18nLabel("setup_btn_load_different","Load a Different Sheet"));
   toast(srT("toast_existing_sheet_loaded"),"success");
   APP.setupCard1Choice='update';
-  if(typeof swGoto==="function") swGoto(2);
+  // BUG FIX (screenshot review): used to land on step 2 (About), forcing
+  // the teacher to click Next through 2 and 3 to reach step 4 where ✚ Add
+  // Test / Update & Download actually live — even though autoInferSetup()
+  // above already filled steps 2 and 3 from the uploaded file's SETUP tab.
+  // Go straight to step 4; Back still works normally if they want to
+  // review/correct Institution or Class/Batch details first.
+  if(typeof swGoto==="function") swGoto(4);
   return true;
 }
 function cancelMergeMode(){
@@ -588,13 +639,74 @@ function generateMergedTemplate_OLD(){
 // existed is ever re-written, so it can't drift from the original by
 // definition. SETUP and README ARE regenerated fresh, since SETUP is
 // meant to reflect current settings and README is static boilerplate.
+// UI Bugs report: "when user wants to update the sheet/template, if they
+// missed a subject on a test they already have data for, adding that
+// subject in Setup doesn't add anywhere to actually enter marks for it
+// on that existing test." Root cause: generateMergedTemplate() below
+// always copies existing test-tab worksheet objects straight through
+// untouched (the safety guarantee that old marks can never be altered),
+// so a subject added to Setup only ever gets a column on genuinely NEW
+// test tabs — an existing tab has no cell for it at all. This patches an
+// existing tab's raw data with new blank columns (one per newly-added
+// subject, inserted where buildTestSheet()/buildTestSheetWithFormulas()
+// always place subject columns — right before "Absent Days") so there's
+// somewhere to actually fill in the missed marks. Every existing cell
+// (Student IDs, every prior subject's marks, Absent Days/Chapter/Remark)
+// is carried through unchanged in both position and value — only new,
+// previously-nonexistent cells are added.
+function appendSubjectColumnsToTestSheet(sheetName,addedSubjects){
+  const rawArr=(APP.rawData["_arr_"+sheetName]||[]).map(r=>(r||[]).slice());
+  if(!rawArr.length||!addedSubjects.length) return APP.rawWorkbook.Sheets[sheetName];
+  const header=rawArr[0].map(h=>h===null||h===undefined?"":String(h));
+  let insertAt=header.findIndex(h=>h.trim().toLowerCase()==="absent days");
+  if(insertAt===-1) insertAt=header.length;
+  const newHeaderCells=addedSubjects.map(s=>s+" Marks");
+  const newRows=rawArr.map((row,ri)=>{
+    const r=row.slice();
+    while(r.length<insertAt) r.push(""); // pad short/ragged rows so splice lands at the intended column
+    const filler=ri===0?newHeaderCells:newHeaderCells.map(()=>"");
+    r.splice(insertAt,0,...filler);
+    return r;
+  });
+  const ws=XLSX.utils.aoa_to_sheet(newRows);
+  const finalHeader=newRows[0]||[];
+  ws["!cols"]=finalHeader.map((_,i)=>({wch:i===0?12:i>=finalHeader.length-2?24:12}));
+  ws["!rows"]=newRows.map((_,r)=>({hpt:r===0?32:20}));
+  ws["!views"]=[{state:"frozen",xSplit:1,ySplit:1,topLeftCell:colLetter(1)+"2",activePane:"bottomRight"}];
+  finalHeader.forEach((_,c)=>{const cell=ws[colLetter(c)+"1"];if(cell)cell.s=TPL_STYLE.header;});
+  return ws;
+}
+// UI improvement (Sandeep, "gives the feeling we've taken a backup before
+// updating"): the "Add a test" update flow used to always invent a new
+// _UPDATED_<timestamp> filename, discarding the original name entirely.
+// Now the main download reuses the exact original filename (so re-saving
+// it over the source file in Excel/Explorer genuinely feels like "the
+// same file, updated in place"), and a second, separate download goes
+// out first with the untouched pre-update content, named with a
+// "backup" keyword + timestamp so it's unmistakably a safety copy taken
+// before the update happened.
+function deriveUpdateFilenames(originalName){
+  const base=String(originalName||"workbook").trim().replace(/\.(xlsx|xls|xlsm)$/i,"")||"workbook";
+  return{
+    mainFname:base+".xlsx",
+    backupFname:base+"_backup_"+timestampTag()+".xlsx",
+  };
+}
 function generateMergedTemplate(){
   const {subjects,tests}=APP.setup;
   const src=APP.mergeSource;
   const origTestNamesUpper=new Set(src.origTestSheetNames.map(n=>n.toUpperCase().trim()));
   const newTests=tests.filter(t=>!origTestNamesUpper.has(t.name.toUpperCase().trim()));
   applyTabPrefix(newTests);
-  if(!newTests.length){
+  const origSubjSet=new Set((src.origSubjects||[]).map(s=>s.trim().toLowerCase()));
+  const addedSubjects=subjects.filter(s=>!origSubjSet.has(s.trim().toLowerCase()));
+  // Only bail out when there's genuinely nothing to merge in — a new
+  // test tab OR a subject to append to the existing tabs. Previously this
+  // checked newTests alone, so a teacher who'd only added a missed
+  // subject (no new test) got "no new test found" and the download never
+  // ran, even though appendSubjectColumnsToTestSheet() below exists
+  // specifically to handle that case.
+  if(!newTests.length&&!addedSubjects.length){
     toast(srT("val_no_new_test_found"),"warn");
     return;
   }
@@ -615,12 +727,18 @@ function generateMergedTemplate(){
   // STUDENTS + every existing test tab: copy the ORIGINAL worksheet object
   // straight through. This is the safety guarantee — old marks physically
   // cannot be altered by this code path, because this code path never
-  // touches their cells at all.
+  // touches their cells at all. The one exception: if new subjects were
+  // added, existing test tabs get new blank columns appended for them
+  // (appendSubjectColumnsToTestSheet above) — every existing cell still
+  // keeps its original value, only new cells are added.
   const origWb=src.workbook;
   const studentsWs=origWb.Sheets[src.studentsSheetName];
   XLSX.utils.book_append_sheet(wb,studentsWs,safeSheetName("STUDENTS",usedNames));
   src.origTestSheetNames.forEach(sheetName=>{
-    XLSX.utils.book_append_sheet(wb,origWb.Sheets[sheetName],safeSheetName(sheetName,usedNames));
+    const ws=addedSubjects.length
+      ? appendSubjectColumnsToTestSheet(sheetName,addedSubjects)
+      : origWb.Sheets[sheetName];
+    XLSX.utils.book_append_sheet(wb,ws,safeSheetName(sheetName,usedNames));
   });
   newTests.forEach(t=>{
     const sheetName=safeSheetName(t.name,usedNames);
@@ -628,15 +746,16 @@ function generateMergedTemplate(){
   });
   usedNames.add("README");
   XLSX.utils.book_append_sheet(wb,buildReadmeSheet(),"README");
-  const fname=(APP.setup.instName+" "+APP.setup.className+" "+APP.setup.year).replace(/[^\w\s-]/g,"").replace(/\s+/g,"_")+"_UPDATED_"+timestampTag()+".xlsx";
+  const {mainFname:fname,backupFname}=deriveUpdateFilenames(src.sourceFileName);
   APP._pendingMerge={
-    wb,fname,
+    wb,fname,backupFname,backupBytes:src.origArrayBuffer,
     studentCount:src.studentsRows.length,
     tabsIn:src.origTestSheetNames.length+2, // + SETUP + STUDENTS
     tabsOut:wb.SheetNames.length,
     newTestNames:newTests.map(t=>t.name),
     keptTestNames:src.origTestSheetNames.slice(),
     subjectsChanged,missingOrigTests,dupeIds:src.dupeIds||[],
+    addedSubjects,
   };
   renderMergeConfirmModal();
 }
@@ -763,7 +882,11 @@ function renderMergeConfirmModal(){
     return;
   }
   const warnings=[];
-  if(p.subjectsChanged)warnings.push(srT("val_subjects_list_changed"));
+  if(p.addedSubjects&&p.addedSubjects.length){
+    warnings.push(srT("val_subjects_added_to_existing",{subjects:esc(p.addedSubjects.join(", "))}));
+  }else if(p.subjectsChanged){
+    warnings.push(srT("val_subjects_list_changed"));
+  }
   if(p.missingOrigTests.length)warnings.push(srT("val_missing_orig_tests",{names:esc(p.missingOrigTests.join(", "))}));
   if(p.dupeIds.length)warnings.push(srT("val_dupe_ids_students_tab",{ids:esc(p.dupeIds.join(", "))}));
   const warnHtml=warnings.length?`<div style="margin:10px 0;padding:10px 12px;background:#fff4e0;border-radius:var(--r-sm);font-size:12px;color:#8a5a00">⚠ ${warnings.join("<br>⚠ ")}</div>`:"";
@@ -777,7 +900,7 @@ function renderMergeConfirmModal(){
     <div style="font-size:12.5px;margin:10px 0 4px"><b>${esc(srT("merge_new_test_tabs_being_added"))}</b> ${esc(p.newTestNames.join(", "))}</div>
     <div style="font-size:11.5px;color:var(--c-text2);max-height:110px;overflow:auto;background:var(--c-surface2);border-radius:var(--r-sm);padding:8px 10px;margin-bottom:6px">${esc(srT("merge_kept_unchanged"))} SETUP, STUDENTS, ${p.keptTestNames.map(n=>esc(n)).join(", ")||esc(srT("merge_no_prior_test_tabs"))}<br>${esc(srT("merge_added_new"))} ${p.newTestNames.map(n=>esc(n)).join(", ")}</div>
     ${warnHtml}
-    <div style="font-size:11px;color:var(--c-text3);margin-bottom:14px">${esc(srT("merge_will_save_as"))} <code>${esc(p.fname)}</code></div>
+    <div style="font-size:11px;color:var(--c-text3);margin-bottom:14px">${p.backupFname?`${esc(srT("merge_will_save_as_zip_with_backup"))}<br><code>${esc(p.fname.replace(/\.xlsx$/i,""))}_with_backup.zip</code><div style="margin-top:4px">(<code>${esc(p.backupFname)}</code> + <code>${esc(p.fname)}</code>)</div>`:`${esc(srT("merge_will_save_as"))} <code>${esc(p.fname)}</code>`}</div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn btn-secondary btn-sm" data-action="closeModal">${esc(srT("btn_cancel"))}</button>
       <button class="btn btn-success btn-sm" data-action="confirmMergedDownload">✔ ${esc(srT("btn_confirm_download"))}</button>
@@ -787,8 +910,42 @@ function renderMergeConfirmModal(){
 }
 function confirmMergedDownload(){
   const p=APP._pendingMerge;if(!p){closeModal();return;}
+  // BUG FIX (browser download-spam block): two separate XLSX.writeFile()
+  // calls — even 400ms apart — get treated by Chrome/Edge/Firefox as
+  // multiple-file download spam from one page action; the second (main)
+  // file is frequently silently blocked, so the teacher only ends up with
+  // the backup and thinks the update never happened. Bundling both into
+  // one ZIP means exactly one browser download prompt/save, which nothing
+  // blocks. (Continuity/"new class or semester" files still skip the
+  // backup entirely — that flow produces a distinctly-named new file, not
+  // an in-place update of the source, so there's nothing to back up and
+  // this stays a single plain .xlsx download.)
+  if(p.backupBytes&&p.backupFname){
+    const zip=new JSZip();
+    // Raw original bytes, not a re-serialized XLSX.write() — see the note
+    // on origArrayBuffer above for why. This is what actually keeps the
+    // backup's formatting intact.
+    zip.file(p.backupFname,p.backupBytes);
+    zip.file(p.fname,XLSX.write(p.wb,{bookType:"xlsx",type:"array"}));
+    const zipFname=p.fname.replace(/\.xlsx$/i,"")+"_with_backup.zip";
+    zip.generateAsync({type:"blob"}).then(blob=>{
+      const url=URL.createObjectURL(blob);
+      const link=document.createElement("a");
+      link.href=url;link.download=zipFname;
+      document.body.appendChild(link);link.click();link.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),4000);
+      toast(srT("toast_updated_file_downloaded",{fname:zipFname,count:p.studentCount,newCount:p.newTestNames.length}),"success");
+      finishMergedDownload(p);
+    });
+    return;
+  }
   XLSX.writeFile(p.wb,p.fname);
   toast(srT("toast_updated_file_downloaded",{fname:p.fname,count:p.studentCount,newCount:p.newTestNames.length}),"success");
+  finishMergedDownload(p);
+}
+// Shared tail of confirmMergedDownload() — same regardless of whether the
+// zip-with-backup path or the plain single-file path fired above.
+function finishMergedDownload(p){
   unlockStep("data");
   $("#btn-download-template").removeClass("btn-glow");
   $("#btn-setup-next").addClass("btn-glow");
@@ -800,10 +957,10 @@ function confirmMergedDownload(){
   $("#merge-banner").hide();
   $("#btn-download-template").html("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 3v12'/><polyline points='7 10 12 15 17 10'/><path d='M4 21h16'/></svg> "+i18nLabel("setup_btn_download_template","Download Template"));
   $("#btn-load-existing").html("<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 21V9'/><polyline points='7 14 12 9 17 14'/><path d='M4 21h16'/></svg> "+i18nLabel("setup_btn_load_existing","Load Existing Filled Sheet"));
-  // BUG FIX (v3.9, item #4): same reasoning as the fresh-template path in
-  // generateTemplate() — this is the terminal action of the "Update
-  // Existing Template" flow, so refresh to a clean slate afterward.
-  setTimeout(()=>location.reload(),900);
+  // BUG FIX (screenshot review): same reasoning as generateTemplate() —
+  // ask before wiping the form instead of auto-reloading. The merge
+  // confirm modal we were just showing is reused for this next prompt.
+  setTimeout(()=>showPostDownloadPrompt(),400);
 }
 
 /* ════ SHARED FILE VALIDATION ════
@@ -997,6 +1154,10 @@ function afterAllCompareFilesLoaded(){
 }
 function handleHomeImport(file){
   if(!file)return;
+  APP._isSampleData=false; // FEEDBACK #9 (same as handleHomeImportFiles): a real single-file
+  // upload must also clear the "you're viewing sample data" banner — this path is reached
+  // whenever exactly one file is selected (handleHomeImportFiles() delegates here), so the
+  // multi-file caller alone resetting the flag left single-file imports still flagged as sample.
   const fileName=file.name;
   const statusEl=document.getElementById("home-import-status");
   const fileErr=validateUploadFile(file,["xlsx","xls"]);
@@ -1574,7 +1735,7 @@ function updateAICount(){$("#ai-selected-count").text(APP.aiFeatures.size+" feat
 
 
 // --- ES module exports (added for module-system conversion, HANDOVER #4) ---
-export { AI_FEATURES, TPL_STYLE, afterAllCompareFilesLoaded, afterImportSuccess, applyTabPrefix, autoInferSetup, buildReadmeSheet, buildSetupSheet, buildStudentsSheet, buildTestSheet, buildTestSheetWithFormulas, buildSheetIndex, cancelMergeMode, canonicalSheetKey, chooseMergeFork, classPrefixForTabs, clearAllAI, colLetter, confirmMergedDownload, generateBulkSectionTemplates, generateMergedTemplate, generateTemplate, handleHomeImport, handleHomeImportFiles, handleUpdateUpload, loadMergeSourceFromArrayBuffer, parseContinuityPeriods, parseWorkbookSheets, renderAICheckboxes, renderHomePage, renderMergeConfirmModal, resetHomeImport, resolveSheetName, safeSheetName, selectAllAI, showHomeRunAnalysisButton, timestampTag, toggleAI, toggleBulkSectionsUI, updateAICount, validateSetupData, validateUploadFile };
+export { AI_FEATURES, TPL_STYLE, afterAllCompareFilesLoaded, afterImportSuccess, applyTabPrefix, autoInferSetup, buildReadmeSheet, buildSetupSheet, buildStudentsSheet, buildTestSheet, buildTestSheetWithFormulas, buildSheetIndex, cancelMergeMode, canonicalSheetKey, chooseMergeFork, classPrefixForTabs, clearAllAI, colLetter, confirmMergedDownload, generateBulkSectionTemplates, generateMergedTemplate, generateTemplate, goHomeAfterDownload, handleHomeImport, handleHomeImportFiles, handleUpdateUpload, loadMergeSourceFromArrayBuffer, parseContinuityPeriods, parseWorkbookSheets, renderAICheckboxes, renderHomePage, renderMergeConfirmModal, resetHomeImport, resolveSheetName, safeSheetName, selectAllAI, showHomeRunAnalysisButton, showPostDownloadPrompt, stayAfterDownload, timestampTag, toggleAI, toggleBulkSectionsUI, updateAICount, validateSetupData, validateUploadFile };
 
 // Legacy-global compatibility shim: modules don't leak top-level
 // declarations onto window the way classic scripts did. The handful of
@@ -1582,4 +1743,4 @@ export { AI_FEATURES, TPL_STYLE, afterAllCompareFilesLoaded, afterImportSuccess,
 // (out of scope for HANDOVER #3 — only onclick was converted) still need a
 // bare global to resolve, so every exported name is also mirrored onto
 // window here. Harmless duplication for anything already imported properly.
-if(typeof window!=='undefined'){window.AI_FEATURES=AI_FEATURES;window.TPL_STYLE=TPL_STYLE;window.afterAllCompareFilesLoaded=afterAllCompareFilesLoaded;window.afterImportSuccess=afterImportSuccess;window.applyTabPrefix=applyTabPrefix;window.autoInferSetup=autoInferSetup;window.buildReadmeSheet=buildReadmeSheet;window.buildSetupSheet=buildSetupSheet;window.buildStudentsSheet=buildStudentsSheet;window.buildTestSheet=buildTestSheet;window.buildTestSheetWithFormulas=buildTestSheetWithFormulas;window.buildSheetIndex=buildSheetIndex;window.canonicalSheetKey=canonicalSheetKey;window.cancelMergeMode=cancelMergeMode;window.chooseMergeFork=chooseMergeFork;window.classPrefixForTabs=classPrefixForTabs;window.clearAllAI=clearAllAI;window.colLetter=colLetter;window.confirmMergedDownload=confirmMergedDownload;window.generateBulkSectionTemplates=generateBulkSectionTemplates;window.generateMergedTemplate=generateMergedTemplate;window.generateTemplate=generateTemplate;window.handleHomeImport=handleHomeImport;window.handleHomeImportFiles=handleHomeImportFiles;window.handleUpdateUpload=handleUpdateUpload;window.loadMergeSourceFromArrayBuffer=loadMergeSourceFromArrayBuffer;window.parseContinuityPeriods=parseContinuityPeriods;window.parseWorkbookSheets=parseWorkbookSheets;window.renderAICheckboxes=renderAICheckboxes;window.renderHomePage=renderHomePage;window.renderMergeConfirmModal=renderMergeConfirmModal;window.resetHomeImport=resetHomeImport;window.resolveSheetName=resolveSheetName;window.safeSheetName=safeSheetName;window.selectAllAI=selectAllAI;window.showHomeRunAnalysisButton=showHomeRunAnalysisButton;window.timestampTag=timestampTag;window.toggleAI=toggleAI;window.toggleBulkSectionsUI=toggleBulkSectionsUI;window.updateAICount=updateAICount;window.validateSetupData=validateSetupData;window.validateUploadFile=validateUploadFile;}
+if(typeof window!=='undefined'){window.AI_FEATURES=AI_FEATURES;window.TPL_STYLE=TPL_STYLE;window.afterAllCompareFilesLoaded=afterAllCompareFilesLoaded;window.afterImportSuccess=afterImportSuccess;window.applyTabPrefix=applyTabPrefix;window.autoInferSetup=autoInferSetup;window.buildReadmeSheet=buildReadmeSheet;window.buildSetupSheet=buildSetupSheet;window.buildStudentsSheet=buildStudentsSheet;window.buildTestSheet=buildTestSheet;window.buildTestSheetWithFormulas=buildTestSheetWithFormulas;window.buildSheetIndex=buildSheetIndex;window.canonicalSheetKey=canonicalSheetKey;window.cancelMergeMode=cancelMergeMode;window.chooseMergeFork=chooseMergeFork;window.classPrefixForTabs=classPrefixForTabs;window.clearAllAI=clearAllAI;window.colLetter=colLetter;window.confirmMergedDownload=confirmMergedDownload;window.generateBulkSectionTemplates=generateBulkSectionTemplates;window.generateMergedTemplate=generateMergedTemplate;window.generateTemplate=generateTemplate;window.goHomeAfterDownload=goHomeAfterDownload;window.showPostDownloadPrompt=showPostDownloadPrompt;window.stayAfterDownload=stayAfterDownload;window.handleHomeImport=handleHomeImport;window.handleHomeImportFiles=handleHomeImportFiles;window.handleUpdateUpload=handleUpdateUpload;window.loadMergeSourceFromArrayBuffer=loadMergeSourceFromArrayBuffer;window.parseContinuityPeriods=parseContinuityPeriods;window.parseWorkbookSheets=parseWorkbookSheets;window.renderAICheckboxes=renderAICheckboxes;window.renderHomePage=renderHomePage;window.renderMergeConfirmModal=renderMergeConfirmModal;window.resetHomeImport=resetHomeImport;window.resolveSheetName=resolveSheetName;window.safeSheetName=safeSheetName;window.selectAllAI=selectAllAI;window.showHomeRunAnalysisButton=showHomeRunAnalysisButton;window.timestampTag=timestampTag;window.toggleAI=toggleAI;window.toggleBulkSectionsUI=toggleBulkSectionsUI;window.updateAICount=updateAICount;window.validateSetupData=validateSetupData;window.validateUploadFile=validateUploadFile;}
