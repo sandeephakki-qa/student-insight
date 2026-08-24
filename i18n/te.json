@@ -1200,6 +1200,7 @@
   "val_upload_file_home_first": "ముందుగా Homeలో ఒక ఫైల్‌ను అప్‌లోడ్ చేయండి.",
   "val_upload_1_valid_file_home_first": "ముందుగా Homeలో కనీసం 1 చెల్లుబాటు అయ్యే ఫైల్‌ను అప్‌లోడ్ చేయండి.",
   "val_run_analysis_first": "ముందుగా Run Analysis చేయండి.",
+  "val_run_analysis_first_title": "ముందుగా Home లో Run Analysis చేయండి",
   "home_strip_privacy": "డేటా ఎప్పుడూ అప్‌లోడ్ కాదు",
   "home_strip_languages": "13 భాషలు",
   "home_strip_autodetect": "సబ్జెక్టులు మరియు పరీక్షలను స్వయంచాలకంగా గుర్తిస్తుంది",

@@ -249,6 +249,11 @@ function onBucketStudentPick(name){
   const st=(APP.students||[]).find(s=>(s.name||"").trim().toLowerCase()===String(name).trim().toLowerCase());
   if(!st)return;
   $("#bucket-answer-screen").html(`<div class="bucket-answer-body">${buildStudentDetailHtml(st)}</div>`);
+  // buildStudentDetailHtml only emits the Progress Trend canvas when the
+  // student has 2+ tests (see hasTrend there) — mirror Individual mode's
+  // renderIndividualReportAnswer by only initializing the chart when that
+  // canvas actually exists.
+  if($("#bucket-chart-student-trend").length) renderBucketStudentTrendChart("bucket-chart-student-trend",st);
 }
 
 function renderSubjectPicker(){

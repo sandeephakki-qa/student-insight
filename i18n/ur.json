@@ -1201,6 +1201,7 @@
   "val_upload_file_home_first": "پہلے Home پر ایک فائل اپ لوڈ کریں۔",
   "val_upload_1_valid_file_home_first": "پہلے Home پر کم از کم 1 درست فائل اپ لوڈ کریں۔",
   "val_run_analysis_first": "پہلے Run Analysis کریں۔",
+  "val_run_analysis_first_title": "پہلے Home پر Run Analysis کریں",
   "home_strip_privacy": "کوئی ڈیٹا کبھی اپ لوڈ نہیں ہوتا",
   "home_strip_languages": "13 زبانیں",
   "home_strip_autodetect": "مضامین اور ٹیسٹ خودکار طور پر شناخت کرتا ہے",

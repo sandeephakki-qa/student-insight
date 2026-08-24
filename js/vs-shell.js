@@ -1,7 +1,7 @@
 import { emptyStateHtml, esc } from './app-utils-init.js';
 import { selectCompareSection } from './compute-compare.js';
 import { generateAllPDFs } from './export-pdf.js';
-import { buildCompareExportControlsHtml, buildCompareSectionListHtml, buildDashboardControlsHtml, buildIndividualDashboardControlsHtml, buildSmartQueryCannedQuestionsHtml, ensureSmartQueryLoaded, openBucket, renderComparePicker, renderDashboardSmartSearch } from './render-buckets.js';
+import { buildCompareExportControlsHtml, buildCompareSectionListHtml, buildDashboardControlsHtml, buildIndividualDashboardControlsHtml, ensureSmartQueryLoaded, openBucket, renderComparePicker, renderDashboardSmartSearch } from './render-buckets.js';
 import { updateExportGate } from './render-core.js';
 import { renderClassAnswer, renderClusterGroups, renderFilteredList, renderStudentPicker } from './render-findings.js';
 import { i18nLabel, srT } from './render-i18n.js';
@@ -496,17 +496,14 @@ import { APP, goStep } from './state-nav.js';
     if(step === "dashboard" && !APP.compareMode){
       if(APP.setup && APP.setup.mode === "individual" && typeof buildIndividualDashboardControlsHtml === "function"){
         html += buildIndividualDashboardControlsHtml();
-        if(window._individualBucketCurrent === "smart" && typeof buildSmartQueryCannedQuestionsHtml === "function"){
-          html += buildSmartQueryCannedQuestionsHtml();
-        }
+        // UI review fix (Task 5): canned Smart Search questions no longer
+        // append here — moved into the center chat panel itself (see
+        // buildSmartQueryCannedQuestionsHtml()'s call inside
+        // renderDashboardSmartSearch(), js/render-buckets.js), since
+        // burying them below the full bucket nav list meant scrolling
+        // past ~9 unrelated items to find them.
       } else if(APP.setup && APP.setup.mode !== "individual" && typeof buildDashboardControlsHtml === "function"){
         html += buildDashboardControlsHtml();
-        // v4.23-smart-query-chat §1: canned questions replace the old
-        // right-rail question list — shown here, below the bucket list,
-        // only while Smart Search is the active bucket.
-        if(APP._currentBucketId === "smart" && typeof buildSmartQueryCannedQuestionsHtml === "function"){
-          html += buildSmartQueryCannedQuestionsHtml();
-        }
       }
     }
     // v4.22-compare-mode-shell-parity §1/§2: section/group list replaces
@@ -521,9 +518,6 @@ import { APP, goStep } from './state-nav.js';
       html += buildCompareSectionListHtml();
       if(APP._activeCompareSectionId && typeof buildDashboardControlsHtml === "function"){
         html += buildDashboardControlsHtml();
-        if(APP._currentBucketId === "smart" && typeof buildSmartQueryCannedQuestionsHtml === "function"){
-          html += buildSmartQueryCannedQuestionsHtml();
-        }
       }
     }
     // §6 resolved open question: Compare Mode keeps its two export cards

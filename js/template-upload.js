@@ -4,7 +4,7 @@ import { parseStudents, runAnalysis, scrollToEl } from './compute-stats.js';
 import { parseStrictMark, parseStrictMaxMark } from './mark-parse.js';
 import { collectSetupForm, fillSetupForm, lockUsageMode, setUsageMode, startCompareMode, unlockStep } from './project-setup.js';
 import { buildDashboardControlsHtml } from './render-buckets.js';
-import { closeModal, showSampleFiles, updateExportGate } from './render-core.js';
+import { closeModal, gsapModalEntrance, showSampleFiles, updateExportGate } from './render-core.js';
 import { i18nLabel, srT } from './render-i18n.js';
 import { swGoto } from './setup-wizard.js';
 import { APP, goStep } from './state-nav.js';
@@ -297,7 +297,7 @@ function showPostDownloadPrompt(){
       <button class="btn btn-secondary btn-sm" data-action="stayAfterDownload">${esc(srT("btn_stay_here"))}</button>
       <button class="btn btn-success btn-sm" data-action="goHomeAfterDownload">${esc(srT("btn_go_home"))}</button>
     </div>`);
-  $("#modal-overlay").addClass("open");
+  gsapModalEntrance();
   setTimeout(()=>{const f=document.querySelector('#modal-overlay.open .modal-close');if(f)f.focus();},0);
 }
 function goHomeAfterDownload(){
@@ -827,8 +827,19 @@ function generateContinuityAppendTemplate(){
   usedNames.add("README");
   XLSX.utils.book_append_sheet(wb,buildReadmeSheet(),"README");
   const fname=(APP.setup.instName+" "+newPeriod.label+" "+APP.setup.year).replace(/[^\w\s-]/g,"").replace(/\s+/g,"_")+"_CONTINUITY_"+timestampTag()+".xlsx";
+  // Backup treatment extended to this fork too: this flow still reads
+  // every prior period's tabs straight out of the original workbook (see
+  // the comment above priorPeriods.forEach), so the same "take a backup
+  // of what we're building on top of" reasoning applies here as much as
+  // it does to "Add a test" — it just keeps its OWN distinct
+  // _CONTINUITY_ filename rather than reusing the source's name, since
+  // this genuinely is a new period's file, not an in-place update of the
+  // one being read. confirmMergedDownload() already bundles backup+main
+  // into one zip download whenever backupBytes/backupFname are present,
+  // so no change needed there.
+  const backupFname=deriveUpdateFilenames(src.sourceFileName).backupFname;
   APP._pendingMerge={
-    wb,fname,continuityMode:true,
+    wb,fname,backupFname,backupBytes:src.origArrayBuffer,continuityMode:true,
     studentCount:src.studentsRows.length,
     periodCount:allPeriods.length,
     priorPeriodLabels:priorPeriods.map(p=>p.label),
@@ -858,7 +869,7 @@ function renderMergeForkModal(){
         <div style="font-size:11.5px;color:var(--c-text3);margin-top:2px;font-weight:400">${esc(srT("merge_fork_new_period_desc"))}</div>
       </button>
     </div>`);
-  $("#modal-overlay").addClass("open");
+  gsapModalEntrance();
   setTimeout(()=>{const f=document.querySelector('#modal-overlay.open button');if(f)f.focus();},0);
 }
 function chooseMergeFork(choice){
@@ -882,12 +893,12 @@ function renderMergeConfirmModal(){
       <div style="font-size:11.5px;color:var(--c-text2);max-height:110px;overflow:auto;background:var(--c-surface2);border-radius:var(--r-sm);padding:8px 10px;margin-bottom:6px">${esc(srT("merge_kept_unchanged"))} SETUP, STUDENTS, ${p.priorPeriodLabels.map(n=>esc(n)).join(", ")}<br>${esc(srT("merge_added_new"))} ${p.newTestNames.map(n=>esc(n)).join(", ")}</div>
       <div style="font-size:11.5px;color:var(--c-text3);margin-bottom:6px">${esc(srT("merge_fork_new_joiners_note"))}</div>
       ${warnHtml}
-      <div style="font-size:11px;color:var(--c-text3);margin-bottom:14px">${esc(srT("merge_will_save_as"))} <code>${esc(p.fname)}</code></div>
+      <div style="font-size:11px;color:var(--c-text3);margin-bottom:14px">${p.backupFname?`${esc(srT("merge_will_save_as_zip_with_backup"))}<br><code>${esc(p.fname.replace(/\.xlsx$/i,""))}_with_backup.zip</code><div style="margin-top:4px">(<code>${esc(p.backupFname)}</code> + <code>${esc(p.fname)}</code>)</div>`:`${esc(srT("merge_will_save_as"))} <code>${esc(p.fname)}</code>`}</div>
       <div style="display:flex;gap:8px;justify-content:flex-end">
         <button class="btn btn-secondary btn-sm" data-action="closeModal">${esc(srT("btn_cancel"))}</button>
         <button class="btn btn-success btn-sm" data-action="confirmMergedDownload">✔ ${esc(srT("btn_confirm_download"))}</button>
       </div>`);
-    $("#modal-overlay").addClass("open");
+    gsapModalEntrance();
     setTimeout(()=>{const f=document.querySelector('#modal-overlay.open .modal-close');if(f)f.focus();},0);
     return;
   }
@@ -915,7 +926,7 @@ function renderMergeConfirmModal(){
       <button class="btn btn-secondary btn-sm" data-action="closeModal">${esc(srT("btn_cancel"))}</button>
       <button class="btn btn-success btn-sm" data-action="confirmMergedDownload">✔ ${esc(srT("btn_confirm_download"))}</button>
     </div>`);
-  $("#modal-overlay").addClass("open");
+  gsapModalEntrance();
   setTimeout(()=>{const f=document.querySelector('#modal-overlay.open .modal-close');if(f)f.focus();},0);
 }
 function confirmMergedDownload(){
@@ -926,10 +937,10 @@ function confirmMergedDownload(){
   // file is frequently silently blocked, so the teacher only ends up with
   // the backup and thinks the update never happened. Bundling both into
   // one ZIP means exactly one browser download prompt/save, which nothing
-  // blocks. (Continuity/"new class or semester" files still skip the
-  // backup entirely — that flow produces a distinctly-named new file, not
-  // an in-place update of the source, so there's nothing to back up and
-  // this stays a single plain .xlsx download.)
+  // blocks. Applies to both forks now — "Add a test" and "Start a new
+  // class/semester" (continuityMode) both populate backupBytes/
+  // backupFname, since both read prior data straight out of the original
+  // workbook and both benefit from a safety copy of it.
   if(p.backupBytes&&p.backupFname){
     const zip=new JSZip();
     // Raw original bytes, not a re-serialized XLSX.write() — see the note

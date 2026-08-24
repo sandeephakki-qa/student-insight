@@ -3,7 +3,7 @@ import { renderCompareOverview } from './compute-compare.js';
 import { getStudentContinuityContext } from './compute-continuity.js';
 import { computeAnalysis, computeExtraInsights } from './compute-stats.js';
 import { openBucket, openIndividualBucket } from './render-buckets.js';
-import { renderDashboard } from './render-core.js';
+import { gsapModalEntrance, renderDashboard } from './render-core.js';
 import { renderSmartSearchScreen } from './smart-engine-ui.js';
 import { APP, COUNTRY_LANGUAGES, goStep, onLanguageChange } from './state-nav.js';
 import { AI_FEATURES, renderAICheckboxes } from './template-upload.js';
@@ -1290,6 +1290,8 @@ const SR_STRINGS_EN={
   loading_next_test_trajectory:"Estimating next-test trajectory…",
   loading_finalising:"Finalising academic insights…",
   toast_analysis_complete:"Analysis complete - {{n}} students processed.",
+  toast_analysis_complete_one:"Analysis complete - {{n}} student processed.",
+  toast_analysis_complete_other:"Analysis complete - {{n}} students processed.",
   val_duplicate_ids:"Duplicate Student IDs: {{ids}}",
   val_no_student_rows_marks_context:"No student rows found in MARKS+CONTEXT. Upload a filled Excel.",
   val_rows_no_full_name:"{{n}} row(s) have a Student ID but no Full Name filled in.",
@@ -1344,6 +1346,9 @@ const SR_STRINGS_EN={
   smart_not_enough_data:"Not enough data yet to answer this.",
   smart_select_student_first:"Select a student first.",
   smart_which_student_prompt:"Which student? Type their name below and tap Ask.",
+  smart_ambiguous_student:"There's more than one student matching that — {{names}}. Which one did you mean?",
+  smart_name_count_one:"There's 1 student matching \"{{token}}\": {{names}}.",
+  smart_name_count_many:"There are {{n}} students matching \"{{token}}\": {{names}}.",
   smart_moderate_gap:"A moderate gap — steady improvement in weaker subjects should narrow this.",
   smart_significant_gap:"A significant gap — worth a focused improvement plan rather than broad effort.",
   smart_worth_checkin:"Worth a check-in before this becomes a pattern.",
@@ -1624,7 +1629,7 @@ function showAiTranslationNotice(langCode){
     <div style="font-size:13px;color:var(--c-text2);line-height:1.5;padding-top:12px;border-top:1px solid var(--c-border)" lang="${langCode}">${nativeText}</div>
     <div style="font-size:12px;color:var(--c-text3);margin-top:10px;letter-spacing:.2px">${nativeLabel}</div>
   `);
-  $("#modal-overlay").addClass("open");
+  gsapModalEntrance();
   setTimeout(()=>{const f=document.querySelector('#modal-overlay.open .modal-close');if(f)f.focus();},0);
 }
 function SR_LANG_TABLES_LABEL(code){

@@ -1,11 +1,11 @@
 :root{
   /* ── APPLE THEME — retint of legacy tokens, var names unchanged so every rule below just works ── */
   --c-bg:#f5f5f7;--c-surface:#fff;--c-surface2:#fafafc;
-  --c-border:#e0e0e0;--c-primary:#0066cc;--c-primary-soft:#e8f1fc;
+  --c-border:#e0e0e0;--c-primary:#0F5C4E;--c-primary-soft:#E8F5F1;
   --c-success:#1c8748;--c-warn:#c77700;--c-danger:#d70015;--c-purple:#5e5ce6;--c-purple-soft:#eeeefd;
   --c-text:#1d1d1f;--c-text2:#6c6c71;--c-text3:#6d6d71;
   --c-shadow:0 1px 3px rgba(0,0,0,.06);--c-shadow-md:0 4px 24px rgba(0,0,0,.10);
-  --r:8px;--r-sm:8px;--font:"SF Pro Text","Inter",system-ui,-apple-system,sans-serif;--font-display:"SF Pro Display","Inter",system-ui,-apple-system,sans-serif;
+  --r:8px;--r-sm:8px;--font:"SF Pro Text","Inter",system-ui,-apple-system,sans-serif;--font-display:"SF Pro Display","SF Pro Text","Inter",system-ui,-apple-system,sans-serif;
   --transition:all .15s ease;--topbar-h:52px;--stepper-h:44px;--content-top:96px;
 
   /* ── SEMANTIC COLOR ROLES (same values as legacy tokens, named for intent) ── */
@@ -60,7 +60,7 @@
   color-scheme:dark;
   --c-bg:#000000;--c-surface:#1d1d1f;--c-surface2:#272729;
   --c-border:#38383a;--c-border-strong:#48484a;
-  --c-primary:#2997ff;--c-primary-soft:#1a2e42;
+  --c-primary:#3DA88F;--c-primary-soft:#123B33;
   --c-success:#32d74b;--c-warn:#ff9f0a;--c-danger:#ff453a;--c-purple:#7d7aff;--c-purple-soft:#252043;
   --c-text:#f5f5f7;--c-text2:#a1a1a6;--c-text3:#6e6e73;
   --c-shadow:0 2px 12px rgba(0,0,0,.4);--c-shadow-md:0 4px 24px rgba(0,0,0,.55);
@@ -73,6 +73,10 @@
 
 @font-face{font-family:"SF Pro Display";src:local("SF Pro Display"),local("-apple-system");font-display:swap}
 @font-face{font-family:"SF Pro Text";src:local("SF Pro Text"),local("-apple-system");font-display:swap}
+/* Rebrand: --font-display is now the same Apple sans stack as --font for
+   every locale (previously Source Serif 4 for en, sans for the rest — a
+   leftover pre-Apple-rebrand split that made headings look like a
+   different app from body text). Nothing further needed per-lang. */
 
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font);background:var(--c-bg);color:var(--c-text);font-size:var(--fs-base);line-height:var(--lh-body);letter-spacing:-.1px;min-height:100vh;display:flex;flex-direction:column;transition:background var(--dur-base) var(--ease-standard),color var(--dur-base) var(--ease-standard);position:relative;
@@ -148,7 +152,7 @@ textarea:focus-visible,[tabindex]:focus-visible,[role="button"]:focus-visible,
 .step-item{display:flex;align-items:center;gap:7px;padding:0 16px;height:var(--stepper-h);font-size:12px;font-weight:600;color:var(--c-text3);white-space:nowrap;cursor:pointer;transition:var(--transition);position:relative}
 .step-item:hover:not(.locked){color:var(--c-primary)}
 .step-item.active{color:var(--c-primary);border-bottom:2px solid var(--c-primary)}
-.step-item.locked{opacity:.45;cursor:not-allowed;pointer-events:none}
+.step-item.locked{opacity:.45;cursor:not-allowed}
 .step-item.completed{color:var(--c-text2)}
 .step-num{width:20px;height:20px;border-radius:50%;background:var(--c-surface2);border:2px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;position:relative}
 .step-num::after{content:"";position:absolute;top:50%;left:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
@@ -173,7 +177,7 @@ textarea:focus-visible,[tabindex]:focus-visible,[role="button"]:focus-visible,
 
 /* CARDS — single system; variants layer on top instead of new one-off card styles */
 .card{background:var(--c-bg-raised);border:1px solid var(--c-border);border-radius:var(--r-md);padding:var(--sp-4) var(--sp-5);box-shadow:var(--e-1);margin-bottom:var(--sp-3);transition:box-shadow var(--dur-base) var(--ease-standard),border-color var(--dur-base) var(--ease-standard)}
-.card-title{font-family:var(--font-display);font-weight:700;font-size:var(--fs-md);margin-bottom:var(--sp-3);display:flex;align-items:center;gap:6px}
+.card-title{font-family:var(--font-display);font-weight:700;font-size:var(--fs-md);margin:0 0 var(--sp-3);display:flex;align-items:center;gap:6px}
 .icon{font-size:16px}
 .ic{vertical-align:-0.15em;flex-shrink:0}
 .step-num .ic,.del-btn .ic{vertical-align:-0.1em}
@@ -228,8 +232,8 @@ textarea:focus-visible,[tabindex]:focus-visible,[role="button"]:focus-visible,
 /* BUTTONS — full state coverage: default/hover/active/focus-visible/disabled */
 .btn{padding:8px 16px;min-height:36px;border-radius:var(--r-pill);font-size:13px;font-weight:400;cursor:pointer;transition:var(--transition);border:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn-primary{background:var(--c-primary);color:#fff}
-.btn-primary:hover{background:#0071e3}
-.btn-primary:active{background:#0071e3;transform:scale(.95);box-shadow:none}
+.btn-primary:hover{background:#0B4238}
+.btn-primary:active{background:#0B4238;transform:scale(.95);box-shadow:none}
 .btn-secondary{background:var(--c-surface2);color:var(--c-text2);border:1px solid var(--c-border)}
 .btn-secondary:hover{background:var(--c-border);color:var(--c-text)}
 .btn-secondary:active{background:var(--c-border-strong);transform:translateY(1px)}
@@ -494,12 +498,19 @@ table.data-table th[data-sortable]:focus-visible{outline:2px solid var(--c-prima
   :root{--content-top:90px}
   #topbar{padding:0 14px;gap:8px}
   #topbar .tagline{display:none}
+  #topbar .logo{font-size:13px;gap:6px;min-width:0;flex-shrink:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #topbar .logo img{width:22px;height:22px;flex-shrink:0}
+  #i18n-selector{min-width:0;flex-shrink:1;gap:4px!important;margin-right:6px!important}
+  #i18n-selector select{min-width:0;max-width:84px;padding:4px 5px!important;font-size:11px!important}
   .grid-4{grid-template-columns:1fr 1fr}
   .db-kpi-strip .kpi-card{min-width:120px}
 }
 @media(max-width:360px){
   :root{--content-top:86px}
   #topbar{padding:0 10px;gap:6px}
+  #topbar .logo{font-size:12px}
+  #topbar .logo img{width:20px;height:20px}
+  #i18n-selector select{max-width:64px;padding:3px 4px!important;font-size:10.5px!important}
   #main{padding:var(--sp-3)}
   .grid-4{grid-template-columns:1fr}
   .card{padding:14px}
@@ -830,3 +841,5 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
 .chat-composer .btn{transition:transform var(--dur-fast) var(--ease-standard)}
 .chat-composer .btn:active{transform:scale(.96)}
 .chat-empty-hint{color:var(--c-text2);font-size:12.5px;text-align:center;padding:24px 8px}
+.chat-suggestions-canned{align-self:center;max-width:100%;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:8px;padding:0 12px}
+.chat-suggestions-canned .chat-suggestion-chip{text-align:center}

@@ -58,12 +58,12 @@
 <meta name="description" content="Student Insight — Privacy-first, in-browser student analytics. Turn test marks into the same analysis, every time."/>
 <title data-i18n="doc_title">Student Insight — Privacy-first Student Analytics</title>
 <!-- Cloudflare Web Analytics: cookieless, no personal data collected/stored.
-     Replace YOUR_UNIQUE_TOKEN below with the token from your Cloudflare
-     Web Analytics dashboard (Analytics & Logs > Web Analytics > Add site,
-     "I'll add the JavaScript snippet myself" / manual setup). -->
-<!-- Cloudflare Web Analytics -->
- <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "5d1b88ed8f544c49995869f42e8d127c"}'></script>
- <!-- End Cloudflare Web Analytics -->
+     Loaded via js/analytics-loader.js, gated to the real prod domain only —
+     see that file's header comment. On local/QA this now loads nothing,
+     instead of tripping a CSP inline-script violation + CORS-blocked RUM
+     requests on every page load (beacon.min.js's own inline execution +
+     its report to a domain the token isn't registered for). -->
+<script src="js/analytics-loader.js"></script>
 <!--
   "Offline-first"/"privacy-first" in this app's copy = data never leaves
   the device (no server upload, no localStorage persistence of student
@@ -1358,7 +1358,7 @@
 <nav data-i18n-aria-label="shell_aria_setup_steps" id="stepper" aria-label="Setup steps">
   <div class="step-item active" data-step="home" role="button" tabindex="0" aria-current="step" data-action="goStep" data-arg="home"><div class="step-num" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z'/><path d='M9 22V12h6v10'/></svg></div><span data-i18n="shell_nav_home">Home</span></div>
   <span class="step-sep" aria-hidden="true">›</span>
-  <div class="step-item locked" data-step="dashboard" role="button" tabindex="0" data-action="goStep" data-arg="dashboard"><div class="step-num" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 3v18h18'/><path d='M7 15l4-5 4 3 5-7'/></svg></div><span data-i18n="insights_nav_label">Insights</span></div>
+  <div class="step-item locked" data-step="dashboard" role="button" tabindex="0" data-action="goStep" data-arg="dashboard" title="Run Analysis on Home first" data-i18n-title="val_run_analysis_first_title"><div class="step-num" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 3v18h18'/><path d='M7 15l4-5 4 3 5-7'/></svg></div><span data-i18n="insights_nav_label">Insights</span></div>
   <!-- ui-prompt-template.md §6: Export is no longer a numbered stepper step
        (display:none, not deleted — goStep('export') and #panel-export
        still work exactly as before; the Dashboard rail's "Export Reports"
@@ -1433,7 +1433,7 @@
   <div id="home-paths-grid" style="margin-bottom:8px">
 
     <div class="card" style="padding:14px 18px;margin-bottom:8px">
-      <div class="card-title" style="margin-bottom:6px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z'/></svg></span> <span data-i18n="home_upload_title">Upload Your Filled Sheet</span></div>
+      <h2 class="card-title" style="margin-bottom:6px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z'/></svg></span> <span data-i18n="home_upload_title">Upload Your Filled Sheet</span></h2>
       <div style="font-size:12px;color:var(--c-text2);line-height:1.4;margin-bottom:5px" data-i18n="home_upload_sub">
         Drop your class's filled Excel file below. Managing more than one section or batch? Drop 2 or more files at once — matching ones are compared automatically, and any that don't match still get their own individual analysis.
       </div>
@@ -1528,11 +1528,11 @@
   <div id="sw-step-1" class="sw-step">
     <!-- COMPARE MODE: replaces the mode-select card entirely — this project is Institution mode by definition -->
     <div class="card" id="compare-setup-banner" style="display:none;border-color:var(--c-primary);background:var(--c-primary-soft)">
-      <div class="card-title" style="margin-bottom:6px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></span> <span data-i18n="setup_compare_banner_title">Compare Sections / Batches — Institution mode</span></div>
+      <h2 class="card-title" style="margin-bottom:6px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></span> <span data-i18n="setup_compare_banner_title">Compare Sections / Batches — Institution mode</span></h2>
       <div style="font-size:12.5px;color:var(--c-text2)" data-i18n="setup_compare_banner_desc">Optional — if every section's teacher already has a filled sheet, skip straight to <button class="btn btn-secondary btn-sm" data-action="goStep" data-arg="home" style="display:inline-flex;padding:3px 8px;font-size:12px;vertical-align:middle" data-i18n="setup_compare_banner_btn">Home · Upload</button> and the Subjects/Tests/Max Marks from the first file you upload become the shared schema automatically. Only fill this in if you need to <b>generate a blank template</b> to hand out first — in that case, Subjects, Tests &amp; Max Marks entered below will be shared across every section you compare.</div>
     </div>
 
-    <div class="card-title" style="margin-bottom:10px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='5'/><circle cx='12' cy='12' r='1.3'/></svg></span> <span data-i18n="setup_howstart_title">How would you like to start?</span></div>
+    <h2 class="card-title" style="margin-bottom:10px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='5'/><circle cx='12' cy='12' r='1.3'/></svg></span> <span data-i18n="setup_howstart_title">How would you like to start?</span></h2>
     <div class="sw-grid-2" style="display:grid;gap:10px">
       <div class="card sw-choice-card" id="sw-card-new" role="button" tabindex="0" data-action="startNewSessionCard" style="cursor:pointer;padding:14px 16px;border-color:var(--c-primary)">
         <div style="display:flex;gap:10px;align-items:flex-start">
@@ -1566,7 +1566,7 @@
   <!-- STEP 2: About (Institution/Individual) -->
   <div id="sw-step-2" class="sw-step" style="display:none">
     <div class="card" id="mode-select-card" style="border-color:var(--c-primary);background:var(--c-primary-soft)">
-      <div class="card-title" style="margin-bottom:10px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='5'/><circle cx='12' cy='12' r='1.3'/></svg></span> <span data-i18n="setup_whofor_title">Who is this for?</span></div>
+      <h2 class="card-title" style="margin-bottom:10px"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='5'/><circle cx='12' cy='12' r='1.3'/></svg></span> <span data-i18n="setup_whofor_title">Who is this for?</span></h2>
       <div class="sw-grid-2" style="display:grid;gap:10px">
         <label class="mode-option-card" id="mode-card-institution" role="button" tabindex="0" aria-pressed="true" data-action="setUsageMode" data-arg="institution" style="cursor:pointer;padding:12px 14px;border-radius:var(--r-sm);border:2px solid var(--c-primary);background:var(--c-surface);display:flex;gap:10px;align-items:flex-start">
           <div style="font-size:22px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></div>
@@ -1587,7 +1587,7 @@
       <div id="mode-lock-note" role="status" style="display:none;margin-top:10px;font-size:11.5px;font-weight:600;color:#8a5a00;background:#fff7e6;border:1px solid #f0c36d;border-radius:var(--r-sm);padding:8px 10px"></div>
     </div>
     <div class="card" style="padding:14px 16px;margin-top:14px">
-      <div class="card-title"><span class="icon" id="inst-card-icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></span> <span id="inst-card-title" data-i18n="setup_inst_title">Institution</span></div>
+      <h2 class="card-title"><span class="icon" id="inst-card-icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></span> <span id="inst-card-title" data-i18n="setup_inst_title">Institution</span></h2>
       <div class="sw-grid-2" style="display:grid;gap:8px 12px">
         <div class="form-group" style="margin-bottom:0;grid-column:1/-1">
           <label id="inst-name-label"><span data-i18n="setup_inst_name_label">Institution Name</span> <span style="color:var(--c-danger)">*</span></label>
@@ -1612,7 +1612,7 @@
   <!-- STEP 3: Class / Batch -->
   <div id="sw-step-3" class="sw-step" style="display:none">
     <div class="card" style="padding:14px 16px">
-      <div class="card-title"><span class="icon" id="class-card-icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z'/><path d='M20 17v3H6.5A2.5 2.5 0 0 1 4 17.5'/></svg></span> <span id="class-card-title" data-i18n="setup_class_title">Class / Batch</span></div>
+      <h2 class="card-title"><span class="icon" id="class-card-icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z'/><path d='M20 17v3H6.5A2.5 2.5 0 0 1 4 17.5'/></svg></span> <span id="class-card-title" data-i18n="setup_class_title">Class / Batch</span></h2>
       <div class="sw-grid-2" style="display:grid;gap:8px 12px">
         <div class="form-group" style="margin-bottom:0" id="class-name-group">
           <label id="class-name-label"><span data-i18n="setup_class_name_label">Class / Batch</span> <span style="color:var(--c-danger)">*</span></label>
@@ -1671,12 +1671,12 @@
   <div id="sw-step-4" class="sw-step" style="display:none">
     <div class="grid-2">
       <div class="card" style="padding:14px 16px">
-        <div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z'/><path d='M20 17v3H6.5A2.5 2.5 0 0 1 4 17.5'/></svg></span> <span data-i18n="setup_subjects_title">Subjects</span></div>
+        <h2 class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z'/><path d='M20 17v3H6.5A2.5 2.5 0 0 1 4 17.5'/></svg></span> <span data-i18n="setup_subjects_title">Subjects</span></h2>
         <div id="subjects-list" style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px"></div>
         <button class="btn btn-secondary btn-sm" data-action="addSubjectAndValidate">✚ <span data-i18n="setup_subjects_addbtn">Add Subject</span></button>
       </div>
       <div class="card" style="padding:14px 16px">
-        <div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'/></svg></span> <span data-i18n="setup_tests_title">Tests / Exams</span></div>
+        <h2 class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'/></svg></span> <span data-i18n="setup_tests_title">Tests / Exams</span></h2>
         <div id="tests-list" style="display:flex;flex-direction:column;gap:12px;margin-bottom:8px"></div>
         <button id="btn-add-test" class="btn btn-secondary btn-sm" data-action="addTestAndValidate" disabled style="opacity:.45;cursor:not-allowed">✚ <span data-i18n="setup_tests_addbtn">Add Test</span></button>
         <div id="tests-need-subject-hint" style="font-size:11px;color:var(--c-text3);margin-top:6px" data-i18n="setup_tests_need_subject_hint">Add at least one subject first — tests need subject columns to score against.</div>
@@ -1738,11 +1738,11 @@
     </div>
   </div>
   <div id="ai-checkbox-cards" style="display:none;flex-direction:column;gap:16px">
-    <div class="card"><div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polyline points='3 17 9 11 13 15 21 6'/><polyline points='15 6 21 6 21 12'/></svg></span> <span data-i18n="setup_progress_stage_1">Performance Analysis</span></div><div class="ai-checkbox-grid" id="ai-perf-checks"></div></div>
-    <div class="card"><div class="card-title"><span class="icon">⚠</span> <span data-i18n="setup_progress_stage_2">Early Warning &amp; Flags</span></div><div class="ai-checkbox-grid" id="ai-warn-checks"></div></div>
-    <div class="card"><div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l1.8-3.7A8.5 8.5 0 1 1 21 11.5z'/></svg></span> <span data-i18n="setup_progress_stage_3">AI Narrative Generation</span></div><div class="ai-checkbox-grid" id="ai-narr-checks"></div></div>
-    <div class="card"><div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='6' y='6' width='12' height='12' rx='1'/><rect x='9' y='9' width='6' height='6'/><path d='M4 9h2M4 15h2M18 9h2M18 15h2M9 4v2M15 4v2M9 18v2M15 18v2'/></svg></span> <span data-i18n="setup_progress_stage_4">Wellbeing &amp; Psychosocial</span></div><div class="ai-checkbox-grid" id="ai-well-checks"></div></div>
-    <div class="card"><div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z'/><rect x='5' y='5' width='14' height='16' rx='2'/></svg></span> <span data-i18n="setup_progress_stage_5">Management &amp; Institutional</span></div><div class="ai-checkbox-grid" id="ai-mgmt-checks"></div></div>
+    <div class="card"><h2 class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><polyline points='3 17 9 11 13 15 21 6'/><polyline points='15 6 21 6 21 12'/></svg></span> <span data-i18n="setup_progress_stage_1">Performance Analysis</span></h2><div class="ai-checkbox-grid" id="ai-perf-checks"></div></div>
+    <div class="card"><h2 class="card-title"><span class="icon">⚠</span> <span data-i18n="setup_progress_stage_2">Early Warning &amp; Flags</span></h2><div class="ai-checkbox-grid" id="ai-warn-checks"></div></div>
+    <div class="card"><h2 class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l1.8-3.7A8.5 8.5 0 1 1 21 11.5z'/></svg></span> <span data-i18n="setup_progress_stage_3">AI Narrative Generation</span></h2><div class="ai-checkbox-grid" id="ai-narr-checks"></div></div>
+    <div class="card"><h2 class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='6' y='6' width='12' height='12' rx='1'/><rect x='9' y='9' width='6' height='6'/><path d='M4 9h2M4 15h2M18 9h2M18 15h2M9 4v2M15 4v2M9 18v2M15 18v2'/></svg></span> <span data-i18n="setup_progress_stage_4">Wellbeing &amp; Psychosocial</span></h2><div class="ai-checkbox-grid" id="ai-well-checks"></div></div>
+    <div class="card"><h2 class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z'/><rect x='5' y='5' width='14' height='16' rx='2'/></svg></span> <span data-i18n="setup_progress_stage_5">Management &amp; Institutional</span></h2><div class="ai-checkbox-grid" id="ai-mgmt-checks"></div></div>
   </div>
 </div>
 
@@ -1838,11 +1838,11 @@
   <!-- TAB: ANALYTICS -->
   <div class="db-tab-panel" id="tab-analytics" role="tabpanel" aria-labelledby="dbtab-analytics" tabindex="0">
     <div class="grid-2" style="margin-bottom:16px">
-      <div class="chart-container"><div class="card-title" id="chart-subject-avg-title" data-i18n="dashboard_chart_subject_avg">Subject Averages</div><canvas id="chart-subject-avg"></canvas></div>
-      <div class="chart-container" id="chart-trend-container"><div class="card-title" id="chart-trend-title" data-i18n="dashboard_chart_class_trend">Class Trend</div><canvas id="chart-trend"></canvas><div id="chart-trend-note" style="display:none;font-size:12px;color:var(--c-text3);margin-top:8px"></div></div>
+      <div class="chart-container"><h2 class="card-title" id="chart-subject-avg-title" data-i18n="dashboard_chart_subject_avg">Subject Averages</h2><canvas id="chart-subject-avg"></canvas></div>
+      <div class="chart-container" id="chart-trend-container"><h2 class="card-title" id="chart-trend-title" data-i18n="dashboard_chart_class_trend">Class Trend</h2><canvas id="chart-trend"></canvas><div id="chart-trend-note" style="display:none;font-size:12px;color:var(--c-text3);margin-top:8px"></div></div>
     </div>
     <div id="cohort-charts-row">
-      <div class="chart-container"><div class="card-title" data-i18n="dashboard_chart_marks_vs_attendance">Marks vs Attendance</div><canvas id="chart-scatter"></canvas></div>
+      <div class="chart-container"><h2 class="card-title" data-i18n="dashboard_chart_marks_vs_attendance">Marks vs Attendance</h2><canvas id="chart-scatter"></canvas></div>
     </div>
     <div id="individual-charts-note" style="display:none;color:var(--c-text3);font-size:12px;padding:10px 2px" data-i18n="dashboard_individual_mode_charts_note">Cross-student comparison charts (Marks vs Attendance, Top Performers) aren't shown in Individual mode — each child/aspirant is tracked on their own, not against others.</div>
   </div>
@@ -1850,7 +1850,7 @@
   <!-- TAB: HEATMAP -->
   <div class="db-tab-panel" id="tab-heatmap" role="tabpanel" aria-labelledby="dbtab-heatmap" tabindex="0">
     <div class="card">
-      <div class="card-title" style="margin-bottom:12px" id="heatmap-card-title" data-i18n="dashboard_heatmap_title">Performance Heatmap — Student × Subject</div>
+      <h2 class="card-title" style="margin-bottom:12px" id="heatmap-card-title" data-i18n="dashboard_heatmap_title">Performance Heatmap — Student × Subject</h2>
       <div class="heatmap-wrap" id="heatmap-wrap"></div>
       <div style="margin-top:12px;display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--c-text3)">
         <span><span style="display:inline-block;width:10px;height:10px;background:#d4edda;border-radius:2px;vertical-align:middle;margin-right:4px"></span><span data-i18n="dashboard_heatmap_legend_excellent">Excellent ≥85%</span></span>
@@ -1864,7 +1864,7 @@
   <!-- TAB: ALERTS -->
   <div class="db-tab-panel" id="tab-alerts" role="tabpanel" aria-labelledby="dbtab-alerts" tabindex="0">
     <div class="card">
-      <div class="card-title" style="margin-bottom:12px" data-i18n="dashboard_alerts_title">Early Warning Flags</div>
+      <h2 class="card-title" style="margin-bottom:12px" data-i18n="dashboard_alerts_title">Early Warning Flags</h2>
       <div class="tbl-wrap" id="flags-table-wrap"></div>
     </div>
   </div>
@@ -1872,7 +1872,7 @@
   <!-- TAB: WELLBEING -->
   <div class="db-tab-panel" id="tab-wellbeing" role="tabpanel" aria-labelledby="dbtab-wellbeing" tabindex="0">
     <div class="card">
-      <div class="card-title" style="margin-bottom:12px" data-i18n="dashboard_wellbeing_title">Class Wellbeing & Stress Indicators</div>
+      <h2 class="card-title" style="margin-bottom:12px" data-i18n="dashboard_wellbeing_title">Class Wellbeing & Stress Indicators</h2>
       <div id="wellbeing-panel"></div>
     </div>
   </div>
@@ -1880,15 +1880,15 @@
   <!-- TAB: INSIGHTS (class-level, generic — works for any institution, no new data columns) -->
   <div class="db-tab-panel" id="tab-insights" role="tabpanel" aria-labelledby="dbtab-insights" tabindex="0">
     <div class="card" style="margin-bottom:16px">
-      <div class="card-title" style="margin-bottom:12px" data-i18n="dashboard_insights_attendance_vs_perf">Attendance vs. Performance</div>
+      <h2 class="card-title" style="margin-bottom:12px" data-i18n="dashboard_insights_attendance_vs_perf">Attendance vs. Performance</h2>
       <div id="attendance-correlation-panel"></div>
     </div>
     <div class="card">
-      <div class="card-title" style="margin-bottom:12px" data-i18n="dashboard_insights_subject_weakness">Subject Weakness (Class-Wide)</div>
+      <h2 class="card-title" style="margin-bottom:12px" data-i18n="dashboard_insights_subject_weakness">Subject Weakness (Class-Wide)</h2>
       <div class="tbl-wrap" id="subject-weakness-wrap"></div>
     </div>
     <div class="card" style="margin-top:16px">
-      <div class="card-title" style="margin-bottom:12px" data-i18n="dashboard_insights_subject_correlation">Subject Correlation</div>
+      <h2 class="card-title" style="margin-bottom:12px" data-i18n="dashboard_insights_subject_correlation">Subject Correlation</h2>
       <div id="subject-correlation-panel"></div>
     </div>
   </div>
@@ -1908,12 +1908,12 @@
   <div id="panel-export" class="db-export-section" style="display:none">
   <div style="display:flex;flex-direction:column;gap:16px">
     <div class="card">
-      <div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z'/><rect x='5' y='5' width='14' height='16' rx='2'/></svg></span> <span data-i18n="export_whatgen_title">What Gets Generated</span></div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
-        <div style="padding:14px;background:var(--c-surface2);border-radius:var(--r-sm)"><div style="font-weight:700;margin-bottom:4px" id="exp-student-card-title"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='8' r='4'/></svg> <span data-i18n="export_card_student_title">Student Reports</span></div><div style="font-size:12px;color:var(--c-text2)" id="exp-student-card-desc" data-i18n="export_card_student_desc">Individual academic summaries highlighting strengths, learning gaps and suggested improvement areas.</div></div>
-        <div style="padding:14px;background:var(--c-surface2);border-radius:var(--r-sm)" id="exp-teacher-card"><div style="font-weight:700;margin-bottom:4px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg> <span data-i18n="export_card_teacher_title">Teacher Report</span></div><div style="font-size:12px;color:var(--c-text2)" data-i18n="export_card_teacher_desc">Comprehensive overview of class performance, trends, subject analysis and recommendations.</div></div>
-        <div style="padding:14px;background:var(--c-surface2);border-radius:var(--r-sm)" id="exp-mgmt-card"><div style="font-weight:700;margin-bottom:4px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg> <span data-i18n="export_card_mgmt_title">Management Report</span></div><div style="font-size:12px;color:var(--c-text2)" data-i18n="export_card_mgmt_desc">Executive summary of key academic indicators and performance highlights.</div></div>
-        <div style="padding:14px;background:var(--c-surface2);border-radius:var(--r-sm)"><div style="font-weight:700;margin-bottom:4px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 8l-9-5-9 5v8l9 5 9-5V8z'/><path d='M3.3 8.5l8.7 4.5 8.7-4.5'/><path d='M12 22V13'/></svg> <span data-i18n="export_card_zip_title">ZIP Bundle</span></div><div style="font-size:12px;color:var(--c-text2)" data-i18n="export_card_zip_desc">All reports in a single download — ready to save or share with authorised stakeholders.</div></div>
+      <h2 class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z'/><rect x='5' y='5' width='14' height='16' rx='2'/></svg></span> <span data-i18n="export_whatgen_title">What Gets Generated</span></h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
+        <div style="padding:18px;background:var(--c-surface2);border-radius:var(--r-sm)"><div style="font-weight:700;margin-bottom:4px" id="exp-student-card-title"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='8' r='4'/></svg> <span data-i18n="export_card_student_title">Student Reports</span></div><div style="font-size:12px;color:var(--c-text2)" id="exp-student-card-desc" data-i18n="export_card_student_desc">Individual academic summaries highlighting strengths, learning gaps and suggested improvement areas.</div></div>
+        <div style="padding:18px;background:var(--c-surface2);border-radius:var(--r-sm)" id="exp-teacher-card"><div style="font-weight:700;margin-bottom:4px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg> <span data-i18n="export_card_teacher_title">Teacher Report</span></div><div style="font-size:12px;color:var(--c-text2)" data-i18n="export_card_teacher_desc">Comprehensive overview of class performance, trends, subject analysis and recommendations.</div></div>
+        <div style="padding:18px;background:var(--c-surface2);border-radius:var(--r-sm)" id="exp-mgmt-card"><div style="font-weight:700;margin-bottom:4px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg> <span data-i18n="export_card_mgmt_title">Management Report</span></div><div style="font-size:12px;color:var(--c-text2)" data-i18n="export_card_mgmt_desc">Executive summary of key academic indicators and performance highlights.</div></div>
+        <div style="padding:18px;background:var(--c-surface2);border-radius:var(--r-sm)"><div style="font-weight:700;margin-bottom:4px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 8l-9-5-9 5v8l9 5 9-5V8z'/><path d='M3.3 8.5l8.7 4.5 8.7-4.5'/><path d='M12 22V13'/></svg> <span data-i18n="export_card_zip_title">ZIP Bundle</span></div><div style="font-size:12px;color:var(--c-text2)" data-i18n="export_card_zip_desc">All reports in a single download — ready to save or share with authorised stakeholders.</div></div>
       </div>
     </div>
     <div class="card" style="display:none" aria-hidden="true">
@@ -1930,12 +1930,12 @@
 
     <!-- COMPARE MODE: comparison report + per-section export (hidden unless APP.compareMode) -->
     <div id="compare-export-card" class="card" style="display:none">
-      <div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></span> <span data-i18n="bucket_compare_report_label">Section Comparison Report</span></div>
+      <h2 class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><rect x='4' y='3' width='16' height='18' rx='1'/><path d='M9 21V15h6v6'/><path d='M9 7h1M9 11h1M14 7h1M14 11h1'/></svg></span> <span data-i18n="bucket_compare_report_label">Section Comparison Report</span></h2>
       <div style="font-size:12.5px;color:var(--c-text2);margin-bottom:12px" data-i18n="export_section_comparison_desc">One management-level PDF ranking every section side by side, with subject-wise averages — separate from each section's own reports below. If your section labels span multiple classes (e.g. "Class 7 - C", "Class 8 - A"), an executive summary with a Class × Section grid, school-wide weak subjects and flagged sections is automatically added at the front.</div>
       <button class="btn btn-primary btn-glow" data-action="exportComparisonReportPDF"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><line x1='6' y1='20' x2='6' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='18' y1='20' x2='18' y2='14'/></svg> <span data-i18n="export_btn_download_comparison">Download Comparison Report (PDF)</span></button>
     </div>
     <div id="compare-per-section-export-card" class="card" style="display:none">
-      <div class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 8l-9-5-9 5v8l9 5 9-5V8z'/><path d='M3.3 8.5l8.7 4.5 8.7-4.5'/><path d='M12 22V13'/></svg></span> <span data-i18n="bucket_persection_label">Per-Section Reports</span></div>
+      <h2 class="card-title"><span class="icon"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M21 8l-9-5-9 5v8l9 5 9-5V8z'/><path d='M3.3 8.5l8.7 4.5 8.7-4.5'/><path d='M12 22V13'/></svg></span> <span data-i18n="bucket_persection_label">Per-Section Reports</span></h2>
       <div style="font-size:12.5px;color:var(--c-text2);margin-bottom:12px" data-i18n="export_per_section_desc">Generates the normal Student/Teacher/Management PDFs (per the options above) for one section at a time — each downloads as its own ZIP.</div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <select id="export-section-select" style="padding:6px 10px;font-size:13px;border:1px solid var(--c-border);border-radius:var(--r-sm)"></select>
@@ -2315,6 +2315,13 @@
      xlsx, jsPDF, JSZip, Chart.js, then the app's own inline script below,
      which depends on all five being loaded first. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- GSAP: purely a cosmetic-polish layer (modal open/close entrance).
+     Every call site is guarded with `typeof gsap!=="undefined"`, so a
+     blocked/slow CDN (a real scenario on a school's connectivity) just
+     silently falls back to the CSS-driven open/close that already
+     existed — this library is optional, the app has zero hard
+     dependency on it loading. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js" integrity="sha512-EZI2cBcGPnmR89wTgVnN3602Yyi7muWo8y1B3a8WmIv1J9tYG+udH4LvmYjLiGp37yHB7FfaPBo8ly178m9g4Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js" integrity="sha384-OUW9euuUyxyHcAhTqbhI+Iyb8LMssXt/cpz0yXhs9UWG2/R/uaWdakx/4cfww7Vb" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

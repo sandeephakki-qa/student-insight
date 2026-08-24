@@ -50,6 +50,13 @@ Still NOT covered — remains English-only regardless of language selected:
   were updated; the other 12 languages still have the shorter pre-formula
   text and will fall back to the corrected English sentence until
   retranslated
+- `toast_analysis_complete_one` / `toast_analysis_complete_other` were
+  added (singular-aware "Analysis complete" toast, fixing "1 students
+  processed") — only en.json and the inline SR_STRINGS_EN fallback were
+  updated; the other 12 languages keep their existing single-form
+  `toast_analysis_complete` string (grammatically unaffected, since
+  `srT()` only pluralizes when the active language table itself has a
+  `_one`/`_other` pair) until a translator adds their own plural forms
 - The Institution "Type" dropdown (`#inst-type`) — intentionally left
   English-only. Its `<option>` text doubles as the stored value written
   into the exported Excel SETUP sheet (no separate `value=` attribute),

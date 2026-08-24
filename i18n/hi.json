@@ -1200,6 +1200,7 @@
   "val_upload_file_home_first": "पहले Home पर एक फ़ाइल अपलोड करें।",
   "val_upload_1_valid_file_home_first": "पहले Home पर कम से कम 1 वैध फ़ाइल अपलोड करें।",
   "val_run_analysis_first": "पहले विश्लेषण चलाएं।",
+  "val_run_analysis_first_title": "पहले Home पर विश्लेषण चलाएं",
   "home_strip_privacy": "कोई डेटा कभी अपलोड नहीं होता",
   "home_strip_languages": "13 भाषाएं",
   "home_strip_autodetect": "विषय और परीक्षण स्वतः पहचानता है",

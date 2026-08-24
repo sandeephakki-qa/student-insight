@@ -18,9 +18,9 @@
 ============================================================ */
 
 :root{
-  --panel-start-width:240px;
+  --panel-start-width:258px;
   --panel-end-width:240px;
-  --panel-min-width:160px;
+  --panel-min-width:220px;
   --panel-max-width:420px;
   --panel-collapsed-width:28px;
   --shell-divider-width:6px;
@@ -280,11 +280,29 @@
   min-height:auto;
   gap:8px;
   border-radius:var(--r-sm);
+  /* rail is 220-420px, much narrower than the card grid .bucket-row was
+     built for — icon+label+badge no longer fit one line at the tight
+     end, so let the row wrap instead of squeezing the badge into the
+     middle of a multi-line label (align-items:center was vertically
+     centering the badge against the *wrapped* label height, so it
+     visually floated next to line 2/3 instead of sitting with line 1). */
+  flex-wrap:wrap;
+  align-items:flex-start;
 }
 .shell-panel-content .bucket-icon svg{width:1em;height:1em}
-.shell-panel-content .bucket-label{font-size:12.5px;font-weight:600;overflow-wrap:anywhere}
+.shell-panel-content .bucket-text{flex:1 1 120px;min-width:120px}
+.shell-panel-content .bucket-label{font-size:12.5px;font-weight:600;overflow-wrap:break-word}
 .shell-panel-content .bucket-desc{font-size:12px;overflow-wrap:anywhere}
-.shell-panel-content .bucket-badge{font-size:11px;padding:2px 7px}
+.shell-panel-content .bucket-badge{
+  font-size:11px;
+  padding:2px 7px;
+  flex-shrink:0;
+  /* badge is the item that no longer fits when the row wraps — send it
+     to its own line, indented to align under the label instead of
+     hugging the icon, and right-drift removed so it doesn't jump
+     around depending on how many lines the label took. */
+  margin-inline-start:calc(38px + 8px);
+}
 .shell-panel-content .bucket-row-active{background:var(--c-primary-soft,var(--c-surface2));border-color:var(--c-primary)}
 .shell-chip{
   font-size:11.5px;

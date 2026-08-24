@@ -142,7 +142,7 @@ function validateSetup(){
   if(typeof swRefresh==="function") swRefresh();
   return valid;
 }
-function toast(msg,type=""){const el=$(`<div class="toast ${type}" role="${type==="error"?"alert":"status"}">${msg}</div>`);$("#toast-wrap").append(el);setTimeout(()=>el.fadeOut(300,()=>el.remove()),3500);}
+function toast(msg,type=""){const wrap=$("#toast-wrap");const cap=2;while(wrap.children().length>=cap)wrap.children().first().remove();const el=$(`<div class="toast ${type}" role="${type==="error"?"alert":"status"}">${msg}</div>`);wrap.append(el);setTimeout(()=>el.fadeOut(300,()=>el.remove()),3500);}
 function initEnvBadge(){const env=(window.APP_CONFIG&&window.APP_CONFIG.env)||"PROD";if(env!=="PROD"){$("#env-badge").text(env).show();}$("#project-page-link,#footer-project-link").attr("href",(window.APP_CONFIG&&window.APP_CONFIG.projectPageUrl)||"https://studin.in/");}
 
 

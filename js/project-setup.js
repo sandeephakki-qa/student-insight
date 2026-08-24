@@ -75,7 +75,7 @@ function startCompareMode(){
 // confirmed to have zero call sites anywhere in the file before deletion.
 function markDirty(){_unsaved=true;$("#unsaved-dot").addClass("visible");}
 function markClean(){_unsaved=false;$("#unsaved-dot").removeClass("visible");}
-function unlockStep(s){$("[data-step='"+s+"']").removeClass("locked");}
+function unlockStep(s){$("[data-step='"+s+"']").removeClass("locked").removeAttr("title").removeAttr("data-i18n-title");}
 function lockStep(s){$("[data-step='"+s+"']").addClass("locked");}
 
 /* ════ FAQ SEARCH ════ */

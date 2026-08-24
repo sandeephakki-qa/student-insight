@@ -4,7 +4,7 @@ import { runAnalysis } from './compute-stats.js';
 import { selectContinuityPeriod, selectContinuityStudent, toggleContinuityProjection } from './continuity-dashboard.js';
 import { generateAllPDFs } from './export-pdf.js';
 import { addSubject, addTest, filterFAQ, markDirty, setUsageMode, startNewSession, toggleMmSubject, updateTestSubjectCols } from './project-setup.js';
-import { backToBucketList, backToBuckets, openBucket, openIndividualBucket, renderCompareResult, renderDashboardSampleBanner, setTargetScore, smartChatAskCanned, smartChatSubmit } from './render-buckets.js';
+import { backToBucketList, backToBuckets, openBucket, openIndividualBucket, renderCompareResult, renderDashboardSampleBanner, resetSmartChatTranscript, setTargetScore, smartChatAskCanned, smartChatPickAmbiguousStudent, smartChatSubmit } from './render-buckets.js';
 import { closeModal, dbTabKeyNav, downloadUpdatedSheet, filterStudents, runSampleFile, saveNarrativeField, saveRemarkField, selectIndividualStudent, setFilter, showSampleFiles, sortStudents, updateRemarkCharCount } from './render-core.js';
 import { filterPickerList, onBucketStudentPick, onBucketSubjectPick, openFinding } from './render-findings.js';
 import { shareInsightAsImage } from './render-i18n.js';
@@ -40,7 +40,17 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
       case 'triggerHomeImport':
         document.getElementById('home-import-input').click();
         break;
-      case 'runAnalysis': runAnalysis(); break;
+      case 'runAnalysis':
+        // A fresh analysis run means a genuinely new class/student file —
+        // any Smart Search conversation so far refers to data that's about
+        // to be replaced, so THIS is the right place to clear it (not
+        // every time the Smart Search bucket is merely re-opened — see
+        // resetSmartChatTranscript()'s own comment in render-buckets.js
+        // for the "moved to another tab and back, chat gone" bug this
+        // used to cause).
+        resetSmartChatTranscript();
+        runAnalysis();
+        break;
       case 'startNewSessionCard':
         startNewSession();
         APP.setupCard1Choice = 'new';
@@ -98,6 +108,9 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
         break;
       case 'smartChatAskCanned':
         smartChatAskCanned(arg, el.getAttribute('data-arg2'));
+        break;
+      case 'smartChatPickAmbiguousStudent':
+        smartChatPickAmbiguousStudent(arg, el.getAttribute('data-arg2'));
         break;
       // The chat window's own Send button (renderDashboardSmartSearch()) is
       // data-action="smartChatSubmit" — Enter-to-submit is handled by the

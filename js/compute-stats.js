@@ -115,7 +115,7 @@ async function runAnalysis(){
     // no persistence. Editing Setup again after this still re-dirties via
     // the existing markDirty() calls, so the dot stays meaningful.
     markClean();
-    toast(srT("toast_analysis_complete",{n:APP.students.length}),"success");goStep("dashboard");
+    toast(srT("toast_analysis_complete",{n:APP.students.length},APP.students.length),"success");goStep("dashboard");
   } finally {
     if(_runBtn)_runBtn.disabled=false;
   }
