@@ -245,6 +245,11 @@ textarea:focus-visible,[tabindex]:focus-visible,[role="button"]:focus-visible,
 .btn-success:active{background:#1f8f85;transform:translateY(1px)}
 .btn-sm{padding:5px 11px;font-size:12px;min-height:32px}
 .btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
+/* BUG FIX (i18n-lock): #language-select is disabled (see goStep() in
+   state-nav.js) for the life of an analysis run so results don't end up
+   mixed-language — this makes that lock visually obvious instead of just
+   inert, since a disabled <select> otherwise looks identical to normal. */
+#language-select:disabled{opacity:.5;cursor:not-allowed}
 .btn:focus-visible{outline:2px solid var(--c-primary);outline-offset:2px}
 .btn-primary:focus-visible,.btn-success:focus-visible{outline-color:#fff;box-shadow:0 0 0 2px currentColor}
 .btn-glow{position:relative;animation:btnPulse 1.8s ease-in-out infinite}

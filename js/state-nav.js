@@ -99,6 +99,23 @@ function goStep(step){
   if((step==="dashboard"||step==="export")&&!APP.compareMode&&!APP.students.length){toast(srT("val_run_analysis_first"),"warn");return;}
   if((step==="dashboard"||step==="export")&&APP.compareMode&&!APP.sections.some(s=>s.valid&&s.students&&s.students.length)){toast(srT("val_run_analysis_first"),"warn");return;}
   APP.currentStep=step;
+  // BUG FIX (i18n-lock): analysis narrative (flag_reason_*, findings, AI
+  // summaries) is generated once by computeAnalysis() and baked into
+  // APP.students as plain strings — it is NOT re-translated by the
+  // data-i18n DOM sweep on a later language switch (that sweep only
+  // touches static template strings). Switching language mid-dashboard
+  // therefore left analysis text stuck in whatever language was active
+  // when "Run Analysis" was clicked, producing a mixed-language screen.
+  // Fix: language is locked (dropdown disabled) for the whole life of a
+  // run — from the "ai" loading step through "dashboard"/"export" — and
+  // only unlocked back on "home" or "setup", the only steps from which a
+  // fresh analysis can be started. Pick your language BEFORE running.
+  const langLockSteps=(step==="ai"||step==="dashboard"||step==="export");
+  const langSel=document.getElementById("language-select");
+  if(langSel){
+    langSel.disabled=langLockSteps;
+    langSel.title=langLockSteps?srT("lang_locked_during_analysis"):"";
+  }
   // vs-shell-plan-v2 Task 4/5: single hook for all 7 panels instead of one
   // call added per render function — same effect, smaller diff.
   // Wrapped in try/catch: if either ever throws, don't let it silently

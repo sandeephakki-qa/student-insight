@@ -751,6 +751,7 @@
   "flag_reason_absent": "Total absences of {{days}} days across test periods exceeds the alert threshold. Missed lessons may be impacting performance significantly.",
   "flag_chapter_suffix": " · Chapter: {{chapter}}",
   "finding_competitive_high": "Competitive readiness: High.",
+  "lang_locked_during_analysis": "Language is locked until you return to Home — analysis results aren't re-translated mid-review.",
   "flag_reason_declining": "Trend is declining across {{count}} tests ({{start}}% → {{end}}%). Investigate root causes and increase personalised support.",
   "val_trend_declining": "declining",
   "flag_reason_sharp_drop": "A sharp performance drop was detected between tests. Check for health issues, external factors, or learning gaps in specific subjects.",
