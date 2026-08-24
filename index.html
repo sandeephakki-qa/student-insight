@@ -1143,6 +1143,22 @@
      English" flags (about_bio_*, faq_q_terms_*, onboard_*_erp/qr/
      founder_link_*, pdf_kpi_percentile) are proper nouns/brand terms,
      left as-is.
+   home-recent-files-is-metadata-only-not-a-real-reopen  "Recent Files"
+     (Home left rail — see renderShellLeftRail() step==="home" branch,
+     js/vs-shell.js) stores only {fileName, instName, className,
+     section, ts} in localStorage (studin_recent_files, capped at 15,
+     recordRecentFile() in js/template-upload.js) — never file content,
+     never a file-system handle. Clicking an entry does NOT reopen the
+     file directly; it just triggers the same triggerHomeImport action
+     as the "Import" button, opening a generic native file picker the
+     admin still has to navigate manually. This is deliberate — a real
+     reopen needs the File System Access API (Chromium-only, permission
+     re-prompts every session, stale handles if the file moves), which
+     was left out to keep this working identically in every browser and
+     to keep the zero-persisted-content story intact. If someone reports
+     "clicking recent file didn't open it," that's expected behavior,
+     not a bug — the hint text under the list (shell_left_recent_files_
+     hint) already says "opens the picker," not "opens the file."
 
 ════════════════════════════════════════════════════════════════════════
 
@@ -1265,6 +1281,7 @@
 
 12. CHANGELOG — terse, append-only; full reasoning for pre-v2.0 items (each entry compressed to one line; full multi-paragraph
     reasoning for these lived here pre-v4.38 — see git history if needed)
+    - v4.40 — Home left rail rebuilt: the old 7-row pitch strip is now fully replaced (not conditionally hidden) by "Current File Details" (open, shared row() pattern) + "Recent Files" (scrollable list, up to 15 entries, deduped by fileName+institution+class+section — see recordRecentFile()/getRecentFiles(), js/template-upload.js); rail goes fully empty when no file has ever been imported, matching the localStorage-only/no-content-persisted design (a browser history/site-data clear removes it same as any other site data). Clicking a recent entry reuses the existing triggerHomeImport action to open the native file picker — no auto-reopen (would need the Chromium-only File System Access API, deliberately not used). Home-only: Setup/AI/Dashboard/Export keep the pre-existing shared file-details block untouched.
     - v4.39 — language-lock + full i18n gap fix: #language-select now disabled (state-nav.js goStep()) for ai/dashboard/export steps so mid-analysis language switches can't leave narrative half-translated (see flag-reason-narrative-not-retranslated §9); translated and added the 17 keys missing from all 12 regional i18n/*.json files, gap-check now 0 missing everywhere (see i18n-17-keys-were-missing-all-12-locales §9).
     - v4.38 — PIB maintenance pass: §12 CHANGELOG entries v2.4-v4.37 compressed from multi-paragraph dev-diary prose to one terse line each (this section alone was ~56KB of the ~90KB PIB); removed the dead backToIndividualBuckets() no-op (render-buckets.js) after confirming via grep + a full dom-smoke run that nothing calls it anymore, now that all inline onclick markup is gone.
     - v4.37 note: several real fixes landed between v4.36 and this entry without individual PIB updates (sample-file tab prefix, "Start a new class/semester" leaving stale tabs, a literal `<b>` in the fork modal). v4.37 itself: bulk section template creation (generateBulkSectionTemplates()/toggleBulkSectionsUI(), js/template-upload.js).
@@ -1365,7 +1382,7 @@
      only from the "View pitch deck (slides)" button in About; never
      auto-shown. Filled in by js/pitch-deck.js, same single-insertion-point
      convention as #si-onboard. -->
-<div id="si-deck" hidden></div>
+<div id="si-deck" role="dialog" aria-modal="true" aria-labelledby="si-deck-counter" hidden></div>
 <a href="#main" class="skip-link" data-i18n="shell_skip_to_content">Skip to main content</a>
 
 

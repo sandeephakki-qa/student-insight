@@ -735,7 +735,7 @@ function downloadUpdatedSheet(){
   const fname=(APP.setup.instName||"sheet")+"_remarks_"+tag+".xlsx";
   XLSX.writeFile(wb,fname);
   if(skippedSheets.length){
-    toast(`Downloaded — the original workbook was preserved unchanged, but remarks couldn't be updated in: ${skippedSheets.join(", ")} (tab not found, or missing a Student ID/Remark column).`,"warn");
+    toast(`Downloaded — the original workbook was preserved unchanged, but remarks couldn't be updated in: ${skippedSheets.map(esc).join(", ")} (tab not found, or missing a Student ID/Remark column).`,"warn");
   } else {
     toast(srT("toast_updated_sheet_downloaded",{fname:fname}),"success");
   }

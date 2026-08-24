@@ -168,6 +168,63 @@
 .pitch-icon svg{width:14px;height:14px}
 .pitch-text{font-size:12px;line-height:1.4;color:inherit}
 
+/* ---- Home rail "Recent Files" (replaces the left pitch-rows above once
+   at least one file has ever been imported — see renderShellLeftRail()'s
+   step==="home" branch, js/vs-shell.js). Scrollable, capped height so a
+   growing history (up to RECENT_FILES_MAX=15 entries, template-upload.js)
+   doesn't push the rest of the rail/page down indefinitely. ---- */
+.shell-recent-files-list{
+  max-height:180px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.shell-recent-file-row{
+  padding:7px 6px;
+  border-radius:var(--r-sm);
+  font-size:12px;
+  cursor:pointer;
+  transition:background-color .12s,color .12s;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.shell-recent-file-row:hover,.shell-recent-file-row:focus-visible{
+  background-color:var(--c-primary-soft);
+  color:var(--c-primary);
+  outline:none;
+}
+.shell-recent-file-name{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  flex:1;
+  min-width:0;
+}
+.shell-recent-file-delete{
+  flex-shrink:0;
+  border:none;
+  background:none;
+  color:var(--c-text3);
+  font-size:15px;
+  line-height:1;
+  padding:2px 4px;
+  border-radius:var(--r-sm);
+  cursor:pointer;
+}
+.shell-recent-file-delete:hover,.shell-recent-file-delete:focus-visible{
+  background-color:var(--c-danger);
+  color:#fff;
+  outline:none;
+}
+.shell-recent-files-hint{
+  font-size:10.5px;
+  color:var(--c-text3);
+  padding:6px 6px 2px;
+  line-height:1.4;
+}
+
 /* ---- UI redesign (2026-08): Home page trust strip + sample-preview
    tiles — replace the two stacked rail bullet lists (pitch-rows above,
    still used when a rail is manually reopened) with compact inline

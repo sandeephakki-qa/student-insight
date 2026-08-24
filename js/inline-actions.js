@@ -10,7 +10,7 @@ import { filterPickerList, onBucketStudentPick, onBucketSubjectPick, openFinding
 import { shareInsightAsImage } from './render-i18n.js';
 import { swBack, swNext, swRefresh } from './setup-wizard.js';
 import { APP, goStep, onCountryChange, onLanguageChange, setThemeChoice } from './state-nav.js';
-import { cancelMergeMode, chooseMergeFork, confirmMergedDownload, generateTemplate, goHomeAfterDownload, handleHomeImportFiles, handleUpdateUpload, resetHomeImport, stayAfterDownload, toggleAI, toggleBulkSectionsUI } from './template-upload.js';
+import { cancelMergeMode, chooseMergeFork, confirmMergedDownload, deleteRecentFile, generateTemplate, goHomeAfterDownload, handleHomeImportFiles, handleUpdateUpload, resetHomeImport, stayAfterDownload, toggleAI, toggleBulkSectionsUI } from './template-upload.js';
 import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-shell.js';
 
 // FIX (review #4, item 3): replaces the 51 static inline onclick="" handlers
@@ -149,6 +149,10 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
         break;
       case 'downloadUpdatedSheet': downloadUpdatedSheet(); break;
       case 'runSampleFile': runSampleFile([arg]); break;
+      case 'deleteRecentFile':
+        ev.stopPropagation();
+        deleteRecentFile(arg);
+        break;
       case 'runSampleFileCompareDemo': runSampleFile(arg ? arg.split(',') : []); break;
       case 'backToBuckets': backToBuckets(); break;
       case 'backToBucketList': backToBucketList(); break;

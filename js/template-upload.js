@@ -8,7 +8,7 @@ import { closeModal, gsapModalEntrance, showSampleFiles, updateExportGate } from
 import { i18nLabel, srT } from './render-i18n.js';
 import { swGoto } from './setup-wizard.js';
 import { APP, goStep } from './state-nav.js';
-import { renderShellRightRail } from './vs-shell.js';
+import { renderShellLeftRail, renderShellRightRail } from './vs-shell.js';
 
 /* ════ EXCEL TEMPLATE GENERATION ════ */
 // Style constants for generateTemplate() — requires xlsx-js-style (see
@@ -1252,7 +1252,80 @@ function handleHomeImport(file){
   reader.readAsArrayBuffer(file);
 }
 
+/* ════ RECENT FILES (Home left rail, "Recent Files") ════
+   Home-screen-only convenience list — filename + institution/class/section
+   + timestamp ONLY, in localStorage. Deliberately NOT file content, NOT a
+   file handle: this app is local-first/no-persistence by design (DPDP Act
+   2023 — see PIB §1), so this list is purely a memory-jogger ("which file
+   was Section-C again?"), not a real reopen. Clicking an entry just opens
+   the native file picker (triggerHomeImport, already wired in
+   inline-actions.js) — browsers give web pages no path access to jump
+   straight to a specific file without the (Chromium-only) File System
+   Access API, which was deliberately not used here to keep this working
+   identically across all browsers. Cleared automatically whenever the
+   browser's own history/site-data is cleared, same as any localStorage —
+   no separate "clear" UI needed for that reason. */
+const RECENT_FILES_KEY="studin_recent_files";
+const RECENT_FILES_MAX=15;
+function getRecentFiles(){
+  try{
+    const raw=localStorage.getItem(RECENT_FILES_KEY);
+    const list=raw?JSON.parse(raw):[];
+    return Array.isArray(list)?list:[];
+  }catch(err){
+    console.error("getRecentFiles: couldn't read/parse localStorage, treating as empty",err);
+    return [];
+  }
+}
+function recentFileKey(entry){
+  // Dedup key is fileName+institution+class+section, not filename alone —
+  // two different schools' files can share a generic name (e.g.
+  // "marks.xlsx"), and collapsing those into one entry would silently
+  // point the admin at the wrong school's history.
+  return [entry.fileName,entry.instName,entry.className,entry.section].map(v=>(v||"").trim().toLowerCase()).join("|");
+}
+function recordRecentFile(entry){
+  if(!entry||!entry.fileName)return;
+  try{
+    const list=getRecentFiles();
+    const key=recentFileKey(entry);
+    const next=list.filter(e=>recentFileKey(e)!==key); // drop any existing match — moved to top below, not duplicated
+    next.unshift({fileName:entry.fileName,instName:entry.instName||"",className:entry.className||"",section:entry.section||"",ts:Date.now(),isSample:!!entry.isSample});
+    localStorage.setItem(RECENT_FILES_KEY,JSON.stringify(next.slice(0,RECENT_FILES_MAX)));
+  }catch(err){
+    // Storage can fail (private browsing, quota) — this is a convenience
+    // feature, not core functionality, so fail silently rather than
+    // interrupting the actual file import that's in progress.
+    console.error("recordRecentFile: couldn't write to localStorage",err);
+  }
+}
+function deleteRecentFile(key){
+  try{
+    const next=getRecentFiles().filter(e=>recentFileKey(e)!==key);
+    localStorage.setItem(RECENT_FILES_KEY,JSON.stringify(next));
+  }catch(err){
+    console.error("deleteRecentFile: couldn't write to localStorage",err);
+  }
+  if(typeof renderShellLeftRail==="function") renderShellLeftRail(APP.currentStep||"home");
+}
+
 function afterImportSuccess(){
+  // Record this import into the Home "Recent Files" list — fileName comes
+  // from APP.homeSingleFile (just set by the caller above), institution/
+  // class/section from APP.setup (already populated by autoInferSetup()
+  // earlier in this same import). Compare-mode multi-file imports don't
+  // call this path (see afterAllCompareFilesLoaded/processCompareFile
+  // above), so only single-file Home imports feed the recent list — that
+  // matches Home being the only screen "Recent Files" appears on.
+  if(APP.homeSingleFile&&APP.homeSingleFile.fileName){
+    recordRecentFile({
+      fileName:APP.homeSingleFile.fileName,
+      instName:(APP.setup&&APP.setup.instName)||"",
+      className:(APP.setup&&APP.setup.className)||"",
+      section:(APP.setup&&APP.setup.section)||"",
+      isSample:!!APP._isSampleData
+    });
+  }
   APP.dataIssues=[]; // reset from any prior session/import; real check happens once analysis runs
   unlockStep("ai");unlockStep("dashboard");unlockStep("export");
   updateExportGate();
@@ -1802,7 +1875,7 @@ function updateAICount(){$("#ai-selected-count").text(APP.aiFeatures.size+" feat
 
 
 // --- ES module exports (added for module-system conversion, HANDOVER #4) ---
-export { AI_FEATURES, TPL_STYLE, afterAllCompareFilesLoaded, afterImportSuccess, applyTabPrefix, autoInferSetup, buildReadmeSheet, buildSetupSheet, buildStudentsSheet, buildTestSheet, buildTestSheetWithFormulas, buildSheetIndex, cancelMergeMode, canonicalSheetKey, chooseMergeFork, classPrefixForTabs, clearAllAI, colLetter, confirmMergedDownload, generateBulkSectionTemplates, generateMergedTemplate, generateTemplate, goHomeAfterDownload, handleHomeImport, handleHomeImportFiles, handleUpdateUpload, loadMergeSourceFromArrayBuffer, parseContinuityPeriods, parseWorkbookSheets, renderAICheckboxes, renderHomePage, renderMergeConfirmModal, resetHomeImport, resolveSheetName, safeSheetName, selectAllAI, showHomeRunAnalysisButton, showPostDownloadPrompt, stayAfterDownload, timestampTag, toggleAI, toggleBulkSectionsUI, updateAICount, validateSetupData, validateUploadFile };
+export { AI_FEATURES, TPL_STYLE, afterAllCompareFilesLoaded, afterImportSuccess, applyTabPrefix, autoInferSetup, buildReadmeSheet, buildSetupSheet, buildStudentsSheet, buildTestSheet, buildTestSheetWithFormulas, buildSheetIndex, cancelMergeMode, canonicalSheetKey, chooseMergeFork, classPrefixForTabs, clearAllAI, colLetter, confirmMergedDownload, deleteRecentFile, generateBulkSectionTemplates, generateMergedTemplate, generateTemplate, getRecentFiles, goHomeAfterDownload, handleHomeImport, handleHomeImportFiles, handleUpdateUpload, loadMergeSourceFromArrayBuffer, parseContinuityPeriods, parseWorkbookSheets, renderAICheckboxes, renderHomePage, renderMergeConfirmModal, resetHomeImport, resolveSheetName, safeSheetName, selectAllAI, showHomeRunAnalysisButton, showPostDownloadPrompt, stayAfterDownload, timestampTag, toggleAI, toggleBulkSectionsUI, updateAICount, validateSetupData, validateUploadFile };
 
 // Legacy-global compatibility shim: modules don't leak top-level
 // declarations onto window the way classic scripts did. The handful of
@@ -1810,4 +1883,4 @@ export { AI_FEATURES, TPL_STYLE, afterAllCompareFilesLoaded, afterImportSuccess,
 // (out of scope for HANDOVER #3 — only onclick was converted) still need a
 // bare global to resolve, so every exported name is also mirrored onto
 // window here. Harmless duplication for anything already imported properly.
-if(typeof window!=='undefined'){window.AI_FEATURES=AI_FEATURES;window.TPL_STYLE=TPL_STYLE;window.afterAllCompareFilesLoaded=afterAllCompareFilesLoaded;window.afterImportSuccess=afterImportSuccess;window.applyTabPrefix=applyTabPrefix;window.autoInferSetup=autoInferSetup;window.buildReadmeSheet=buildReadmeSheet;window.buildSetupSheet=buildSetupSheet;window.buildStudentsSheet=buildStudentsSheet;window.buildTestSheet=buildTestSheet;window.buildTestSheetWithFormulas=buildTestSheetWithFormulas;window.buildSheetIndex=buildSheetIndex;window.canonicalSheetKey=canonicalSheetKey;window.cancelMergeMode=cancelMergeMode;window.chooseMergeFork=chooseMergeFork;window.classPrefixForTabs=classPrefixForTabs;window.clearAllAI=clearAllAI;window.colLetter=colLetter;window.confirmMergedDownload=confirmMergedDownload;window.generateBulkSectionTemplates=generateBulkSectionTemplates;window.generateMergedTemplate=generateMergedTemplate;window.generateTemplate=generateTemplate;window.goHomeAfterDownload=goHomeAfterDownload;window.showPostDownloadPrompt=showPostDownloadPrompt;window.stayAfterDownload=stayAfterDownload;window.handleHomeImport=handleHomeImport;window.handleHomeImportFiles=handleHomeImportFiles;window.handleUpdateUpload=handleUpdateUpload;window.loadMergeSourceFromArrayBuffer=loadMergeSourceFromArrayBuffer;window.parseContinuityPeriods=parseContinuityPeriods;window.parseWorkbookSheets=parseWorkbookSheets;window.renderAICheckboxes=renderAICheckboxes;window.renderHomePage=renderHomePage;window.renderMergeConfirmModal=renderMergeConfirmModal;window.resetHomeImport=resetHomeImport;window.resolveSheetName=resolveSheetName;window.safeSheetName=safeSheetName;window.selectAllAI=selectAllAI;window.showHomeRunAnalysisButton=showHomeRunAnalysisButton;window.timestampTag=timestampTag;window.toggleAI=toggleAI;window.toggleBulkSectionsUI=toggleBulkSectionsUI;window.updateAICount=updateAICount;window.validateSetupData=validateSetupData;window.validateUploadFile=validateUploadFile;}
+if(typeof window!=='undefined'){window.AI_FEATURES=AI_FEATURES;window.TPL_STYLE=TPL_STYLE;window.afterAllCompareFilesLoaded=afterAllCompareFilesLoaded;window.afterImportSuccess=afterImportSuccess;window.applyTabPrefix=applyTabPrefix;window.autoInferSetup=autoInferSetup;window.buildReadmeSheet=buildReadmeSheet;window.buildSetupSheet=buildSetupSheet;window.buildStudentsSheet=buildStudentsSheet;window.buildTestSheet=buildTestSheet;window.buildTestSheetWithFormulas=buildTestSheetWithFormulas;window.buildSheetIndex=buildSheetIndex;window.canonicalSheetKey=canonicalSheetKey;window.cancelMergeMode=cancelMergeMode;window.chooseMergeFork=chooseMergeFork;window.classPrefixForTabs=classPrefixForTabs;window.clearAllAI=clearAllAI;window.colLetter=colLetter;window.confirmMergedDownload=confirmMergedDownload;window.generateBulkSectionTemplates=generateBulkSectionTemplates;window.generateMergedTemplate=generateMergedTemplate;window.generateTemplate=generateTemplate;window.getRecentFiles=getRecentFiles;window.deleteRecentFile=deleteRecentFile;window.goHomeAfterDownload=goHomeAfterDownload;window.showPostDownloadPrompt=showPostDownloadPrompt;window.stayAfterDownload=stayAfterDownload;window.handleHomeImport=handleHomeImport;window.handleHomeImportFiles=handleHomeImportFiles;window.handleUpdateUpload=handleUpdateUpload;window.loadMergeSourceFromArrayBuffer=loadMergeSourceFromArrayBuffer;window.parseContinuityPeriods=parseContinuityPeriods;window.parseWorkbookSheets=parseWorkbookSheets;window.renderAICheckboxes=renderAICheckboxes;window.renderHomePage=renderHomePage;window.renderMergeConfirmModal=renderMergeConfirmModal;window.resetHomeImport=resetHomeImport;window.resolveSheetName=resolveSheetName;window.safeSheetName=safeSheetName;window.selectAllAI=selectAllAI;window.showHomeRunAnalysisButton=showHomeRunAnalysisButton;window.timestampTag=timestampTag;window.toggleAI=toggleAI;window.toggleBulkSectionsUI=toggleBulkSectionsUI;window.updateAICount=updateAICount;window.validateSetupData=validateSetupData;window.validateUploadFile=validateUploadFile;}

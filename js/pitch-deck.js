@@ -53,23 +53,50 @@ const StudInPitchDeck = (function () {
     render();
   }
 
+  let lastActive = null;
+
   function open() {
     idx = 0;
     const overlay = el("si-deck");
     if (!overlay) return;
+    lastActive = document.activeElement;
     overlay.hidden = false;
     render();
+    const closeBtn = el("si-deck-close");
+    if (closeBtn) closeBtn.focus();
     document.addEventListener("keydown", onKeydown);
+    document.addEventListener("keydown", onTrapTab, true);
   }
   function close() {
     const overlay = el("si-deck");
     if (overlay) overlay.hidden = true;
     document.removeEventListener("keydown", onKeydown);
+    document.removeEventListener("keydown", onTrapTab, true);
+    if (lastActive && typeof lastActive.focus === "function") lastActive.focus();
+    lastActive = null;
   }
   function onKeydown(ev) {
     if (ev.key === "Escape") close();
     else if (ev.key === "ArrowRight") next();
     else if (ev.key === "ArrowLeft") back();
+  }
+  function onTrapTab(ev) {
+    if (ev.key !== "Tab") return;
+    const overlay = el("si-deck");
+    if (!overlay || overlay.hidden) return;
+    const focusables = overlay.querySelectorAll(
+      'a[href],button,textarea,input,select,[tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (ev.shiftKey && document.activeElement === first) {
+      ev.preventDefault();
+      last.focus();
+    } else if (!ev.shiftKey && document.activeElement === last) {
+      ev.preventDefault();
+      first.focus();
+    }
   }
 
   function markup() {

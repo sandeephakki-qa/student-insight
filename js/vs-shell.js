@@ -8,6 +8,7 @@ import { i18nLabel, srT } from './render-i18n.js';
 import { openSmartSearchScreen } from './smart-engine-ui.js';
 import { SmartQueryV2 } from './smart-query-v2.js';
 import { APP, goStep } from './state-nav.js';
+import { getRecentFiles } from './template-upload.js';
 
 /* ============================================================
    Student Insight — VS-Style Shell engine
@@ -55,7 +56,7 @@ import { APP, goStep } from './state-nav.js';
       if(typeof window !== "undefined" && !window.APP) window.APP = {};
       if(!APP.shellState){
         APP.shellState = {
-          start: { width: 240, collapsed: mobileDefault },
+          start: { width: 240, collapsed: false }, // shell-panel-start always open
           end:   { width: 240, collapsed: mobileDefault }
         };
       }
@@ -105,6 +106,26 @@ import { APP, goStep } from './state-nav.js';
     el.style.setProperty(`--panel-${side}-width`, px + "px");
   }
 
+  // Task 1: persisted open/closed state for the Home "Recent Files"
+  // <details>, keyed separately from RECENT_FILES_KEY (that's file data,
+  // this is a UI preference) — see renderShellLeftRail()'s home branch.
+  const LEFT_RAIL_RECENT_OPEN_KEY = "studin_left_rail_recent_open";
+  function getLeftRailRecentOpenPref(){
+    try{
+      const raw = localStorage.getItem(LEFT_RAIL_RECENT_OPEN_KEY);
+      return raw === null ? true : raw === "1"; // default open, matching prior hardcoded behavior
+    }catch(err){
+      return true;
+    }
+  }
+  function setLeftRailRecentOpenPref(isOpen){
+    try{
+      localStorage.setItem(LEFT_RAIL_RECENT_OPEN_KEY, isOpen ? "1" : "0");
+    }catch(err){
+      // Storage can fail (private browsing, quota) — this is a display
+      // preference, not core functionality, so fail silently.
+    }
+  }
   function setLeftRail(html){
     const el = document.getElementById("shell-rail-start");
     if(el) el.innerHTML = html || "";
@@ -151,6 +172,7 @@ import { APP, goStep } from './state-nav.js';
   function setShellRailsOpen(open){
     if(open && isMobileViewport()) return;
     ["start","end"].forEach(function(side){
+      if(side === "start" && !open) return; // shell-panel-start always open, no collapse
       getState()[side].collapsed = !open;
       syncPanelDOM(side);
       applyWidth(side);
@@ -162,6 +184,7 @@ import { APP, goStep } from './state-nav.js';
   // without touching #shell-rail-start (which stays open throughout).
   // Same mobile guard as setShellRailsOpen() above, for the same reason.
   function setShellRailOpen(side, open){
+    if(side === "start" && !open) return; // shell-panel-start always open, no collapse
     if(open && isMobileViewport()) return;
     getState()[side].collapsed = !open;
     syncPanelDOM(side);
@@ -435,13 +458,84 @@ import { APP, goStep } from './state-nav.js';
       // other non-context step) keep the original empty state unchanged —
       // item 3 is scoped to Home only.
       if(step === "home"){
-        // prompt-v4.19 §1a/§1b + follow-up visual fix: 6 concrete pitch
-        // rows + the "marks generated" row, each with its own icon chip
-        // instead of a plain bullet — see PITCH_ICONS/pitchRow() above.
-        const rows = [1,2,3,4,5,6,7].map(function(n,i){
-          return pitchRow(HOME_LEFT_ICONS[i], srT("shell_home_left_pitch_" + n));
+        // BUG FIX (recent-files feature): the old 7-row "what this app
+        // does" pitch strip (PITCH_ICONS/pitchRow/HOME_LEFT_ICONS above)
+        // is replaced entirely by "Current File Details" + "Recent
+        // Files" — decided this rail is more useful showing real file
+        // state than repeating marketing copy once someone has actually
+        // used the app. Home-only, matching how "Recent Files" was
+        // scoped: it only ever appears here, never on Setup/AI/
+        // Dashboard/Export (those keep the existing shared file-details
+        // block further down this function, untouched).
+        const recent = getRecentFiles();
+        if(!recent.length){
+          // Nothing to show yet (brand new install, or the admin cleared
+          // browser history/site data — recent files live in
+          // localStorage, so a history clear wipes this same as any
+          // other site data). Per spec: the whole rail goes empty/closed
+          // rather than falling back to the old pitch content.
+          setLeftRail("");
+          return;
+        }
+        // Task 4 fix: a recent entry that came from a sample file
+        // (isSample, set from APP._isSampleData at record time — see
+        // recordRecentFile()/afterImportSuccess() in template-upload.js)
+        // has a real fetchable path (assetBase+fileName — see
+        // runSampleFile()), so clicking it re-runs that fetch directly
+        // instead of opening the native file picker. Real uploads still
+        // have no path the page can access, so those keep the picker.
+        const sf = APP.homeSingleFile;
+        const curRows = sf
+          ? row(srT("shell_left_file_label"), sf.fileName)
+            + row(srT("shell_left_org_label"), (APP.setup && APP.setup.instName) || "—")
+            + row(srT("shell_left_records_label"), sf.rowCount || 0)
+          : "";
+        // Task 2 fix: "Current File Details" only opens when there's
+        // actually a value to show — no value means no <details> at all
+        // rather than an open-but-empty section.
+        let html = sf
+          ? '<details class="shell-details" open><summary class="shell-panel-title" style="cursor:pointer">'
+            + esc(srT("shell_left_current_file_details_title")) + '</summary>' + curRows + '</details>'
+          : "";
+        // Scrollable list (see .shell-recent-files-list in css/vs-shell.css)
+        // caps visible height once the list grows past a handful of
+        // entries — recordRecentFile() in template-upload.js already caps
+        // total stored entries at 15 and dedupes by fileName+institution+
+        // class+section (moves an existing match to the top instead of
+        // adding a second row), so this is purely a display constraint,
+        // not a data one.
+        const recentRows = recent.map(function(f){
+          const label = [f.fileName, [f.className, f.section].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
+          const key = [f.fileName, f.instName, f.className, f.section].map(v=>(v||"").trim().toLowerCase()).join("|");
+          const rowAction = f.isSample
+            ? 'data-action="runSampleFile" data-arg="' + esc(f.fileName) + '"'
+            : 'data-action="triggerHomeImport"';
+          return '<div class="shell-recent-file-row" ' + rowAction + ' role="button" tabindex="0">'
+            + '<span class="shell-recent-file-name">' + esc(label) + '</span>'
+            + '<button type="button" class="shell-recent-file-delete" data-action="deleteRecentFile" data-arg="' + esc(key) + '" aria-label="' + esc(srT("shell_left_recent_files_delete_aria") || "Remove") + '">×</button>'
+            + '</div>';
         }).join("");
-        setLeftRail('<div class="pitch-rows">' + rows + '</div>');
+        // Task 1 fix: user's open/closed choice for "Recent Files" survives
+        // a browser refresh — renderShellLeftRail() rebuilds this markup
+        // from scratch on every load/step-change, so without persisting
+        // the choice somewhere outside the DOM it would always reset back
+        // to the hardcoded default. Stored separately from the recent-file
+        // entries themselves (RECENT_FILES_KEY) since it's a UI preference,
+        // not file data.
+        const recentOpen = getLeftRailRecentOpenPref();
+        html += '<details id="shell-recent-files-details" class="shell-details"' + (recentOpen ? " open" : "") + '><summary class="shell-panel-title" style="cursor:pointer">'
+          + esc(srT("shell_left_recent_files_title")) + '</summary>'
+          + '<div class="shell-recent-files-list">' + recentRows + '</div>'
+          + '<div class="shell-recent-files-hint">' + esc(srT("shell_left_recent_files_hint")) + '</div>'
+          + '</details>';
+        setLeftRail(html);
+        const recentDetailsEl = document.getElementById("shell-recent-files-details");
+        if(recentDetailsEl){
+          recentDetailsEl.addEventListener("toggle", function(){
+            setLeftRailRecentOpenPref(recentDetailsEl.open);
+          });
+        }
+        return;
       } else if(step === "setup" || step === "about" || step === "faq"){
         // prompt-v4.19 §2a + v4.20-bugfixes §2a: these three steps get no
         // rail content at all (car-mirror pattern in goStep() collapses/
