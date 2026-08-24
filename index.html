@@ -1114,6 +1114,35 @@
      (expanded) from Task 3 is untouched. If mobile ever needs to
      remember a per-visit choice instead of always defaulting collapsed,
      that's new work, not a bug in what's here.
+   flag-reason-narrative-not-retranslated  computeAnalysis() (compute-
+     stats.js) calls srT() once at analysis time and bakes the result
+     (flag_reason_*, findings text) into APP.students as plain strings —
+     the data-i18n DOM sweep that runs on a later language switch only
+     touches static template markup, not this baked text, so switching
+     language mid-Dashboard/Export used to leave analysis narrative
+     stuck in whichever language was active when "Run Analysis" was
+     clicked (mixed-language screen, reported via screenshot showing
+     Kannada UI chrome around raw English flag_reason_first_below_pass
+     text). Fixed by locking #language-select (disabled, via goStep() in
+     state-nav.js) for the "ai"/"dashboard"/"export" steps and unlocking
+     it on "home"/"setup" — the two steps a fresh analysis can start
+     from. Language must now be picked before running analysis; a
+     proper fix that re-translates baked narrative on switch (re-running
+     computeAnalysis() or storing raw {key,params} instead of rendered
+     strings) is a larger, separately-scoped change, not done here.
+   i18n-17-keys-were-missing-all-12-locales  scripts/i18n-gap-check.py
+     found the same 17 keys missing from all 12 regional i18n/*.json
+     files (smart_v2_*, btn_go_home/stay_here, merge_will_save_as_*,
+     post_download_*, toast_analysis_complete_one/other, val_*,
+     sample_5_desc) — none of the 12 had drifted further behind the
+     others, all missing the identical set, meaning srT() was silently
+     falling back to hardcoded English for these regardless of selected
+     language. Translated and added to all 12 locale files this pass
+     (plus the new lang_locked_during_analysis key above); gap-check now
+     reports 0 missing across all locales. Remaining "identical to
+     English" flags (about_bio_*, faq_q_terms_*, onboard_*_erp/qr/
+     founder_link_*, pdf_kpi_percentile) are proper nouns/brand terms,
+     left as-is.
 
 ════════════════════════════════════════════════════════════════════════
 
@@ -1236,6 +1265,7 @@
 
 12. CHANGELOG — terse, append-only; full reasoning for pre-v2.0 items (each entry compressed to one line; full multi-paragraph
     reasoning for these lived here pre-v4.38 — see git history if needed)
+    - v4.39 — language-lock + full i18n gap fix: #language-select now disabled (state-nav.js goStep()) for ai/dashboard/export steps so mid-analysis language switches can't leave narrative half-translated (see flag-reason-narrative-not-retranslated §9); translated and added the 17 keys missing from all 12 regional i18n/*.json files, gap-check now 0 missing everywhere (see i18n-17-keys-were-missing-all-12-locales §9).
     - v4.38 — PIB maintenance pass: §12 CHANGELOG entries v2.4-v4.37 compressed from multi-paragraph dev-diary prose to one terse line each (this section alone was ~56KB of the ~90KB PIB); removed the dead backToIndividualBuckets() no-op (render-buckets.js) after confirming via grep + a full dom-smoke run that nothing calls it anymore, now that all inline onclick markup is gone.
     - v4.37 note: several real fixes landed between v4.36 and this entry without individual PIB updates (sample-file tab prefix, "Start a new class/semester" leaving stale tabs, a literal `<b>` in the fork modal). v4.37 itself: bulk section template creation (generateBulkSectionTemplates()/toggleBulkSectionsUI(), js/template-upload.js).
     - v4.30-v4.35 note: this repo's changelog top entry was v4.19 when the continuity feature arc (prompt-01 through prompt-05, plus this samples/docs merge pass) started, but the actual code had…

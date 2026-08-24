@@ -697,7 +697,7 @@ const SR_STRINGS_EN={
   export_generating_pdfs:"Generating PDFs…",
   footer_license_mit:"MIT",
   footer_powered_by:"Powered by",
-  footer_tagline:"— Open Source · Contact:",
+  footer_tagline:"— Open Source · Contact: ",
   doc_title:"Student Insight — Privacy-first Student Analytics",
   shell_aria_country_lang:"Country and language",
   shell_title_country:"Country",
