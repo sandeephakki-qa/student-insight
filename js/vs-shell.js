@@ -173,7 +173,7 @@ import { getRecentFiles } from './template-upload.js';
   function setShellRailsOpen(open){
     if(open && isMobileViewport()) return;
     ["start","end"].forEach(function(side){
-      if(side === "start" && !open) return; // shell-panel-start always open, no collapse
+      if(side === "start" && !open && !isMobileViewport()) return; // desktop: start always open, no collapse. mobile: can close, same as end
       getState()[side].collapsed = !open;
       syncPanelDOM(side);
       applyWidth(side);
@@ -185,7 +185,7 @@ import { getRecentFiles } from './template-upload.js';
   // without touching #shell-rail-start (which stays open throughout).
   // Same mobile guard as setShellRailsOpen() above, for the same reason.
   function setShellRailOpen(side, open){
-    if(side === "start" && !open) return; // shell-panel-start always open, no collapse
+    if(side === "start" && !open && !isMobileViewport()) return; // desktop: start always open, no collapse. mobile: can close, same as end
     if(open && isMobileViewport()) return;
     getState()[side].collapsed = !open;
     syncPanelDOM(side);
