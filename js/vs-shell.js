@@ -57,7 +57,7 @@ import { getRecentFiles } from './template-upload.js';
       if(typeof window !== "undefined" && !window.APP) window.APP = {};
       if(!APP.shellState){
         APP.shellState = {
-          start: { width: 240, collapsed: false }, // shell-panel-start always open
+          start: { width: 240, collapsed: mobileDefault }, // desktop: always open. mobile: starts collapsed, same as end
           end:   { width: 240, collapsed: mobileDefault }
         };
       }
