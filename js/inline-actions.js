@@ -8,9 +8,13 @@ import { backToBucketList, backToBuckets, openBucket, openIndividualBucket, rend
 import { closeModal, dbTabKeyNav, downloadUpdatedSheet, filterStudents, runSampleFile, saveNarrativeField, saveRemarkField, selectIndividualStudent, setFilter, showSampleFiles, sortStudents, updateRemarkCharCount } from './render-core.js';
 import { filterPickerList, onBucketStudentPick, onBucketSubjectPick, openFinding } from './render-findings.js';
 import { shareInsightAsImage } from './render-i18n.js';
+import { goToScholarshipSetup } from './scholarship-nav.js';
+import { downloadScholarshipReport, openScholarshipStudentDetail, setScholarshipCategoryFilter, setScholarshipSearch, setScholarshipStatusFilter, switchScholarshipTab, toggleScholarshipErrorGrid } from './scholarship-dashboard.js';
+import { downloadScholarshipCertificates } from './scholarship-audit-detail.js';
+import { downloadDebugLog, safeRun } from './debug-log.js';
 import { swBack, swNext, swRefresh } from './setup-wizard.js';
 import { APP, goStep, onCountryChange, onLanguageChange, setThemeChoice } from './state-nav.js';
-import { cancelMergeMode, chooseMergeFork, confirmMergedDownload, deleteRecentFile, generateTemplate, goHomeAfterDownload, handleHomeImportFiles, handleUpdateUpload, resetHomeImport, stayAfterDownload, toggleAI, toggleBulkSectionsUI } from './template-upload.js';
+import { cancelMergeMode, chooseMergeFork, confirmMergedDownload, deleteRecentFile, generateTemplate, goHomeAfterDownload, handleHomeImportFiles, handleUpdateUpload, resetHomeImport, stayAfterDownload, toggleAI, toggleBulkSectionsUI, toggleScholarshipUI, validateScholarshipWeightage } from './template-upload.js';
 import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-shell.js';
 
 // FIX (review #4, item 3): replaces the 51 static inline onclick="" handlers
@@ -34,6 +38,7 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
     switch(action){
       case 'setThemeChoice': setThemeChoice(arg); break;
       case 'goStep': goStep(arg); break;
+      case 'goToScholarshipSetup': goToScholarshipSetup(); break;
       case 'showSampleFiles': showSampleFiles(); break;
       case 'vsShellToggle': vsShellToggle(arg); break;
       case 'toggleTrust': toggleTrust(arg); break;
@@ -49,7 +54,7 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
         // for the "moved to another tab and back, chat gone" bug this
         // used to cause).
         resetSmartChatTranscript();
-        runAnalysis();
+        safeRun('dashboard_analysis', 'run_analysis', runAnalysis);
         break;
       case 'startNewSessionCard':
         startNewSession();
@@ -77,6 +82,12 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
       case 'setFilter': setFilter(arg, el); break;
       case 'sortStudents': sortStudents(arg); break;
       case 'switchDbTab': switchDbTab(arg, el); break;
+      case 'switchScholarshipTab': switchScholarshipTab(arg); break;
+      case 'toggleScholarshipErrorGrid': toggleScholarshipErrorGrid(); break;
+      case 'openScholarshipStudentDetail': openScholarshipStudentDetail(arg); break;
+      case 'downloadScholarshipReport': downloadScholarshipReport(); break;
+      case 'downloadScholarshipCertificates': downloadScholarshipCertificates(); break;
+      case 'downloadDebugLog': ev.preventDefault(); downloadDebugLog(); break;
       case 'exportComparisonReportPDF': exportComparisonReportPDF(); break;
       case 'exportSectionPDFs':
         exportSectionPDFs($('#export-section-select').val());
@@ -119,6 +130,8 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
       case 'smartChatSubmit': smartChatSubmit(); break;
       case 'selectAllExpStudents': $('.exp-student-cb').prop('checked', true); break;
       case 'unselectAllExpStudents': $('.exp-student-cb').prop('checked', false); break;
+      case 'selectAllScholarshipCertStudents': $('.scholarship-cert-cb').prop('checked', true); break;
+      case 'unselectAllScholarshipCertStudents': $('.scholarship-cert-cb').prop('checked', false); break;
       case 'generateAllPDFs': generateAllPDFs(); break;
       case 'smartQueryRailAnswer': smartQueryRailAnswer(arg); break;
       case 'smartQueryRailAsk': smartQueryRailAsk(); break;
@@ -247,7 +260,9 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
     'sc-pf': function(){ markDirty(); },
     'individual-student-select': function(el){ selectIndividualStudent(el.value); },
     'compare-pick-a': function(){ renderCompareResult(); },
-    'compare-pick-b': function(){ renderCompareResult(); }
+    'compare-pick-b': function(){ renderCompareResult(); },
+    'scholarship-status-filter': function(el){ setScholarshipStatusFilter(el.value); },
+    'scholarship-category-filter': function(el){ setScholarshipCategoryFilter(el.value); }
   };
 
   var INPUT_HANDLERS = {
@@ -262,7 +277,12 @@ import { smartQueryRailAnswer, smartQueryRailAsk, vsShellToggle } from './vs-she
     'absent-alert': function(){ markDirty(); },
     'drop-alert': function(){ markDirty(); },
     'bulk-sections-toggle': function(el){ toggleBulkSectionsUI(el.checked); },
+    'scholarship-enable': function(el){ toggleScholarshipUI(el.checked); },
+    'scholarship-weightage-academic': function(){ markDirty(); validateScholarshipWeightage(); },
+    'scholarship-weightage-consistency': function(){ markDirty(); validateScholarshipWeightage(); },
+    'scholarship-weightage-growth': function(){ markDirty(); validateScholarshipWeightage(); },
     'search-student': function(){ filterStudents(); },
+    'scholarship-search-input': function(el){ setScholarshipSearch(el.value); },
     'faq-search': function(el){ filterFAQ(el.value); },
     'target-score-input': function(el){ setTargetScore(el.getAttribute('data-arg'), el.value); },
     'bucket-help-input': function(el){ filterPickerList('bucket-help-results', el.value); },

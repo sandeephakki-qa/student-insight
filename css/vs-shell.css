@@ -111,6 +111,21 @@
 }
 .shell-panel-content:empty{padding:0}
 
+/* Task 12: persistent debug-log link — deliberately outside
+   .shell-panel-content so it survives every per-step rail re-render
+   (see the HTML comment at its markup). Hidden when the panel itself is
+   collapsed, same as the rest of the panel's content. */
+.shell-panel-footer-link{
+  flex:0 0 auto;
+  padding:8px 12px;
+  border-block-start:1px solid var(--c-border);
+  font-size:12px;
+}
+.shell-panel-footer-link a{color:var(--c-text2);text-decoration:none}
+.shell-panel-footer-link a:hover{color:var(--c-text);text-decoration:underline}
+.shell-panel[data-collapsed="true"] .shell-panel-footer-link{display:none}
+
+
 /* ---- Task 4: left-panel key/value rows (VS Properties-panel style) ---- */
 .shell-kv-row{
   display:flex;
@@ -344,12 +359,17 @@
      centering the badge against the *wrapped* label height, so it
      visually floated next to line 2/3 instead of sitting with line 1). */
   flex-wrap:wrap;
-  align-items:flex-start;
+  align-items:center;
 }
 .shell-panel-content .bucket-icon svg{width:1em;height:1em}
 .shell-panel-content .bucket-text{flex:1 1 120px;min-width:120px}
 .shell-panel-content .bucket-label{font-size:12.5px;font-weight:600;overflow-wrap:break-word}
-.shell-panel-content .bucket-desc{font-size:12px;overflow-wrap:anywhere}
+.shell-panel-content .bucket-desc{
+  display:block;
+  font-size:12px;
+  overflow-wrap:anywhere;
+  color:var(--c-text2);
+}
 .shell-panel-content .bucket-badge{
   font-size:11px;
   padding:2px 7px;

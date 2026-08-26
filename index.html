@@ -54,7 +54,7 @@
   base-uri 'self';
 "/>
 <meta name="theme-color" content="#2b3a67"/>
-<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="icon" type="image/png" href="img/favicon.png"/>
 <meta name="description" content="Student Insight — Privacy-first, in-browser student analytics. Turn test marks into the same analysis, every time."/>
 <title data-i18n="doc_title">Student Insight — Privacy-first Student Analytics</title>
 <!-- Cloudflare Web Analytics: cookieless, no personal data collected/stored.
@@ -1406,6 +1406,13 @@
   <div class="step-item active" data-step="home" role="button" tabindex="0" aria-current="step" data-action="goStep" data-arg="home"><div class="step-num" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z'/><path d='M9 22V12h6v10'/></svg></div><span data-i18n="shell_nav_home">Home</span></div>
   <span class="step-sep" aria-hidden="true">›</span>
   <div class="step-item locked" data-step="dashboard" role="button" tabindex="0" data-action="goStep" data-arg="dashboard" title="Run Analysis on Home first" data-i18n-title="val_run_analysis_first_title"><div class="step-num" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M3 3v18h18'/><path d='M7 15l4-5 4 3 5-7'/></svg></div><span data-i18n="insights_nav_label">Insights</span></div>
+  <!-- Task 07 (studin-scholarship-discussion.md §28): hidden entirely
+       (not just "locked" like Insights above) until a file is loaded —
+       same signal Current File Details in the Home rail already uses
+       (APP.homeSingleFile / a valid compare section). See
+       updateScholarshipNavVisibility() in js/state-nav.js, which toggles
+       the nav-file-loaded class this CSS rule keys off (css/core.css). -->
+  <div class="step-item nav-file-required" data-step="scholarship" role="button" tabindex="0" data-action="goStep" data-arg="scholarship"><div class="step-num" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1z'/></svg></div><span data-i18n="shell_nav_scholarship">Scholarship</span></div>
   <!-- ui-prompt-template.md §6: Export is no longer a numbered stepper step
        (display:none, not deleted — goStep('export') and #panel-export
        still work exactly as before; the Dashboard rail's "Export Reports"
@@ -1706,6 +1713,54 @@
           <div class="form-group" style="margin-bottom:0"><label style="font-size:11px" data-i18n="setup_drop_alert_label">Drop Alert %</label><input id="drop-alert" type="number" value="20" min="0" max="100" style="text-align:center"/></div>
         </div>
       </div>
+      <!-- Task 02: Scholarship Criteria — opt-in gate. Fields below only
+           required/active when #scholarship-enable is checked (§26); the
+           section header + Enable field itself are always written to the
+           sheet (see buildSetupSheet) so schema stays stable either way. -->
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--c-border)">
+        <div id="scholarship-setup-title" style="font-size:11px;font-weight:700;color:var(--c-text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px" data-i18n="scholarship_setup_title">Scholarship Criteria</div>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:600;margin-bottom:8px">
+          <input type="checkbox" id="scholarship-enable" style="accent-color:var(--c-primary)"/>
+          <span data-i18n="scholarship_enable_label">Enable Scholarship Module</span>
+        </label>
+        <div id="scholarship-fields" style="display:none">
+          <div class="form-group"><label style="font-size:11px" data-i18n="scholarship_scheme_name_label">Scheme Name</label><input id="scholarship-scheme-name" type="text" data-i18n-placeholder="scholarship_scheme_name_placeholder" placeholder="e.g. Merit-cum-Need Scholarship 2025-26"/></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="form-group"><label style="font-size:11px" data-i18n="scholarship_eligibility_type_label">Eligibility Type</label>
+              <select id="scholarship-eligibility-type">
+                <option value="" data-i18n="scholarship_eligibility_type_select">Select...</option>
+                <option data-i18n="scholarship_eligibility_merit_only">Merit-only</option>
+                <option data-i18n="scholarship_eligibility_need_only">Need-only</option>
+                <option data-i18n="scholarship_eligibility_merit_cum_need">Merit-cum-Need</option>
+                <option data-i18n="scholarship_eligibility_category_based">Category-based</option>
+                <option data-i18n="scholarship_eligibility_custom">Custom</option>
+              </select>
+            </div>
+            <div class="form-group"><label style="font-size:11px" data-i18n="scholarship_no_fail_rule_label">No-Fail Rule</label>
+              <select id="scholarship-no-fail-rule">
+                <option data-i18n="scholarship_no">No</option>
+                <option data-i18n="scholarship_yes">Yes</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="form-group" style="margin-bottom:0"><label style="font-size:11px" data-i18n="scholarship_min_academic_avg_label">Min Academic Avg %</label><input id="scholarship-min-academic-avg" type="number" min="0" max="100" style="text-align:center"/></div>
+            <div class="form-group" style="margin-bottom:0"><label style="font-size:11px" data-i18n="scholarship_max_family_income_label">Max Family Income (INR)</label><input id="scholarship-max-family-income" type="number" min="0" style="text-align:center"/></div>
+          </div>
+          <div class="form-group"><label style="font-size:11px" data-i18n="scholarship_attendance_floor_label">Attendance Floor - Max Absent Days (total across tests)</label><input id="scholarship-attendance-floor" type="number" min="0" style="text-align:center"/></div>
+          <div class="form-group">
+            <label style="font-size:11px" data-i18n="scholarship_category_quota_label">Category Quota %</label>
+            <input id="scholarship-category-quota" type="number" min="0" max="100" style="text-align:center"/>
+            <div style="font-size:10.5px;color:var(--c-text3);margin-top:2px" data-i18n="scholarship_category_quota_note">Reference only — not auto-applied to ranking.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+            <div class="form-group" style="margin-bottom:0"><label style="font-size:11px" data-i18n="scholarship_weightage_academic_label">Weightage - Academic</label><input id="scholarship-weightage-academic" type="number" min="0" max="100" value="60" style="text-align:center"/></div>
+            <div class="form-group" style="margin-bottom:0"><label style="font-size:11px" data-i18n="scholarship_weightage_consistency_label">Weightage - Consistency</label><input id="scholarship-weightage-consistency" type="number" min="0" max="100" value="20" style="text-align:center"/></div>
+            <div class="form-group" style="margin-bottom:0"><label style="font-size:11px" data-i18n="scholarship_weightage_growth_label">Weightage - Growth</label><input id="scholarship-weightage-growth" type="number" min="0" max="100" value="20" style="text-align:center"/></div>
+          </div>
+          <div id="err-scholarship-weightage" style="display:none;font-size:11px;color:var(--c-danger);margin-top:3px"></div>
+        </div>
+      </div>
     </div>
     <div id="sw-err-3" class="sw-err" style="display:none"></div>
     <div class="sw-nav">
@@ -2001,6 +2056,19 @@
   </div>
   </div><!-- #panel-export (inline section) -->
 </div><!-- #panel-dashboard -->
+
+<!-- SCHOLARSHIP (Task 07) — content built by renderScholarshipPanel()
+     (js/scholarship-nav.js) on every goStep("scholarship") visit, same
+     re-render-per-visit pattern as renderHomePage()/renderBuckets(), so a
+     language switch elsewhere is picked up on next visit (see the
+     matching note on renderAICheckboxes() in js/state-nav.js). Two
+     mutually-exclusive states toggled by data-scholarship-state on this
+     wrapper: "not-enabled" (feature intro + Enable button) or "enabled"
+     (Task 08's dashboard — placeholder stub until that task ships). -->
+<div id="panel-scholarship" class="panel" data-scholarship-state="not-enabled">
+  <div id="scholarship-not-enabled" class="bucket-empty-state" style="max-width:480px;margin:60px auto"></div>
+  <div id="scholarship-enabled-placeholder" style="display:none"></div>
+</div><!-- #panel-scholarship -->
 
 <!-- ABOUT -->
 <div id="panel-about" class="panel">
@@ -2342,6 +2410,17 @@
 <div class="shell-panel" id="shell-panel-end" data-collapsed="false">
   <button type="button" class="shell-panel-toggle" id="shell-panel-end-toggle" data-i18n-aria-label="shell_aria_collapse_panel" aria-label="Collapse panel" aria-expanded="true" aria-controls="shell-rail-end" data-action="vsShellToggle" data-arg="end"><span class="shell-panel-title" data-i18n="shell_rail_properties_title">Properties</span><svg class="ic" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 18l6-6-6-6"/></svg></button>
   <div data-i18n-aria-label="shell_aria_actions_panel" class="shell-panel-content" id="shell-rail-end" role="region" aria-label="Actions panel"></div>
+  <!-- Task 12 (§15): debug-log download link, persistent across every
+       step — deliberately placed OUTSIDE #shell-rail-end (which
+       renderShellRightRail()/openBucket() overwrite per-step) so it never
+       gets clobbered by whatever step-specific content is rendered there.
+       §15's original placement idea was replacing the Home step's pitch
+       rows specifically; that per-step redesign was left "still to be
+       worked out" in the source doc, so this fixed footer link is the
+       reasonable/easy-to-find placement actually implemented here. -->
+  <div class="shell-panel-footer-link">
+    <a href="#" data-action="downloadDebugLog" data-i18n="scholarship_log_download_link">Download debug log</a>
+  </div>
 </div>
 </div><!-- #app-shell-body -->
 

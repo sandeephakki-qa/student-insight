@@ -7,7 +7,7 @@ import { buildDashboardControlsHtml } from './render-buckets.js';
 import { closeModal, gsapModalEntrance, showSampleFiles, updateExportGate } from './render-core.js';
 import { i18nLabel, srT } from './render-i18n.js';
 import { swGoto } from './setup-wizard.js';
-import { APP, goStep } from './state-nav.js';
+import { APP, goStep, updateScholarshipNavVisibility } from './state-nav.js';
 import { renderShellLeftRail, renderShellRightRail } from './vs-shell.js';
 
 /* ════ EXCEL TEMPLATE GENERATION ════ */
@@ -90,7 +90,30 @@ function buildSetupSheet(){
     subjects.filter(s=>included.includes(s)).forEach(s=>setupRows.push(["Max Marks - "+s+" (Test "+(i+1)+")",(t.maxMarks&&t.maxMarks[s])||100]));});
   setupRows.push(["Scoring Method",Object.keys(APP.setup.scoring).filter(k=>APP.setup.scoring[k]).join(", ")]);
   setupRows.push(["Pass Threshold %",passThreshold],["Absent Alert Days",absentAlert],["Sharp Drop Alert %",dropAlert]);
-  const SECTION_LABELS=new Set(["MODE","INSTITUTION","CLASS","SUBJECTS","TESTS"]);
+  // Task 02: SCHOLARSHIP CRITERIA — always written (schema stable per
+  // §24/§26) whether or not the module is enabled; fields below the Enable
+  // row are only ACTIVE/required when Enable = Yes, enforced in
+  // validateSetupData(), not by omitting them here. No Weightage -
+  // Attendance row (superseded — see this task's spec; Attendance is a
+  // hard floor only, §25 point 2). Category Quota % carries its
+  // "informational only" note in column C, same plain-text-cell pattern as
+  // the reference sample file (no real xlsx cell-comment object used
+  // anywhere else in this codebase).
+  const sch=APP.setup.scholarship||{};
+  const yn=v=>v?"Yes":"No";
+  setupRows.push(["SCHOLARSHIP CRITERIA",""]);
+  setupRows.push(["Enable Scholarship Module",yn(sch.enabled)]);
+  setupRows.push(["Scheme Name",sch.schemeName||""]);
+  setupRows.push(["Eligibility Type",sch.eligibilityType||""]);
+  setupRows.push(["Min Academic Avg %",sch.minAcademicAvg==null?"":sch.minAcademicAvg]);
+  setupRows.push(["Max Family Income (INR)",sch.maxFamilyIncome==null?"":sch.maxFamilyIncome]);
+  setupRows.push(["No-Fail Rule (Y/N)",yn(sch.noFailRule)]);
+  setupRows.push(["Attendance Floor - Max Absent Days (total across tests)",sch.attendanceFloor==null?"":sch.attendanceFloor]);
+  setupRows.push(["Category Quota %",sch.categoryQuota==null?"":sch.categoryQuota,srT("scholarship_category_quota_note")]);
+  setupRows.push(["Weightage - Academic",sch.weightAcademic==null?60:sch.weightAcademic]);
+  setupRows.push(["Weightage - Consistency",sch.weightConsistency==null?20:sch.weightConsistency]);
+  setupRows.push(["Weightage - Growth",sch.weightGrowth==null?20:sch.weightGrowth]);
+  const SECTION_LABELS=new Set(["MODE","INSTITUTION","CLASS","SUBJECTS","TESTS","SCHOLARSHIP CRITERIA"]);
   const wsSetup=XLSX.utils.aoa_to_sheet(setupRows);
   wsSetup["!cols"]=[{wch:34},{wch:28}];
   wsSetup["!rows"]=setupRows.map(()=>({hpt:20}));
@@ -154,7 +177,11 @@ function buildContinuitySetupSheet(periods){
   return wsSetup;
 }
 function buildStudentsSheet(){
-  const hdr=["Student ID","Full Name","Gender"];
+  // Columns 4-9 (Category..Special Category Flag) are the Phase 1
+  // scholarship fields — locked order per studin-scholarship-discussion.md
+  // §24. All 6 optional/nullable; sample rows leave them blank on purpose
+  // (not sample-filled) since they're not part of the core roster identity.
+  const hdr=["Student ID","Full Name","Gender","Category","Annual Family Income","Guardian Occupation","Prior Scholarship Status","Persistent Student ID","Special Category Flag"];
   const rows=[hdr];
   // Was "STU001".."STU005" — a user who left these untouched and just
   // filled marks against them got silently-wrong analysis (the "SAMPLE-N"
@@ -162,13 +189,13 @@ function buildStudentsSheet(){
   // safety net — auto-skipping these if still untouched on import — is
   // in parseStudents(), js/compute-stats.js, matched against
   // SAMPLE_STUDENT_IDS below).
-  for(let i=1;i<=5;i++)rows.push(["SAMPLE-"+i,"⚠ Replace this row — delete or overwrite","M"]);
+  for(let i=1;i<=5;i++)rows.push(["SAMPLE-"+i,"⚠ Replace this row — delete or overwrite","M","","","","","",""]);
   const ws=XLSX.utils.aoa_to_sheet(rows);
-  ws["!cols"]=[{wch:16},{wch:34},{wch:10}];
+  ws["!cols"]=[{wch:16},{wch:34},{wch:10},{wch:14},{wch:18},{wch:22},{wch:20},{wch:18},{wch:22}];
   ws["!rows"]=rows.map((_,r)=>({hpt:r===0?32:20}));
   ws["!views"]=[{state:"frozen",ySplit:1,topLeftCell:"A2",activePane:"bottomLeft"}];
   hdr.forEach((_,c)=>{const cell=ws[colLetter(c)+"1"];if(cell)cell.s=TPL_STYLE.header;});
-  for(let r=1;r<rows.length;r++)for(let c=0;c<3;c++){const cell=ws[colLetter(c)+(r+1)];if(cell)cell.s=TPL_STYLE.sample;}
+  for(let r=1;r<rows.length;r++)for(let c=0;c<hdr.length;c++){const cell=ws[colLetter(c)+(r+1)];if(cell)cell.s=TPL_STYLE.sample;}
   return ws;
 }
 // NEW SCHEMA — Tabs 3..N+2: one per test. Student ID + one Marks column
@@ -245,6 +272,114 @@ function buildReadmeSheet(){
   ws["!cols"]=[{wch:110}];
   return ws;
 }
+// Task 03: REFERENCE tab — guidance-only value lists for the STUDENTS
+// tab's Category / Prior Scholarship Status / Special Category Flag
+// columns (Task 01). A dedicated tab, not embedded in SETUP's key-value
+// rows, so Phase 2's editable grid can read a clean list without parsing
+// mixed config (§36). Never enforced/blocking on its own — the actual
+// soft (Warning-style) dropdown wiring lives in
+// injectScholarshipDataValidations() below, since xlsx-js-style 1.2.0 has
+// no native data-validation write API (confirmed: zero "dataValidation"
+// occurrences in its bundle) — Excel data validations are written via
+// direct XML injection into the generated .xlsx after XLSX.write().
+const REFERENCE_LISTS={
+  category:["General","OBC","SC","ST","EWS","Other"],
+  priorScholarshipStatus:["None","Fresh Applied","Renewal"],
+  specialCategoryFlag:["Disability (specify type)","Single Parent Household","Below Poverty Line","Orphan","Other"],
+};
+function buildReferenceSheet(){
+  const hdr=["Category","Prior Scholarship Status","Special Category Flag"];
+  const lists=[REFERENCE_LISTS.category,REFERENCE_LISTS.priorScholarshipStatus,REFERENCE_LISTS.specialCategoryFlag];
+  const maxLen=Math.max(...lists.map(l=>l.length));
+  const rows=[hdr];
+  for(let i=0;i<maxLen;i++)rows.push(lists.map(l=>l[i]||""));
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws["!cols"]=[{wch:14},{wch:24},{wch:28}];
+  ws["!rows"]=rows.map((_,r)=>({hpt:r===0?32:20}));
+  hdr.forEach((_,c)=>{const cell=ws[colLetter(c)+"1"];if(cell)cell.s=TPL_STYLE.header;});
+  for(let r=1;r<rows.length;r++)for(let c=0;c<hdr.length;c++){const cell=ws[colLetter(c)+(r+1)];if(cell)cell.s=TPL_STYLE.sample;}
+  return ws;
+}
+// Excel column letters of the three STUDENTS columns REFERENCE's lists
+// apply to (see buildStudentsSheet(): D=Category, G=Prior Scholarship
+// Status, I=Special Category Flag). Range end row 1048576 = full column,
+// same idiom Excel itself uses for a growable list, not a fixed row cap.
+function scholarshipDataValidationSpecs(){
+  const rangeEnd=1048576;
+  const colRange=col=>{const n=REFERENCE_LISTS[col.key].length+1;return "REFERENCE!$"+col.refCol+"$2:$"+col.refCol+"$"+n;};
+  const specs=[
+    {sqref:"D2:D"+rangeEnd,key:"category",refCol:"A"},
+    {sqref:"G2:G"+rangeEnd,key:"priorScholarshipStatus",refCol:"B"},
+    {sqref:"I2:I"+rangeEnd,key:"specialCategoryFlag",refCol:"C"},
+  ];
+  return specs.map(s=>({sqref:s.sqref,formula1:colRange(s)}));
+}
+// Injects genuine Excel data-validation XML into the STUDENTS sheet of an
+// already-built workbook's raw .xlsx bytes — the only way to get real
+// dropdowns out of xlsx-js-style (see comment above buildReferenceSheet).
+// errorStyle="warning" (not the Excel default "stop") is what makes this
+// non-blocking: Excel still shows the dropdown/suggestion, but typing a
+// value not on the list pops a Warning the user can dismiss and keep,
+// never a hard block — required by §6 (schools whose categories don't
+// match this list must still be able to type their own).
+// Returns a Promise<Uint8Array> — the patched .xlsx bytes.
+function injectScholarshipDataValidations(wbBytes){
+  const specs=scholarshipDataValidationSpecs();
+  return JSZip.loadAsync(wbBytes).then(zip=>
+    zip.file("xl/workbook.xml").async("string").then(wbXml=>{
+      const m=new RegExp('<sheet name="STUDENTS"[^>]*r:id="(rId\\d+)"').exec(wbXml);
+      if(!m)return zip; // no STUDENTS sheet (shouldn't happen) — degrade to unmodified file rather than throw
+      const rId=m[1];
+      return zip.file("xl/_rels/workbook.xml.rels").async("string").then(relsXml=>{
+        const rm=new RegExp('<Relationship Id="'+rId+'"[^>]*Target="([^"]+)"').exec(relsXml);
+        if(!rm)return zip;
+        const target="xl/"+rm[1];
+        return zip.file(target).async("string").then(sheetXml=>{
+          const dvXml='<dataValidations count="'+specs.length+'">'+
+            specs.map(s=>'<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" errorStyle="warning" sqref="'+s.sqref+'"><formula1>'+s.formula1+'</formula1></dataValidation>').join("")+
+            '</dataValidations>';
+          // Schema order (CT_Worksheet): dataValidations must come before
+          // ignoredErrors (and hyperlinks/printOptions/pageMargins etc) if
+          // present, else Excel/LibreOffice will flag the file for repair.
+          let newXml;
+          if(sheetXml.indexOf("<ignoredErrors")!==-1)newXml=sheetXml.replace("<ignoredErrors",dvXml+"<ignoredErrors");
+          else newXml=sheetXml.replace("</worksheet>",dvXml+"</worksheet>");
+          zip.file(target,newXml);
+          return zip;
+        });
+      });
+    })
+  ).then(zip=>zip.generateAsync({type:"array"}));
+}
+// Task 03: write+download path for a workbook that needs the REFERENCE
+// dropdown validation injected (see injectScholarshipDataValidations()
+// above). XLSX.writeFile() can't be used here since the validation only
+// exists once we patch the raw zip bytes post-write — same manual
+// Blob+<a> download trigger already used by generateBulkSectionTemplates()
+// below, just for a single file instead of a zip.
+// Scoped to generateTemplate()'s fresh-template path only (this task's
+// spec + test step 5) — generateMergedTemplate()/
+// generateContinuityAppendTemplate()/generateBulkSectionTemplates() keep
+// using plain XLSX.writeFile()/XLSX.write() untouched, out of scope here.
+function downloadWorkbookWithScholarshipValidation(wb,fname,onDone){
+  const bytes=XLSX.write(wb,{bookType:"xlsx",type:"array"});
+  injectScholarshipDataValidations(bytes).then(patchedBytes=>{
+    const blob=new Blob([patchedBytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement("a");
+    link.href=url;link.download=fname;
+    document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    if(onDone)onDone();
+  }).catch(err=>{
+    // Injection failure (unexpected zip/XML shape) must never block the
+    // teacher from getting a usable file — fall back to the plain
+    // (dropdown-less) workbook rather than losing the download entirely.
+    console.error("Scholarship dropdown injection failed, falling back to plain template:",err);
+    XLSX.writeFile(wb,fname);
+    if(onDone)onDone();
+  });
+}
 function generateTemplate(){
   collectSetupForm();
   if(!APP.setup.instName){toast(APP.setup.mode==="individual"?srT("val_fill_student_name_first"):srT("val_fill_institution_name_first"),"warn");return;}
@@ -274,13 +409,17 @@ function generateTemplate(){
   });
   usedNames.add("README");
   XLSX.utils.book_append_sheet(wb,buildReadmeSheet(),"README");
+  usedNames.add("REFERENCE");
+  XLSX.utils.book_append_sheet(wb,buildReferenceSheet(),"REFERENCE");
   const fname=(instName+" "+APP.setup.className+" "+APP.setup.year).replace(/[^\w\s-]/g,"").replace(/\s+/g,"_")+".xlsx";
-  XLSX.writeFile(wb,fname);toast(srT("toast_template_downloaded",{fname:fname}),"success");
-  // BUG FIX (screenshot review): used to auto-reload to Home 900ms later
-  // unconditionally, silently erasing a correctly-filled form even when
-  // the teacher still needed to revisit/correct it. Now ask instead — see
-  // showPostDownloadPrompt().
-  setTimeout(()=>showPostDownloadPrompt(),400);
+  downloadWorkbookWithScholarshipValidation(wb,fname,()=>{
+    toast(srT("toast_template_downloaded",{fname:fname}),"success");
+    // BUG FIX (screenshot review): used to auto-reload to Home 900ms later
+    // unconditionally, silently erasing a correctly-filled form even when
+    // the teacher still needed to revisit/correct it. Now ask instead — see
+    // showPostDownloadPrompt().
+    setTimeout(()=>showPostDownloadPrompt(),400);
+  });
 }
 // BUG FIX (screenshot review): auto-reloading straight to Home right after
 // a download silently erased a correctly-filled-in form — if the teacher
@@ -308,6 +447,38 @@ function stayAfterDownload(){
   if(typeof closeModal==="function")closeModal();
   // Deliberately a no-op beyond closing the modal — the form/state is
   // untouched so the user can keep editing right where they left off.
+}
+// Task 02: Scholarship Criteria opt-in gate — same show/hide pattern as
+// toggleBulkSectionsUI() above. Enable = No/blank leaves the fields hidden
+// and non-required; nothing else in the app reacts to this until Task 04.
+function toggleScholarshipUI(checked){
+  const el=document.getElementById("scholarship-fields");
+  if(el)el.style.display=checked?"":"none";
+  const err=document.getElementById("err-scholarship-weightage");
+  if(err)err.style.display="none";
+  if(checked)validateScholarshipWeightage();
+}
+// Weightage - Academic/Consistency/Growth must sum to 100 when the module
+// is enabled (§26). Decision (Task 02 step 1): blocking, not just a
+// warning — matches how this codebase already treats other values whose
+// invalidity would corrupt a downstream calculation (invalid Max Marks,
+// duplicate Subject/Test names in validateSetupData() below), rather than
+// the softer "not required" class of issue (missing Teacher, missing Pass
+// Threshold). A non-100 split would silently mis-weight every student's
+// scholarship score with no visible sign anything was wrong.
+function validateScholarshipWeightage(){
+  const errEl=document.getElementById("err-scholarship-weightage");
+  if(!$("#scholarship-enable").is(":checked")){if(errEl)errEl.style.display="none";return true;}
+  const a=parseInt($("#scholarship-weightage-academic").val())||0;
+  const c=parseInt($("#scholarship-weightage-consistency").val())||0;
+  const g=parseInt($("#scholarship-weightage-growth").val())||0;
+  const sum=a+c+g;
+  if(sum!==100){
+    if(errEl){errEl.textContent=srT("scholarship_weightage_sum_error",{sum:sum});errEl.style.display="";}
+    return false;
+  }
+  if(errEl)errEl.style.display="none";
+  return true;
 }
 function toggleBulkSectionsUI(checked){
   const el=document.getElementById("bulk-sections-fields");
@@ -1162,6 +1333,7 @@ function afterAllCompareFilesLoaded(){
     // matches anything else; matching subsets are compared silently once
     // Run Analysis executes (see computeCompareGroups()).
     showHomeRunAnalysisButton();
+    updateScholarshipNavVisibility(); // Task 07: compare-mode equivalent of the single-file path above
     return;
   }
   const detail="None of these look like Student Insight templates — check you're uploading the filled Excel file(s) exported from Setup, with SETUP and MARKS+CONTEXT tabs intact.";
@@ -1329,6 +1501,10 @@ function afterImportSuccess(){
   APP.dataIssues=[]; // reset from any prior session/import; real check happens once analysis runs
   unlockStep("ai");unlockStep("dashboard");unlockStep("export");
   updateExportGate();
+  // Task 07: Scholarship nav entry appears as soon as a file is loaded —
+  // same moment Current File Details starts showing in the Home rail —
+  // not gated on Run Analysis like Insights/Export above.
+  updateScholarshipNavVisibility();
   // v3.0 (BUILD spec §2.3, reverses v2.4): no auto-run. A valid import just
   // unlocks the Home "Run Analysis" button — the person clicks it to
   // actually trigger runAnalysis() (loader, goStep('ai'), buckets).
@@ -1403,6 +1579,24 @@ function validateSetupData(){
   (s._maxMarkErrors||[]).forEach(e=>{
     errs.push({required:true,msg:`Invalid maximum mark for "${e.label}": entered "${e.raw}" — ${e.reason}.`});
   });
+  // Scholarship Criteria (Task 02, §26): Enable = Yes makes every field in
+  // the section required, and the three weightages must sum to 100 — both
+  // blocking, same severity as the invalid-max-marks/dupe-name checks
+  // above, since a missing criterion or a bad weightage split would
+  // silently corrupt Task 04's eligibility engine rather than just being
+  // "not filled in yet" (contrast with Teacher/Pass Threshold above, which
+  // stay non-blocking).
+  const sch=s.scholarship;
+  if(sch&&sch.enabled){
+    if(!sch.schemeName)errs.push({required:true,msg:srT("scholarship_required_error",{field:srT("scholarship_scheme_name_label")})});
+    if(!sch.eligibilityType)errs.push({required:true,msg:srT("scholarship_required_error",{field:srT("scholarship_eligibility_type_label")})});
+    if(sch.minAcademicAvg===null||sch.minAcademicAvg===undefined)errs.push({required:true,msg:srT("scholarship_required_error",{field:srT("scholarship_min_academic_avg_label")})});
+    if(sch.maxFamilyIncome===null||sch.maxFamilyIncome===undefined)errs.push({required:true,msg:srT("scholarship_required_error",{field:srT("scholarship_max_family_income_label")})});
+    if(sch.attendanceFloor===null||sch.attendanceFloor===undefined)errs.push({required:true,msg:srT("scholarship_required_error",{field:srT("scholarship_attendance_floor_label")})});
+    if(sch.categoryQuota===null||sch.categoryQuota===undefined)errs.push({required:true,msg:srT("scholarship_required_error",{field:srT("scholarship_category_quota_label")})});
+    const wSum=(sch.weightAcademic||0)+(sch.weightConsistency||0)+(sch.weightGrowth||0);
+    if(wSum!==100)errs.push({required:true,msg:srT("scholarship_weightage_sum_error",{sum:wSum})});
+  }
   // Sheet-name collisions (two worksheet tabs that normalize to the same
   // name) — see EXCEL_DATA_MATH_AUDIT_PROMPT.md item 5. Always blocking:
   // there is no safe way to guess which tab a SETUP test name refers to.
@@ -1434,6 +1628,7 @@ function renderHomePage(){
   (function(){const btn=document.getElementById("btn-home-run-analysis");if(btn){btn.style.display="none";btn.disabled=true;btn.style.opacity=.45;btn.style.cursor="not-allowed";btn.classList.remove("btn-glow");}})();
   // Reset stepper
   document.querySelectorAll(".step-item").forEach(el=>{el.classList.remove("active");el.classList.add("locked");});
+  updateScholarshipNavVisibility(); // Task 07: hide again — homeSingleFile/sections just cleared above
   document.querySelector('.step-item[data-step="home"]')?.classList.remove("locked");
   document.querySelector('.step-item[data-step="setup"]')?.classList.remove("locked");
   document.querySelector('.step-item[data-step="about"]')?.classList.remove("locked");
@@ -1734,6 +1929,27 @@ function autoInferSetup(){
   if(kv["Pass Threshold %"])APP.setup.passThreshold=clampImportedNum(kv["Pass Threshold %"],0,100,35);
   if(kv["Absent Alert Days"])APP.setup.absentAlert=clampImportedNum(kv["Absent Alert Days"],0,365,3);
   if(kv["Sharp Drop Alert %"])APP.setup.dropAlert=clampImportedNum(kv["Sharp Drop Alert %"],0,100,20);
+  // Task 02: SCHOLARSHIP CRITERIA read-back. buildSetupKv() above already
+  // ignores any column beyond B (the Category Quota note) and any row
+  // whose key nothing here reads — so a legacy sample file's leftover
+  // "Weightage - Attendance" row (superseded by this task, see spec) is
+  // silently skipped, never looked up, never thrown on.
+  if(kv["Enable Scholarship Module"]!==undefined||kv["Scheme Name"]!==undefined){
+    const isYes=v=>String(v||"").trim().toLowerCase()==="yes";
+    APP.setup.scholarship={
+      enabled:isYes(kv["Enable Scholarship Module"]),
+      schemeName:capField(kv["Scheme Name"]||"",FIELD_MAX,"Scheme Name"),
+      eligibilityType:kv["Eligibility Type"]||"",
+      minAcademicAvg:kv["Min Academic Avg %"]!==undefined?clampImportedNum(kv["Min Academic Avg %"],0,100,null):null,
+      maxFamilyIncome:kv["Max Family Income (INR)"]!==undefined?clampImportedNum(kv["Max Family Income (INR)"],0,999999999,null):null,
+      noFailRule:isYes(kv["No-Fail Rule (Y/N)"]),
+      attendanceFloor:kv["Attendance Floor - Max Absent Days (total across tests)"]!==undefined?clampImportedNum(kv["Attendance Floor - Max Absent Days (total across tests)"],0,365,null):null,
+      categoryQuota:kv["Category Quota %"]!==undefined?clampImportedNum(kv["Category Quota %"],0,100,null):null,
+      weightAcademic:kv["Weightage - Academic"]!==undefined?clampImportedNum(kv["Weightage - Academic"],0,100,60):60,
+      weightConsistency:kv["Weightage - Consistency"]!==undefined?clampImportedNum(kv["Weightage - Consistency"],0,100,20):20,
+      weightGrowth:kv["Weightage - Growth"]!==undefined?clampImportedNum(kv["Weightage - Growth"],0,100,20):20,
+    };
+  }
   const subjects=[];let i=1;while(kv["Subject "+i]){subjects.push(kv["Subject "+i]);i++;}
   if(subjects.length)APP.setup.subjects=subjects;
 
@@ -1875,7 +2091,7 @@ function updateAICount(){$("#ai-selected-count").text(APP.aiFeatures.size+" feat
 
 
 // --- ES module exports (added for module-system conversion, HANDOVER #4) ---
-export { AI_FEATURES, TPL_STYLE, afterAllCompareFilesLoaded, afterImportSuccess, applyTabPrefix, autoInferSetup, buildReadmeSheet, buildSetupSheet, buildStudentsSheet, buildTestSheet, buildTestSheetWithFormulas, buildSheetIndex, cancelMergeMode, canonicalSheetKey, chooseMergeFork, classPrefixForTabs, clearAllAI, colLetter, confirmMergedDownload, deleteRecentFile, generateBulkSectionTemplates, generateMergedTemplate, generateTemplate, getRecentFiles, goHomeAfterDownload, handleHomeImport, handleHomeImportFiles, handleUpdateUpload, loadMergeSourceFromArrayBuffer, parseContinuityPeriods, parseWorkbookSheets, renderAICheckboxes, renderHomePage, renderMergeConfirmModal, resetHomeImport, resolveSheetName, safeSheetName, selectAllAI, showHomeRunAnalysisButton, showPostDownloadPrompt, stayAfterDownload, timestampTag, toggleAI, toggleBulkSectionsUI, updateAICount, validateSetupData, validateUploadFile };
+export { AI_FEATURES, TPL_STYLE, afterAllCompareFilesLoaded, afterImportSuccess, applyTabPrefix, autoInferSetup, buildReadmeSheet, buildReferenceSheet, buildSetupSheet, buildStudentsSheet, buildTestSheet, buildTestSheetWithFormulas, buildSheetIndex, cancelMergeMode, canonicalSheetKey, chooseMergeFork, classPrefixForTabs, clearAllAI, colLetter, confirmMergedDownload, deleteRecentFile, downloadWorkbookWithScholarshipValidation, generateBulkSectionTemplates, generateMergedTemplate, generateTemplate, getRecentFiles, goHomeAfterDownload, handleHomeImport, handleHomeImportFiles, handleUpdateUpload, injectScholarshipDataValidations, loadMergeSourceFromArrayBuffer, parseContinuityPeriods, parseWorkbookSheets, renderAICheckboxes, renderHomePage, renderMergeConfirmModal, resetHomeImport, resolveSheetName, safeSheetName, selectAllAI, showHomeRunAnalysisButton, showPostDownloadPrompt, stayAfterDownload, timestampTag, toggleAI, toggleBulkSectionsUI, toggleScholarshipUI, updateAICount, validateScholarshipWeightage, validateSetupData, validateUploadFile };
 
 // Legacy-global compatibility shim: modules don't leak top-level
 // declarations onto window the way classic scripts did. The handful of
@@ -1883,4 +2099,4 @@ export { AI_FEATURES, TPL_STYLE, afterAllCompareFilesLoaded, afterImportSuccess,
 // (out of scope for HANDOVER #3 — only onclick was converted) still need a
 // bare global to resolve, so every exported name is also mirrored onto
 // window here. Harmless duplication for anything already imported properly.
-if(typeof window!=='undefined'){window.AI_FEATURES=AI_FEATURES;window.TPL_STYLE=TPL_STYLE;window.afterAllCompareFilesLoaded=afterAllCompareFilesLoaded;window.afterImportSuccess=afterImportSuccess;window.applyTabPrefix=applyTabPrefix;window.autoInferSetup=autoInferSetup;window.buildReadmeSheet=buildReadmeSheet;window.buildSetupSheet=buildSetupSheet;window.buildStudentsSheet=buildStudentsSheet;window.buildTestSheet=buildTestSheet;window.buildTestSheetWithFormulas=buildTestSheetWithFormulas;window.buildSheetIndex=buildSheetIndex;window.canonicalSheetKey=canonicalSheetKey;window.cancelMergeMode=cancelMergeMode;window.chooseMergeFork=chooseMergeFork;window.classPrefixForTabs=classPrefixForTabs;window.clearAllAI=clearAllAI;window.colLetter=colLetter;window.confirmMergedDownload=confirmMergedDownload;window.generateBulkSectionTemplates=generateBulkSectionTemplates;window.generateMergedTemplate=generateMergedTemplate;window.generateTemplate=generateTemplate;window.getRecentFiles=getRecentFiles;window.deleteRecentFile=deleteRecentFile;window.goHomeAfterDownload=goHomeAfterDownload;window.showPostDownloadPrompt=showPostDownloadPrompt;window.stayAfterDownload=stayAfterDownload;window.handleHomeImport=handleHomeImport;window.handleHomeImportFiles=handleHomeImportFiles;window.handleUpdateUpload=handleUpdateUpload;window.loadMergeSourceFromArrayBuffer=loadMergeSourceFromArrayBuffer;window.parseContinuityPeriods=parseContinuityPeriods;window.parseWorkbookSheets=parseWorkbookSheets;window.renderAICheckboxes=renderAICheckboxes;window.renderHomePage=renderHomePage;window.renderMergeConfirmModal=renderMergeConfirmModal;window.resetHomeImport=resetHomeImport;window.resolveSheetName=resolveSheetName;window.safeSheetName=safeSheetName;window.selectAllAI=selectAllAI;window.showHomeRunAnalysisButton=showHomeRunAnalysisButton;window.timestampTag=timestampTag;window.toggleAI=toggleAI;window.toggleBulkSectionsUI=toggleBulkSectionsUI;window.updateAICount=updateAICount;window.validateSetupData=validateSetupData;window.validateUploadFile=validateUploadFile;}
+if(typeof window!=='undefined'){window.AI_FEATURES=AI_FEATURES;window.TPL_STYLE=TPL_STYLE;window.afterAllCompareFilesLoaded=afterAllCompareFilesLoaded;window.afterImportSuccess=afterImportSuccess;window.applyTabPrefix=applyTabPrefix;window.autoInferSetup=autoInferSetup;window.buildReadmeSheet=buildReadmeSheet;window.buildReferenceSheet=buildReferenceSheet;window.buildSetupSheet=buildSetupSheet;window.buildStudentsSheet=buildStudentsSheet;window.buildTestSheet=buildTestSheet;window.buildTestSheetWithFormulas=buildTestSheetWithFormulas;window.buildSheetIndex=buildSheetIndex;window.canonicalSheetKey=canonicalSheetKey;window.cancelMergeMode=cancelMergeMode;window.chooseMergeFork=chooseMergeFork;window.classPrefixForTabs=classPrefixForTabs;window.clearAllAI=clearAllAI;window.colLetter=colLetter;window.confirmMergedDownload=confirmMergedDownload;window.generateBulkSectionTemplates=generateBulkSectionTemplates;window.generateMergedTemplate=generateMergedTemplate;window.generateTemplate=generateTemplate;window.getRecentFiles=getRecentFiles;window.deleteRecentFile=deleteRecentFile;window.downloadWorkbookWithScholarshipValidation=downloadWorkbookWithScholarshipValidation;window.goHomeAfterDownload=goHomeAfterDownload;window.showPostDownloadPrompt=showPostDownloadPrompt;window.stayAfterDownload=stayAfterDownload;window.handleHomeImport=handleHomeImport;window.handleHomeImportFiles=handleHomeImportFiles;window.handleUpdateUpload=handleUpdateUpload;window.injectScholarshipDataValidations=injectScholarshipDataValidations;window.loadMergeSourceFromArrayBuffer=loadMergeSourceFromArrayBuffer;window.parseContinuityPeriods=parseContinuityPeriods;window.parseWorkbookSheets=parseWorkbookSheets;window.renderAICheckboxes=renderAICheckboxes;window.renderHomePage=renderHomePage;window.renderMergeConfirmModal=renderMergeConfirmModal;window.resetHomeImport=resetHomeImport;window.resolveSheetName=resolveSheetName;window.safeSheetName=safeSheetName;window.selectAllAI=selectAllAI;window.showHomeRunAnalysisButton=showHomeRunAnalysisButton;window.timestampTag=timestampTag;window.toggleAI=toggleAI;window.toggleBulkSectionsUI=toggleBulkSectionsUI;window.toggleScholarshipUI=toggleScholarshipUI;window.updateAICount=updateAICount;window.validateScholarshipWeightage=validateScholarshipWeightage;window.validateSetupData=validateSetupData;window.validateUploadFile=validateUploadFile;}

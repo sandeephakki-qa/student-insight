@@ -34,6 +34,7 @@ because these files carry multiple periods.
 | 13 | Sample_13_For_UPSC_IAS_Coaching.xlsx | Institution | Coaching Centre | 30 | 4 (Prelims x2, Mains x2 @200) |
 | 14 | Sample_14_For_Individual_UPSC_Aspirant.xlsx | Individual | — | 1 (deliberate — not scaled up) | 4 (Prelims/Mains @200) |
 | 15 | Sample_15_For_Individual_School_Going_Child.xlsx | Individual | — | 1 (deliberate — not scaled up), Class 6 | 4 Terms @100 |
+| 16 | Sample_16_For_School_Scholarship_Eligibility.xlsx | Institution | Primary School (Class 7, Scholarship module) | 31 | 4 (2 Unit Tests @50, Mid-Term/Final @100) |
 
 (11 is the Continuity file — see its own section below, out of numeric order in this table since it uses a different schema.)
 
@@ -47,6 +48,18 @@ Every mark cell across samples 1-10 and 12-15 is clamped within its configured m
 and every file has been checked against the real `Test N Name` ↔ sheet-name
 matching rule the live parser depends on (`parseWorkbookSheets` →
 `autoInferSetup` → the `APP.rawData[t.name]` lookup in compute-engine.js).
+
+## Sample 16 — School with Scholarship Eligibility Data
+
+`Sample_16_For_School_Scholarship_Eligibility.xlsx` reuses the Sample 2 (School
+Class Teacher) SETUP/STUDENTS/tests shape — Institution mode, Class 7, 31
+students, 4 tests (2 Unit Tests @50, Mid-Term & Final @100) — but with the
+Scholarship module turned on (`Enable Scholarship Module: Yes`, Merit-cum-Need
+scheme) and the STUDENTS tab extended with the columns that module needs:
+Category, Annual Family Income, Guardian Occupation, Prior Scholarship Status,
+Persistent Student ID, and Special Category Flag. Use it to try the
+Scholarship Eligibility engine and completeness grid rather than the plain
+academic dashboard.
 
 ## Sample 11 — Engineering College, Semester 1-5 (CONTINUITY — now live, v4.36)
 

@@ -5,6 +5,7 @@ import { buildCompareExportControlsHtml, buildCompareSectionListHtml, buildDashb
 import { updateExportGate } from './render-core.js';
 import { renderClassAnswer, renderClusterGroups, renderFilteredList, renderStudentPicker } from './render-findings.js';
 import { i18nLabel, srT } from './render-i18n.js';
+import { computeScholarshipData, getScholarshipVisibleIds } from './scholarship-dashboard.js';
 import { openSmartSearchScreen } from './smart-engine-ui.js';
 import { SmartQueryV2 } from './smart-query-v2.js';
 import { APP, goStep } from './state-nav.js';
@@ -451,7 +452,7 @@ import { getRecentFiles } from './template-upload.js';
 
   function renderShellLeftRail(step){
     if(typeof srT !== "function" || typeof APP === "undefined"){ return; } // guards early boot ordering
-    const contextSteps = { setup:1, ai:1, dashboard:1, export:1 };
+    const contextSteps = { setup:1, ai:1, dashboard:1, export:1, scholarship:1 };
     if(!contextSteps[step]){
       // ui-prompt-template.md item 3: Home gets a light "what this app
       // does" teaser instead of the plain empty state; About/FAQ (and any
@@ -587,7 +588,11 @@ import { getRecentFiles } from './template-upload.js';
     // through to a separate full-screen tile grid), Institution +
     // non-Compare mode keeps its existing bucket set, Compare mode is
     // untouched (handled separately below).
-    if(step === "dashboard" && !APP.compareMode){
+    // Scholarship shares this same block (not just Dashboard) so that
+    // screen isn't a dead end — without it, the only way back to My
+    // Whole Class/One Student/etc from Scholarship was the browser back
+    // button, since Scholarship is its own step, not a dashboard bucket.
+    if((step === "dashboard" || step === "scholarship") && !APP.compareMode){
       if(APP.setup && APP.setup.mode === "individual" && typeof buildIndividualDashboardControlsHtml === "function"){
         html += buildIndividualDashboardControlsHtml();
         // UI review fix (Task 5): canned Smart Search questions no longer
@@ -607,8 +612,8 @@ import { getRecentFiles } from './template-upload.js';
     // been swapped into APP.students/APP.setup/APP.cohortClusters by
     // selectCompareSection(), so the exact same buildDashboardControlsHtml()
     // Institution mode uses works here too, unmodified — real parity, not
-    // a lookalike copy.
-    if(step === "dashboard" && APP.compareMode && typeof buildCompareSectionListHtml === "function"){
+    // a lookalike copy. Scholarship included for the same reason as above.
+    if((step === "dashboard" || step === "scholarship") && APP.compareMode && typeof buildCompareSectionListHtml === "function"){
       html += buildCompareSectionListHtml();
       if(APP._activeCompareSectionId && typeof buildDashboardControlsHtml === "function"){
         html += buildDashboardControlsHtml();
@@ -618,7 +623,7 @@ import { getRecentFiles } from './template-upload.js';
     // SEPARATE (not folded into one button) — surfaced as their own small
     // rail section here, below the section/group list and (when active)
     // per-section bucket list added above.
-    if(step === "dashboard" && APP.compareMode && typeof buildCompareExportControlsHtml === "function"){
+    if((step === "dashboard" || step === "scholarship") && APP.compareMode && typeof buildCompareExportControlsHtml === "function"){
       html += buildCompareExportControlsHtml();
     }
     setLeftRail(html);
@@ -683,9 +688,77 @@ import { getRecentFiles } from './template-upload.js';
     // renderShellDashboardRail()/smartQueryRailAsk() functions below are
     // kept, not deleted, but no longer called from anywhere; see §9.
     if(step === "dashboard") return;
+    // Scholarship is a full step (not a dashboard bucket), so — unlike
+    // dashboard's openBucket()-driven right rail — it's built directly
+    // here, same as renderExportPropertiesRail() below is for the Export
+    // bucket.
+    if(step === "scholarship"){ renderScholarshipPropertiesRail(); return; }
     setRightRail(html);
   }
   window.renderShellRightRail = renderShellRightRail;
+
+  // Right panel for the Scholarship step: a checkbox roster of every
+  // student the eligibility engine ran on (so a teacher can print
+  // certificates for just this year's shortlist, or re-print one student
+  // who lost theirs — not an all-or-nothing action), an opt-in for also
+  // bundling the existing class-wide XLSX (js/scholarship-export.js
+  // generateScholarshipReport(), already reachable from this same
+  // dashboard's own Download button — this checkbox just offers to
+  // include it in the same trip), and the actual download button, wired
+  // to downloadScholarshipCertificates() (js/scholarship-audit-detail.js)
+  // which reuses the app's existing jsPDF report pipeline (export-pdf.js)
+  // for the certificate itself — same branded header/footer bar every
+  // other report PDF already uses.
+  function renderScholarshipPropertiesRail(){
+    const enabled = !!(APP.setup && APP.setup.scholarship && APP.setup.scholarship.enabled);
+    if(!enabled){ setRightRail(""); return; }
+    const data = (typeof computeScholarshipData === "function") ? computeScholarshipData() : null;
+    // Roster mirrors the on-screen Shortlist search/status/category
+    // filters (js/scholarship-dashboard.js getScholarshipVisibleIds()) —
+    // not every student the engine ran on — so what gets checked here
+    // matches what's actually visible on screen, and setScholarship*
+    // filter setters call renderScholarshipPropertiesRail() again on
+    // every filter change to keep the two in sync.
+    const visibleIds = (typeof getScholarshipVisibleIds === "function") ? new Set(getScholarshipVisibleIds()) : null;
+    const results = ((data && data.engineResults) || []).filter(function(r){ return !visibleIds || visibleIds.has(r.studentId); });
+    const studentsById = {};
+    (data && data.students || []).forEach(function(s){ studentsById[s.id] = s; });
+    let html = '<button type="button" class="btn btn-primary btn-sm" data-action="downloadScholarshipReport" style="width:100%;margin-block-end:12px">' + esc(srT("scholarship_dashboard_download_btn")) + '</button>';
+    const rows = results.map(function(r){
+      const st = studentsById[r.studentId] || {};
+      const eligible = r.dataComplete ? r.eligible : null;
+      // Tick for eligible, warning triangle for not-eligible — a plain
+      // color dot made the two easy to mis-scan at a glance in a long
+      // roster. Data-incomplete (eligible===null) keeps a neutral dot;
+      // that state isn't a pass/fail verdict so it gets no icon shape.
+      const statusIcon = eligible === true
+        ? '<svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e8a5f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg>'
+        : eligible === false
+          ? '<svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b5690a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="flex-shrink:0"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>'
+          : '<span style="width:7px;height:7px;border-radius:50%;background:var(--c-text3);flex-shrink:0" aria-hidden="true"></span>';
+      return '<label class="bucket-picker-row" style="display:flex;align-items:center;gap:8px;cursor:pointer">'
+        + '<input type="checkbox" class="scholarship-cert-cb" data-id="' + esc(r.studentId) + '" checked style="accent-color:var(--c-primary)"> '
+        + statusIcon + ' '
+        + esc(st.name || r.studentId)
+        + '</label>';
+    }).join("");
+    html += '<details class="shell-details" open><summary class="shell-panel-title" style="cursor:pointer">'+esc(srT("shell_scholarship_students_label"))+'</summary>'
+      + '<div style="display:flex;gap:8px;margin-block-end:8px">'
+      + '<button type="button" class="btn btn-secondary btn-sm" data-action="selectAllScholarshipCertStudents">'+esc(srT("btn_select_all"))+'</button>'
+      + '<button type="button" class="btn btn-secondary btn-sm" data-action="unselectAllScholarshipCertStudents">'+esc(srT("btn_unselect_all"))+'</button>'
+      + '</div>'
+      + '<div class="bucket-picker-list" style="max-height:220px">' + (rows || emptyStateHtml(srT("val_no_students"))) + '</div>'
+      + '</details>';
+    html += '<details class="shell-details" open><summary class="shell-panel-title" style="cursor:pointer">'+esc(srT("shell_scholarship_common_reports_label"))+'</summary>'
+      + '<label class="bucket-picker-row" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">'
+      + '<input type="checkbox" id="scholarship-cert-include-common" style="accent-color:var(--c-primary);margin-top:2px">'
+      + '<span style="font-size:12px;color:var(--c-text2)">'+esc(srT("shell_scholarship_common_reports_desc"))+'</span>'
+      + '</label>'
+      + '</details>';
+    html += '<button type="button" class="btn btn-success btn-glow shell-action-btn shell-action-btn-sticky" data-action="downloadScholarshipCertificates">' + esc(srT("shell_scholarship_download_certificates")) + '</button>';
+    setRightRail(html);
+  }
+  window.renderScholarshipPropertiesRail = renderScholarshipPropertiesRail;
 
   // prompt-v4.20 §1xii follow-up fix: Export is a rail-selected bucket
   // (like My Whole Class/One Student/etc), not its own step, so its

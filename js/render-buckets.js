@@ -133,7 +133,10 @@ const DASHBOARD_CONTROL_ICONS={
   clusters:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/></svg>',
   continuity:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>',
   smart:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></svg>',
-  export:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3.3 8.5l8.7 4.5 8.7-4.5"/><path d="M12 22V13"/></svg>'
+  export:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3.3 8.5l8.7 4.5 8.7-4.5"/><path d="M12 22V13"/></svg>',
+  // Same star glyph as the (now-hidden) top-nav Scholarship tab —
+  // this rail row is the sole entry point into it now.
+  scholarship:'<svg class="ic" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1z"/></svg>'
 };
 // SHARED BUCKET DEFINITION TABLE — single source of truth for every
 // left-rail bucket across BOTH Institution and Individual mode. This is
@@ -163,6 +166,12 @@ const BUCKET_DEFS=[
   // live on individualBucketDefs(): a single already-fully-visible child
   // has nothing extra for a free-text "search across students" to offer.
   {id:"smart",modes:["institution"],labelKey:"bucket_smart_label",descKey:"bucket_smart_desc"},
+  // Left-rail entry point for the Scholarship panel (formerly its own
+  // top-nav tab, data-step="scholarship" — that tab is now permanently
+  // hidden in CSS and this row is the only way in). Not a real "bucket"
+  // (no sub-list inside #panel-dashboard) — action/arg below route it
+  // straight to goStep("scholarship") instead of openBucket.
+  {id:"scholarship",modes:["institution"],labelKey:"bucket_scholarship_label",descKey:"bucket_scholarship_desc"},
   {id:"export",modes:["institution"],labelKey:"bucket_export_label",descKey:"bucket_export_desc"},
   {id:"report",modes:["individual"],labelKey:"individual_bucket_report_label",descKey:"individual_bucket_report_desc"},
   {id:"subjects",modes:["individual"],labelKey:"individual_bucket_subjects_label",descKey:"individual_bucket_subjects_desc"},
@@ -208,12 +217,15 @@ function buildDashboardControlsHtml(){
     buckets.push({...byId.continuity,badge:null});
   }
   buckets.push({...byId.smart,badge:null});
+  // Below Smart Search, above Export — routes to goStep("scholarship")
+  // rather than openBucket() (see BUCKET_DEFS comment above).
+  buckets.push({...byId.scholarship,badge:null,action:"goStep",arg:"scholarship"});
   buckets.push({...byId.export,badge:null});
-  const active=APP._currentBucketId||"class";
+  const active=(APP.currentStep==="scholarship")?"scholarship":(APP._currentBucketId||"class");
   const rows=buckets.map(b=>{
     const badgeHtml=(b.badge!==null)?`<span class="bucket-badge">${esc(srT("bucket_count_badge",{count:b.badge},b.badge))}</span>`:"";
     const activeClass=(!APP._forceLegacyView && b.id===active)?" bucket-row-active":"";
-    return `<div class="bucket-row${activeClass}" role="button" tabindex="0" data-action="openBucket" data-arg="${b.id}">
+    return `<div class="bucket-row${activeClass}" role="button" tabindex="0" data-action="${b.action||"openBucket"}" data-arg="${b.arg||b.id}">
       <span class="bucket-icon" aria-hidden="true">${DASHBOARD_CONTROL_ICONS[b.id]}</span>
       <span class="bucket-text"><span class="bucket-label">${esc(b.label)}</span><span class="bucket-desc">${esc(b.desc)}</span></span>
       ${badgeHtml}
@@ -329,6 +341,17 @@ function openIndividualBucket(id){
   const st=currentIndividualStudent();
   if(!st) return;
   window._individualBucketCurrent=id;
+  // Same dead-end fix as openBucket() above: the left rail's Individual-
+  // mode bucket list can now also show while on the Scholarship step, but
+  // this function only ever touches elements inside #panel-dashboard.
+  // Route through goStep("dashboard") first when arriving from anywhere
+  // else, so the top-level panel actually switches back; its dashboard
+  // branch re-enters here via renderBuckets() -> openIndividualBucket()
+  // using window._individualBucketCurrent set just above.
+  if(APP.currentStep!=="dashboard"){
+    if(typeof goStep==="function") goStep("dashboard");
+    return;
+  }
   // v4.21 §5: same active-row refresh pattern Institution's openBucket()
   // already has, so the left-rail bucket list (now where the picker
   // actually lives, §1/§2) highlights whichever bucket is open.
@@ -949,6 +972,24 @@ function openBucket(id){
   window._bucketCurrent=id;
   APP._currentBucketId=id;
   APP._forceLegacyView=false; // selecting any control leaves Classic Dashboard view, per item 8/f
+  // BUG FIX (Scholarship dead-end): this whole function only ever shows/
+  // hides elements INSIDE #panel-dashboard (#bucket-answer-screen,
+  // #legacy-dashboard-body, #panel-export, etc). That's correct while
+  // already on the Dashboard step, but the left rail's bucket-list is now
+  // also shown on the Scholarship step (so it isn't a dead end) — clicking
+  // a bucket row from there called this function directly, without ever
+  // switching the top-level `.panel` back to #panel-dashboard (that swap
+  // only happens inside goStep()), so the Scholarship panel stayed
+  // visible underneath and nothing appeared to change. Route through
+  // goStep("dashboard") first when arriving from anywhere else — its own
+  // step==="dashboard" branch calls renderBuckets(), which calls back into
+  // openBucket(APP._currentBucketId) using the id already set above, so
+  // the requested bucket still ends up open; this call just returns once
+  // that chain finishes.
+  if(APP.currentStep!=="dashboard"){
+    if(typeof goStep==="function") goStep("dashboard");
+    return;
+  }
   try{
     if(typeof renderShellLeftRail==="function") renderShellLeftRail("dashboard"); // refresh active-row highlight
   }catch(err){

@@ -198,27 +198,44 @@ function fitText(doc,text,maxW){
   return lo>0?text.slice(0,lo)+"…":"…";
 }
 function addPDFHeader(doc,title){
-  const s=APP.setup;doc.setFillColor(43,58,103);doc.rect(0,0,210,18,"F");
-  doc.setTextColor(255,255,255);doc.setFontSize(12);doc.setFont("helvetica","bold");doc.text("Student Insight",10,11);
-  doc.setFontSize(9);doc.setFont("helvetica","normal");doc.text([s.instName,s.className+(s.section?" "+s.section:""),s.year].filter(Boolean).join(" · "),80,11);
-  doc.setTextColor(26,29,46);doc.setFontSize(14);doc.setFont("helvetica","bold");doc.text(title,10,30);
-  doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(90,96,122);doc.text(pdfT("pdf_generated_label","Generated: {{date}}",{date:new Date().toLocaleDateString(bcp47TagFor(window.SR_LANG))}),150,30);return 38;
+  const s=APP.setup,T=PDF_THEME;
+  doc.setTextColor(...T.ACCENT);doc.setFontSize(12);doc.setFont("helvetica","bold");doc.text("Student Insight",10,11);
+  doc.setFontSize(9);doc.setFont("helvetica","normal");doc.setTextColor(...T.INK_SOFT);doc.text([s.instName,s.className+(s.section?" "+s.section:""),s.year].filter(Boolean).join(" · "),80,11);
+  pdfRule(doc,8,14,202,1.6,T.INK);
+  doc.setTextColor(...T.INK);doc.setFontSize(14);doc.setFont("helvetica","bold");doc.text(title,10,26);
+  doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(...T.INK_SOFT);doc.text(pdfT("pdf_generated_label","Generated: {{date}}",{date:new Date().toLocaleDateString(bcp47TagFor(window.SR_LANG))}),150,26);return 34;
 }
-// Stamps the branded footer bar — with a clickable link to studin.in — on
-// EVERY page of the document (not just whichever page content happened to
-// end on), since a report can now legitimately run to several pages.
-function stampFooterAllPages(doc,confidentialLabel){
-  const W=210,H=297;
+// Stamps the branded footer — a thin top rule + text, no filled bar (see
+// PDF_THEME above, Aug 2026 ink-light redesign) — with a clickable link
+// to studin.in — on EVERY page of the document (not just whichever page
+// content happened to end on), since a report can legitimately run to
+// several pages.
+//
+// marginX/textY let a caller keep the exact same footer layout (rule
+// position, font sizes, element order: brand+tagline left, confidential
+// label right, "Page X of Y" centred) while sitting it inside a
+// decorative page frame — the student keepsake report draws an outer
+// frame 6-10mm in from the edge, so its footer needs a bigger inset than
+// the frame-less Teacher/Management/Certificate reports. Before this,
+// the student report duplicated this whole function by hand with its
+// own hardcoded margin (14 vs 8) and baseline (H-12 vs H-4), which is
+// why the footer sat at a visibly different position/size across
+// reports. Everything now flows through this one function so the four
+// report types can never drift out of sync again.
+function stampFooterAllPages(doc,confidentialLabel,marginX,textY){
+  const W=210,H=297,T=PDF_THEME;
+  marginX=marginX||8;textY=textY||H-4;
+  const ruleY=textY-4,textX=marginX+2,textXR=W-marginX-2;
   const pageCount=doc.internal.getNumberOfPages();
   for(let p=1;p<=pageCount;p++){
     doc.setPage(p);
-    doc.setFillColor(30,58,95);doc.rect(0,H-10,W,10,"F");
-    doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(226,229,241);
-    doc.textWithLink("Student Insight",10,H-4,{url:(window.APP_CONFIG&&window.APP_CONFIG.projectPageUrl)||"https://studin.in/"});
+    pdfRule(doc,marginX,ruleY,W-marginX,1,T.LINE);
+    doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(...T.INK_SOFT);
+    doc.textWithLink("Student Insight",textX,textY,{url:(window.APP_CONFIG&&window.APP_CONFIG.projectPageUrl)||"https://studin.in/"});
     const linkW=doc.getTextWidth("Student Insight");
-    doc.text(pdfT("pdf_footer_tagline"," — Free & Open Source  |  Privacy-First  |  Built by Sandeep Hakki"),10+linkW,H-4);
-    doc.text(confidentialLabel,W-10,H-4,{align:"right"});
-    if(pageCount>1){doc.setFontSize(6.5);doc.setTextColor(155,164,192);doc.text(pdfT("pdf_page_of","Page {{p}} of {{total}}",{p:p,total:pageCount}),W/2,H-4,{align:"center"});}
+    doc.text(pdfT("pdf_footer_tagline"," — Free & Open Source  |  Privacy-First  |  Built by Sandeep Hakki"),textX+linkW,textY);
+    doc.text(confidentialLabel,textXR,textY,{align:"right"});
+    if(pageCount>1){doc.setFontSize(6.5);doc.setTextColor(...T.LINE);doc.text(pdfT("pdf_page_of","Page {{p}} of {{total}}",{p:p,total:pageCount}),W/2,textY,{align:"center"});}
   }
   doc.setPage(pageCount); // leave cursor state sane for any caller code after
 }
@@ -236,429 +253,256 @@ function chapterSuffixForFlag(st,flagType){
   }
   return "";
 }
+// ════ PDF VISUAL THEME (report redesign, Aug 2026 — see PIB §12 v4.42) ════
+// Single source of truth for the ink-light, high-contrast palette used by
+// all three PDFs. Was: 5+ hues (navy/teal/red/orange/purple) each with a
+// filled solid-colour background block for headers, footers, KPI cards,
+// table header rows, zebra-striped rows, and section boxes — expensive
+// in toner/ink across a 500-copy print run, and visually loud. Now: TWO
+// colours total (ACCENT for brand/neutral, DANGER for at-risk only, GOOD
+// for on-target/improving), used as TEXT and LINE colour, never as a
+// fill — the only fills left anywhere are subject-bar/KPI-trend-box
+// colour-coding, where the fill IS the data being shown, not decoration.
+// Lines are drawn heavier/darker than a typical "subtle hairline" on
+// purpose — Aug 2026 review feedback was explicit that a light/pale
+// theme read as washed out on a laminated keepsake print; contrast here
+// comes from line WEIGHT, not from area of fill.
+const PDF_THEME=Object.freeze({
+  INK:[20,22,42],           // #14162a — body text, near-black
+  INK_SOFT:[61,65,87],      // #3d4157 — secondary text, still clearly readable
+  LINE:[138,143,174],       // #8a8fae — structural hairlines, visibly present
+  LINE_STRONG:[20,22,42],   // header/table-header rules — full ink, same as INK
+  ACCENT:[29,43,82],        // #1d2b52 — deep navy, brand + neutral emphasis
+  DANGER:[169,30,44],       // #a91e2c — at-risk only, reads clearly even laminated
+  GOOD:[15,107,92],         // #0f6b5c — on-target / improving
+  WARN:[168,109,20],        // #a86d14 — declining-but-not-at-risk (was orange fill)
+  WHITE:[255,255,255],
+});
+// Draws a horizontal rule at the given weight/colour — used everywhere a
+// filled bar used to sit (header underline, table header rule, footer
+// top rule, box borders) so contrast comes from line weight not fill.
+function pdfRule(doc,x1,y,x2,weightPt,color){
+  doc.setDrawColor(...(color||PDF_THEME.LINE_STRONG));doc.setLineWidth(weightPt*0.352778);
+  doc.line(x1,y,x2,y);
+}
+
 function buildStudentPDF(doc,st,continuityData){
   const a=st.analysis,s=APP.setup;
   const isIndividual=s.mode==="individual";
   const W=210,H=297;
-  // Tracks which page each section lands on, so the "Quick Navigation" bar
-  // near the top can add real internal jump-links once we know where
-  // things ended up (page breaks aren't known ahead of time).
-  const nav={};
-  // ── HEADER BAR ──
-  doc.setFillColor(30,58,95);doc.rect(0,0,W,22,"F");
-  doc.setTextColor(255,255,255);doc.setFont("helvetica","bold");doc.setFontSize(13);
-  doc.text("Student Insight  |  "+pdfT("pdf_progress_report","Progress Report"),10,10);
-  doc.setFontSize(8);doc.setFont("helvetica","normal");
-  doc.text([s.instName,isIndividual?(s.className||""):s.className+(s.section?" "+s.section:""),s.year].filter(Boolean).join(" · "),10,17);
-  doc.text(pdfT("pdf_generated_label","Generated: {{date}}",{date:new Date().toLocaleDateString(bcp47TagFor(window.SR_LANG))}),W-10,17,{align:"right"});
-  doc.setTextColor(26,29,46);
-  let y=30;
-  // ── STUDENT IDENTITY BLOCK ──
-  const avgColor=a.overallAvg>=80?[46,196,182]:a.overallAvg>=s.passThreshold?[43,58,103]:[242,92,84];
-  doc.setFillColor(248,249,255);doc.roundedRect(8,y,W-16,26,2,2,"F");
-  doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(26,29,46);
-  doc.text(fitText(doc,st.name,(W-37-4)-13),13,y+10);
-  doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(90,96,122);
-  doc.text(fitText(doc,isIndividual?pdfT("pdf_id_label","ID: {{id}}",{id:st.id}):pdfT("pdf_student_id_label","Student ID: {{id}}",{id:st.id}),(W-37-4)-13),13,y+18);
-  // Grade badge (right side)
-  doc.setFillColor(...avgColor);doc.roundedRect(W-37,y+3,28,20,3,3,"F");
-  doc.setTextColor(255,255,255);doc.setFont("helvetica","bold");doc.setFontSize(16);
-  doc.text(a.overallAvg+"%",W-23,y+13,{align:"center"});
-  doc.setFontSize(8);doc.text(pdfT("pdf_grade_prefix","Grade {{grade}}",{grade:a.grade}),W-23,y+21,{align:"center"});
-  y+=32;
-  // ── QUICK NAVIGATION (real internal links, wired up at the end of this
-  // function once we know which page each section landed on) ──
-  const _journeyStudent=continuityData&&continuityData.students&&continuityData.students.find(x=>x.id===st.id);
-  const _journeyEligible=!!(continuityData&&continuityData.periods&&continuityData.periods.length>1&&_journeyStudent&&(_journeyStudent.pctByPeriod||[]).filter(v=>v!=null).length>=2);
-  const navChips=[
-    {key:"marks",label:pdfT("pdf_nav_marks","Marks Table"),exists:!!(s.tests&&s.tests.length&&s.subjects&&s.subjects.length)},
-    {key:"trend",label:pdfT("pdf_trend","Trend"),exists:a.testAvgs.filter(v=>v!==null).length>=2&&s.tests&&s.tests.length>=2},
-    {key:"journey",label:pdfT("pdf_nav_journey","Journey"),exists:_journeyEligible},
-    {key:"flags",label:pdfT("pdf_nav_alerts","Alerts"),exists:!!(st.flags&&st.flags.length)},
-    {key:"remark",label:pdfT("pdf_nav_remarks","Remarks"),exists:(s.tests||[]).some(t=>(st.testData[t.name]||{}).remark)},
-    // STUDIN-PRO: "Messages" chip pointed at Bottom Line/What's Changed/
-    // Strengths, all gated below — nothing left for it to link to.
-    // {key:"messages",label:"Messages",exists:[a.parentMessage,a.strengthsLetter,a.trendFacts].some(Boolean)},
-    // STUDIN-PRO: "Plan" chip pointed at At Home This Week, gated below —
-    // nothing left for it to link to.
-    // {key:"studyPlan",label:"Plan",exists:!!(a.homePlan||a.schoolPlan)},
-  ].filter(c=>c.exists);
-  const navBarY=y;
-  doc.setFillColor(242,244,252);doc.roundedRect(8,y,W-16,9,2,2,"F");
-  doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setTextColor(90,96,122);
-  doc.text(pdfT("pdf_jump_to","JUMP TO:"),11,y+5.8);
-  let navX=30;
-  const navChipCoords=[];
-  navChips.forEach(c=>{
-    const tw=doc.getTextWidth(c.label)+6;
-    navChipCoords.push({...c,x:navX,y:y+1.5,w:tw,h:6});
-    doc.setFillColor(255,255,255);doc.setDrawColor(226,229,241);doc.roundedRect(navX,y+1.5,tw,6,1.5,1.5,"FD");
-    doc.setTextColor(43,58,103);doc.setFontSize(6.5);doc.setFont("helvetica","bold");
-    doc.text(c.label,navX+tw/2,y+5.3,{align:"center"});
-    navX+=tw+3;
-  });
-  y+=13;
-  // ── KPI ROW ──
-  // Rank/Percentile only mean something with a cohort behind them — in
-  // Individual mode they're replaced with Grade and Met-Target, which
-  // compare the student only to the scale and to their own target %.
+  const T=PDF_THEME;
+  // ════ ONE-PAGE KEEPSAKE REDESIGN (Aug 2026, PIB §12 v4.42) ════
+  // Was a multi-page document (Quick Navigation jump-bar + internal links,
+  // a Journey/continuity chart, a repeated "Class Avg" row under every
+  // single test row, and an explanatory marks-legend line) — all of that
+  // only earns its space across several pages. Printed once per student
+  // every term (hundreds of copies/school/year) and meant to be kept, not
+  // browsed, so this version is DELIBERATELY capped to fit one A4 page:
+  // no doc.addPage() anywhere in this function. Journey/nav/legend/
+  // repeated-class-avg are dropped entirely rather than shrunk — full
+  // multi-test drill-down stays available on the in-app Dashboard, this
+  // is the printable summary. See PDF_THEME above for the ink-light,
+  // high-contrast line-based palette (no filled header/footer/KPI/zebra
+  // blocks — contrast comes from line weight, not fill area).
+  //
+  // Defensive cap: a real class can run more tests across a year than
+  // will fit in the marks-table's page-height budget (~10-12 rows
+  // comfortably) — rather than silently overflowing past the page edge
+  // (which addPage() used to catch, and no longer exists here), only the
+  // most recent MAX_TESTS_SHOWN tests are drawn, with a one-line note
+  // when older tests were dropped. This mirrors the same truncation
+  // pattern already used for the Teacher report's full roster table.
+  const MAX_TESTS_SHOWN=10;
+  const allTests=s.tests||[];
+  const testsShown=allTests.slice(-MAX_TESTS_SHOWN);
+  const testsHiddenCount=allTests.length-testsShown.length;
+
+  // ── KEEPSAKE FRAME (outer solid rule + inset hairline) ──
+  // Outer weight brought down from 1.6pt (read as a thick black border on
+  // print/laminate) to 0.9pt — still a clear frame, no longer heavy.
+  doc.setDrawColor(...T.INK);doc.setLineWidth(0.9*0.352778);doc.rect(6,6,W-12,H-12);
+  doc.setDrawColor(...T.LINE);doc.setLineWidth(0.4*0.352778);doc.rect(10,10,W-20,H-20);
+
+  const M=14; // left/right content margin, inside the frame
+  let y=20;
+  // ── HEADER — brand + report kind, rule underneath, no filled bar.
+  //    Brand font size (12pt) and meta font size (8.5pt) match every
+  //    other report/certificate exactly — was 13pt/8.5pt here, 12pt/8pt
+  //    on Teacher, 14pt/8pt on Management, 12pt/9pt on the Certificate,
+  //    which is why the "Student Insight" wordmark visibly changed size
+  //    across printouts of the same theme. ──
+  doc.setTextColor(...T.ACCENT);doc.setFont("helvetica","bold");doc.setFontSize(12);
+  doc.text("Student Insight",M,y);
+  doc.setTextColor(...T.INK_SOFT);doc.setFont("helvetica","normal");doc.setFontSize(8.5);
+  doc.text(pdfT("pdf_progress_report","Progress Report"),M,y+4.8);
+  doc.text([s.instName,isIndividual?(s.className||""):s.className+(s.section?" "+s.section:""),s.year].filter(Boolean).join(" · "),W-M,y-1,{align:"right"});
+  doc.text(pdfT("pdf_generated_label","Generated: {{date}}",{date:new Date().toLocaleDateString(bcp47TagFor(window.SR_LANG))}),W-M,y+4.8,{align:"right"});
+  y+=8;
+  pdfRule(doc,M,y,W-M,2,T.INK);
+  y+=8;
+
+  // ── IDENTITY STRIP (bordered, no fill) ──
+  // Was drawn in T.INK (near-black) at 1.2pt — same ink weight as the
+  // section rules, so it competed with them instead of sitting quietly
+  // underneath the name. T.LINE is the same palette's structural-hairline
+  // colour, kept a touch heavier than a true hairline so it still reads.
+  doc.setDrawColor(...T.LINE);doc.setLineWidth(0.8*0.352778);doc.roundedRect(M,y,W-2*M,17,1.5,1.5);
+  doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(...T.INK);
+  doc.text(fitText(doc,st.name,(W-2*M)-55),M+6,y+9.5);
+  doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(...T.INK_SOFT);
+  doc.text(fitText(doc,isIndividual?pdfT("pdf_id_label","ID: {{id}}",{id:st.id}):pdfT("pdf_student_id_label","Student ID: {{id}}",{id:st.id}),(W-2*M)-55),M+6,y+14.5);
+  const avgColor=a.overallAvg>=80?T.GOOD:a.overallAvg>=s.passThreshold?T.ACCENT:T.DANGER;
+  doc.setFont("helvetica","bold");doc.setFontSize(17);doc.setTextColor(...avgColor);
+  doc.text(a.overallAvg+"%",W-M-6,y+10,{align:"right"});
+  doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(...T.INK_SOFT);
+  doc.text(pdfT("pdf_grade_prefix","Grade {{grade}}",{grade:a.grade}),W-M-6,y+15,{align:"right"});
+  y+=23;
+
+  // ── KPI STRIP (bordered cells, no fill) ──
   const kpis=isIndividual?[
-    {label:pdfT("pdf_kpi_grade","Grade"),val:a.grade,color:[43,58,103]},
-    {label:pdfT("pdf_kpi_met_target","Met Target"),val:a.overallAvg>=s.passThreshold?pdfT("pdf_val_yes","Yes"):pdfT("pdf_val_not_yet","Not Yet"),color:a.overallAvg>=s.passThreshold?[46,196,182]:[249,168,38]},
-    {label:pdfT("pdf_trend","Trend"),val:a.trend==="improving"?pdfT("pdf_val_up","UP"):a.trend==="declining"?pdfT("pdf_val_down","DOWN"):pdfT("pdf_val_stable","STABLE"),color:a.trend==="improving"?[46,196,182]:a.trend==="declining"?[242,92,84]:[90,96,122]},
-    {label:pdfT("pdf_kpi_absences","Absences"),val:a.totalAbsent||0,color:a.totalAbsent>=s.absentAlert?[242,92,84]:[90,96,122]},
+    {label:pdfT("pdf_kpi_grade","Grade"),val:a.grade,color:T.ACCENT},
+    {label:pdfT("pdf_kpi_met_target","Met Target"),val:a.overallAvg>=s.passThreshold?pdfT("pdf_val_yes","Yes"):pdfT("pdf_val_not_yet","Not Yet"),color:a.overallAvg>=s.passThreshold?T.GOOD:T.WARN},
+    {label:pdfT("pdf_trend","Trend"),val:a.trend==="improving"?pdfT("pdf_val_up","UP"):a.trend==="declining"?pdfT("pdf_val_down","DOWN"):pdfT("pdf_val_stable","STABLE"),color:a.trend==="improving"?T.GOOD:a.trend==="declining"?T.DANGER:T.INK_SOFT},
+    {label:pdfT("pdf_kpi_absences","Absences"),val:a.totalAbsent||0,color:a.totalAbsent>=s.absentAlert?T.DANGER:T.INK_SOFT},
   ]:[
-    {label:pdfT("pdf_kpi_rank","Rank"),val:"#"+a.rank,color:[43,58,103]},
-    {label:pdfT("pdf_kpi_percentile","Percentile"),val:a.percentile+"th",color:[46,196,182]},
-    {label:pdfT("pdf_trend","Trend"),val:a.trend==="improving"?pdfT("pdf_val_up","UP"):a.trend==="declining"?pdfT("pdf_val_down","DOWN"):pdfT("pdf_val_stable","STABLE"),color:a.trend==="improving"?[46,196,182]:a.trend==="declining"?[242,92,84]:[90,96,122]},
-    {label:pdfT("pdf_kpi_absences","Absences"),val:a.totalAbsent||0,color:a.totalAbsent>=s.absentAlert?[242,92,84]:[90,96,122]},
+    {label:pdfT("pdf_kpi_rank","Rank"),val:"#"+a.rank,color:T.ACCENT},
+    {label:pdfT("pdf_kpi_percentile","Percentile"),val:a.percentile+"th",color:T.GOOD},
+    {label:pdfT("pdf_trend","Trend"),val:a.trend==="improving"?pdfT("pdf_val_up","UP"):a.trend==="declining"?pdfT("pdf_val_down","DOWN"):pdfT("pdf_val_stable","STABLE"),color:a.trend==="improving"?T.GOOD:a.trend==="declining"?T.DANGER:T.INK_SOFT},
+    {label:pdfT("pdf_kpi_absences","Absences"),val:a.totalAbsent||0,color:a.totalAbsent>=s.absentAlert?T.DANGER:T.INK_SOFT},
   ];
-  const kW=(W-16)/4;
+  const kW=(W-2*M)/4;
   kpis.forEach((k,i)=>{
-    const kx=8+i*kW;
-    doc.setFillColor(255,255,255);doc.setDrawColor(226,229,241);doc.roundedRect(kx,y,kW-2,16,2,2,"FD");
-    doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(155,164,192);doc.text(k.label,kx+kW/2-1,y+5,{align:"center"});
-    doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(...k.color);doc.text(String(k.val),kx+kW/2-1,y+12,{align:"center"});
+    const kx=M+i*kW;
+    doc.setDrawColor(...T.LINE);doc.setLineWidth(0.7*0.352778);doc.roundedRect(kx,y,kW-2,15,1.5,1.5);
+    doc.setFont("helvetica","normal");doc.setFontSize(6.8);doc.setTextColor(...T.INK_SOFT);
+    doc.text(k.label,kx+(kW-2)/2,y+5.5,{align:"center"});
+    doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...k.color);
+    doc.text(String(k.val),kx+(kW-2)/2,y+11.5,{align:"center"});
   });
-  y+=22;
-  // ── SUBJECT PERFORMANCE BARS ──
-  doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(26,29,46);
-  doc.text(pdfT("pdf_subject_performance","Subject Performance"),10,y);y+=5;
+  y+=21;
+
+  // ── MODULE SPACING — one constant used between every section on this
+  //    page (subject performance / test scores / flags), so gaps read as
+  //    a deliberate rhythm instead of the mismatched 2mm/7mm/10mm gaps
+  //    each section used to hardcode individually.
+  const MODULE_GAP=7;
+
+  // ── SUBJECT PERFORMANCE (outline track, coloured fill = the data) ──
+  doc.setFont("helvetica","bold");doc.setFontSize(9.5);doc.setTextColor(...T.INK);
+  doc.text(pdfT("pdf_subject_performance","Subject Performance").toUpperCase(),M,y);
+  pdfRule(doc,M,y+1.5,W-M,1.2,T.INK);
+  y+=6;
   const subjects=Object.entries(a.subjectAvgs||{});
-  const barW=W-80,barH=5,labelW=42;
+  // labelW + barW used to fill the FULL remaining width, then the "avg%"
+  // text was drawn 2mm past the end of that — i.e. past the right content
+  // margin (and sometimes past the frame itself for 3-digit-safe widths).
+  // percentColW reserves real space for that text and it's now drawn
+  // right-aligned to the margin, so it can never run past the boundary
+  // no matter how wide the number is.
+  // barH cut from 5mm to 3.2mm — the track was thicker than it needed to
+  // be to read as a bar; thinner tracks read just as clearly and use less
+  // ink/toner across the coloured fill, which is the part that's printed
+  // solid on every copy.
+  const percentColW=14,barW=W-2*M-42-percentColW,barH=1.6,labelW=42;
   subjects.forEach(([sub,avg])=>{
-    if(y>255){doc.addPage();y=20;}
-    doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(26,29,46);
-    doc.text(fitText(doc,sub,labelW-4),10,y+4);
-    // Background bar
-    doc.setFillColor(226,229,241);doc.roundedRect(labelW,y,barW,barH,1,1,"F");
-    // Filled bar
-    const pct=Math.min(100,avg)/100;
-    const barColor=avg>=80?[46,196,182]:avg>=s.passThreshold?[43,58,103]:[242,92,84];
-    doc.setFillColor(...barColor);doc.roundedRect(labelW,y,barW*pct,barH,1,1,"F");
-    // Score text
+    doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(...T.INK_SOFT);
+    doc.text(fitText(doc,sub,labelW-4),M,y+4);
+    doc.setDrawColor(...T.LINE);doc.setLineWidth(0.5*0.352778);doc.roundedRect(M+labelW,y,barW,barH,0.8,0.8);
+    const barColor=avg>=80?T.GOOD:avg>=(s.passThreshold||35)?T.ACCENT:T.DANGER;
+    doc.setFillColor(...barColor);doc.roundedRect(M+labelW,y,barW*Math.min(1,avg/100),barH,0.8,0.8,"F");
     doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...barColor);
-    doc.text(avg+"%",labelW+barW+2,y+4);
-    y+=9;
-  });
-  y+=4;
-  // ── FULL MARKS TABLE (every test × every subject, heat-coloured) ──
-  // Parents asked for the raw numbers, not just a chart — this table lets
-  // them see exactly which test + subject combination went wrong, and by
-  // how much, at a glance via colour.
-  if(s.tests&&s.tests.length&&s.subjects&&s.subjects.length){
-    if(y>230){doc.addPage();y=20;}
-    nav.marks=doc.internal.getCurrentPageInfo().pageNumber;
-    doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(26,29,46);
-    doc.text(pdfT("pdf_all_test_scores","All Test Scores"),10,y);y+=2;
-    doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(155,164,192);
-    doc.text(pdfT("pdf_marks_legend","Score shown as scored/max marks  ·  Green = strong (80%+)  ·  Blue = passing  ·  Red = below {{threshold}}%  ·  gray dash = not taken",{threshold:s.passThreshold}),10,y+4);
+    doc.text(avg+"%",W-M,y+4,{align:"right"});
     y+=8;
-    // v1.5 — added a "Total" column (scored/max marks across the subjects
-    // actually opted, e.g. "231/450 (4/5 opted)") so a parent can see the
-    // real total instead of only a percentage, and — for Institution mode —
-    // a "Class Avg" row directly under this table so "where does my child
-    // stand" is answered right here, not just in the KPI cards up top.
-    const firstColW=34,avgColW=13,totalColW=27,lastColW=avgColW+totalColW,
-      colW=(W-16-firstColW-lastColW)/s.subjects.length;
-    const drawMarksHeader=()=>{
-      doc.setFillColor(30,58,95);doc.rect(8,y,W-16,7,"F");
-      doc.setFont("helvetica","bold");doc.setFontSize(6.8);doc.setTextColor(255,255,255);
-      doc.text(pdfT("pdf_col_test","Test"),10,y+4.7);
-      s.subjects.forEach((sub,i)=>{doc.text(fitText(doc,sub,colW-2),firstColW+i*colW+1,y+4.7);});
-      doc.text(pdfT("pdf_col_total","Total"),firstColW+s.subjects.length*colW+2,y+4.7);
-      doc.text(pdfT("pdf_col_avg","Avg"),W-8-avgColW+1,y+4.7);
-      y+=7;
-    };
-    drawMarksHeader();
-    // studentsForClassAvg / classAvgForTestSubject only matter in Institution
-    // mode — there is no "class" behind an Individual-mode session (§ ~5075).
-    const studentsForClassAvg=(!isIndividual&&APP.students&&APP.students.length>1)?APP.students:null;
-    const classAvgForTestSubject=(tName,sub,mx)=>{
-      if(!studentsForClassAvg)return null;
-      const vals=studentsForClassAvg.map(s2=>{const d=s2.testData&&s2.testData[tName];const v=d&&d.marks?d.marks[sub]:undefined;return(v!==undefined&&v!==null&&v!=="")?Math.min(100,(parseFloat(v)||0)/mx*100):null;}).filter(v=>v!==null);
-      return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
-    };
-    s.tests.forEach((t,ti)=>{
-      if(y>270){doc.addPage();y=20;drawMarksHeader();}
+  });
+  y+=MODULE_GAP;
+
+  // ── ALL TEST SCORES (hairline rows, no repeated Class Avg row, no
+  //    legend text — colour-coding is limited to red-for-below-threshold
+  //    so it doesn't need a legend to be understood at a glance) ──
+  if(testsShown.length&&s.subjects&&s.subjects.length){
+    doc.setFont("helvetica","bold");doc.setFontSize(9.5);doc.setTextColor(...T.INK);
+    doc.text(pdfT("pdf_all_test_scores","All Test Scores").toUpperCase(),M,y);
+    pdfRule(doc,M,y+1.5,W-M,1.2,T.INK);
+    y+=6;
+    const firstColW=32,avgColW=15,colW=(W-2*M-firstColW-avgColW)/s.subjects.length;
+    doc.setFont("helvetica","bold");doc.setFontSize(7.2);doc.setTextColor(...T.INK);
+    doc.text(pdfT("pdf_col_test","Test"),M,y);
+    s.subjects.forEach((sub,i)=>{doc.text(fitText(doc,sub,colW-2),M+firstColW+i*colW,y);});
+    doc.text(pdfT("pdf_col_avg","Avg"),W-M-avgColW+2,y);
+    y+=1.5;
+    pdfRule(doc,M,y,W-M,1.4,T.INK);
+    y+=4.5;
+    testsShown.forEach((t,ti)=>{
       const td=st.testData&&st.testData[t.name]||{marks:{}};
-      const rowBg=ti%2===0?[248,249,255]:[255,255,255];
-      doc.setFillColor(...rowBg);doc.rect(8,y,W-16,6.2,"F");
-      doc.setFont("helvetica","normal");doc.setFontSize(6.8);doc.setTextColor(26,29,46);
-      doc.text(fitText(doc,t.name,firstColW-3),10,y+4.2);
-      let sumScored=0,sumMax=0,opted=0;
+      doc.setFont("helvetica","normal");doc.setFontSize(7.4);doc.setTextColor(...T.INK);
+      doc.text(fitText(doc,t.name,firstColW-3),M,y);
       s.subjects.forEach((sub,i)=>{
         const raw=td.marks?td.marks[sub]:undefined;
-        const cx=firstColW+i*colW,mx=(t.maxMarks&&t.maxMarks[sub])||100;
+        const cx=M+firstColW+i*colW,mx=(t.maxMarks&&t.maxMarks[sub])||100;
         if(raw===undefined||raw===null||raw===""){
-          doc.setTextColor(190,196,214);doc.setFontSize(6.8);doc.text("—",cx+colW/2,y+4.2,{align:"center"});
+          doc.setTextColor(...T.LINE);doc.setFontSize(7.4);doc.text("—",cx+colW/2,y,{align:"center"});
         }else{
-          opted++;sumScored+=parseFloat(raw)||0;sumMax+=mx;
           const pctv=Math.min(100,(parseFloat(raw)||0)/mx*100);
-          const cc=pctv>=80?[46,196,182]:pctv>=(s.passThreshold||35)?[43,58,103]:[242,92,84];
-          doc.setFillColor(...cc.map(v=>Math.min(255,v+165)));
-          doc.roundedRect(cx+1,y+0.6,colW-2,5,0.6,0.6,"F");
-          doc.setTextColor(...cc.map(v=>Math.max(0,v-70)));doc.setFont("helvetica","bold");doc.setFontSize(6.2);
-          // Bug fix: this used to show just the raw score (e.g. "45"), with
-          // no indication of what it was out of — confusing when max marks
-          // differ by test/subject. Show "raw/max" instead.
-          doc.text(raw+"/"+mx,cx+colW/2,y+4.2,{align:"center"});
+          const cc=pctv<(s.passThreshold||35)?T.DANGER:T.INK;
+          doc.setTextColor(...cc);doc.setFont("helvetica",pctv<(s.passThreshold||35)?"bold":"normal");doc.setFontSize(7.4);
+          doc.text(raw+"/"+mx,cx+colW/2,y,{align:"center"});
         }
       });
-      // Total column: scored/max across subjects opted for this test, plus
-      // how many of the subjects were actually attempted (some may be "—").
-      doc.setFont("helvetica","bold");doc.setFontSize(6.2);doc.setTextColor(90,96,122);
-      const totalX=firstColW+s.subjects.length*colW+totalColW/2;
-      if(opted>0){
-        doc.text(sumScored+"/"+sumMax,totalX,y+3.2,{align:"center"});
-        doc.setFont("helvetica","normal");doc.setFontSize(5.4);doc.setTextColor(155,164,192);
-        doc.text(pdfT("pdf_opted_suffix","{{opted}}/{{total}} opted",{opted:opted,total:s.subjects.length}),totalX,y+5.7,{align:"center"});
-      }else{doc.setTextColor(190,196,214);doc.text("—",totalX,y+4.2,{align:"center"});}
-      doc.setFont("helvetica","bold");doc.setFontSize(6.8);
-      const tavg=a.testAvgs[ti];
-      doc.setTextColor(tavg===null?190:26,tavg===null?196:29,tavg===null?214:46);
-      doc.text(tavg!==null?tavg+"%":"—",W-8-avgColW+1,y+4.2);
-      y+=6.2;
-      // Class Avg row — repeated right under each test row (Institution mode
-      // only) so the comparison is read in the same glance as the score,
-      // instead of forcing a flip back to the KPI cards or dashboard.
-      if(studentsForClassAvg){
-        if(y>272){doc.addPage();y=20;drawMarksHeader();}
-        doc.setFillColor(242,244,252);doc.rect(8,y,W-16,5,"F");
-        doc.setFont("helvetica","italic");doc.setFontSize(6);doc.setTextColor(90,96,122);
-        doc.text(pdfT("pdf_class_avg","Class Avg"),10,y+3.4);
-        s.subjects.forEach((sub,i)=>{
-          const cx=firstColW+i*colW,mx=(t.maxMarks&&t.maxMarks[sub])||100;
-          const cAvg=classAvgForTestSubject(t.name,sub,mx);
-          doc.text(cAvg!==null?cAvg+"%":"—",cx+colW/2,y+3.4,{align:"center"});
-        });
-        doc.text("—",totalX,y+3.4,{align:"center"});
-        const classTestAvgs=studentsForClassAvg.map(s2=>s2.analysis&&s2.analysis.testAvgs&&s2.analysis.testAvgs[ti]).filter(v=>v!==undefined&&v!==null);
-        const classTestAvg=classTestAvgs.length?Math.round(classTestAvgs.reduce((a,b)=>a+b,0)/classTestAvgs.length):null;
-        doc.text(classTestAvg!==null?classTestAvg+"%":"—",W-8-avgColW+1,y+3.4);
-        y+=5;
-      }
+      const tavg=a.testAvgs[allTests.indexOf(t)];
+      doc.setFont("helvetica","bold");doc.setFontSize(7.4);
+      doc.setTextColor(...(tavg===null?T.LINE:tavg<(s.passThreshold||35)?T.DANGER:T.INK));
+      doc.text(tavg!==null?tavg+"%":"—",W-M-avgColW+2,y);
+      y+=5.4;
+      if(ti<testsShown.length-1)pdfRule(doc,M,y-2,W-M,0.6,T.LINE);
     });
+    pdfRule(doc,M,y-1.5,W-M,1,T.INK);
     y+=3;
-    // Where this child stands — tied directly to the table above. Below 12
-    // students, percentile math implies false precision (e.g. "14th
-    // percentile" out of 8 kids), so just state rank + a plain point
-    // difference from the class average instead.
+    if(testsHiddenCount>0){
+      doc.setFont("helvetica","italic");doc.setFontSize(6.6);doc.setTextColor(...T.INK_SOFT);
+      doc.text(pdfT("pdf_earlier_tests_note","+ {{n}} earlier test(s) — full history on Dashboard",{n:testsHiddenCount}),M,y);
+      y+=4.5;
+    }
+    // Class-position sentence — kept, it's one line and directly answers
+    // "where does my child stand", but the per-test Class Avg row that
+    // used to repeat under every single row is gone (that alone used to
+    // roughly double this table's height for no reading-comprehension
+    // gain over one summary line here).
+    const studentsForClassAvg=(!isIndividual&&APP.students&&APP.students.length>1)?APP.students:null;
     if(studentsForClassAvg){
-      doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(90,96,122);
-      const classAvgAll=(()=>{const vals=studentsForClassAvg.map(s2=>s2.analysis&&s2.analysis.overallAvg).filter(v=>v!==undefined&&v!==null);return vals.length?Math.round(vals.reduce((x,y)=>x+y,0)/vals.length):null;})();
+      const classAvgAll=(()=>{const vals=studentsForClassAvg.map(s2=>s2.analysis&&s2.analysis.overallAvg).filter(v=>v!==undefined&&v!==null);return vals.length?Math.round(vals.reduce((x,y2)=>x+y2,0)/vals.length):null;})();
+      doc.setFont("helvetica","normal");doc.setFontSize(7.6);doc.setTextColor(...T.INK_SOFT);
       const line=studentsForClassAvg.length>=12
-        ?st.name.split(" ")[0]+" ranks #"+a.rank+" of "+studentsForClassAvg.length+" in this class ("+a.percentile+"th percentile — meaning better than "+a.percentile+"% of classmates by overall average; percentile is a ranking, not a percentage score)."
-        :st.name.split(" ")[0]+" ranks #"+a.rank+" of "+studentsForClassAvg.length+" in this class"+(classAvgAll!==null?", "+Math.abs(a.overallAvg-classAvgAll)+" points "+(a.overallAvg>=classAvgAll?"above":"below")+" the class average of "+classAvgAll+"%.":".");
-      doc.text(line,10,y,{maxWidth:W-16});
-      y+=9;
+        ?st.name.split(" ")[0]+" ranks #"+a.rank+" of "+studentsForClassAvg.length+" ("+a.percentile+"th percentile)."
+        :st.name.split(" ")[0]+" ranks #"+a.rank+" of "+studentsForClassAvg.length+(classAvgAll!==null?", "+Math.abs(a.overallAvg-classAvgAll)+" pts "+(a.overallAvg>=classAvgAll?"above":"below")+" the class average of "+classAvgAll+"%.":".");
+      doc.text(line,M,y,{maxWidth:W-2*M});
+      y+=5.5;
     }
-    y+=5;
+    y+=2;
   }
-  // ── TEST TREND SPARKLINE ──
-  const valid=a.testAvgs.filter(v=>v!==null);
-  if(valid.length>=2&&s.tests&&s.tests.length>=2){
-    if(y>250){doc.addPage();y=20;}
-    nav.trend=doc.internal.getCurrentPageInfo().pageNumber;
-    doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(26,29,46);
-    doc.text(pdfT("pdf_test_trend","Test Trend"),10,y);y+=4;
-    const sparkX=10,sparkY=y,sparkW=W-20,sparkH=18;
-    doc.setFillColor(248,249,255);doc.roundedRect(sparkX,sparkY,sparkW,sparkH,2,2,"F");
-    // Draw line
-    const mn=Math.min(...valid)-5,mx=Math.max(...valid)+5,rng=mx-mn||1;
-    const pts=valid.map((v,i)=>[sparkX+4+(i/(valid.length-1))*(sparkW-8),sparkY+sparkH-4-((v-mn)/rng)*(sparkH-8)]);
-    const tcolor=valid[valid.length-1]>=valid[0]?[46,196,182]:[242,92,84];
-    doc.setDrawColor(...tcolor);doc.setLineWidth(0.8);
-    for(let i=1;i<pts.length;i++){doc.line(pts[i-1][0],pts[i-1][1],pts[i][0],pts[i][1]);}
-    pts.forEach((p,i)=>{doc.setFillColor(...tcolor);doc.circle(p[0],p[1],1,"F");doc.setFontSize(6);doc.setTextColor(...tcolor);doc.text(valid[i]+"%",p[0],p[1]-2,{align:"center"});});
-    const segW=sparkW/valid.length;
-    s.tests.forEach((t,i)=>{if(i<pts.length){doc.setFontSize(6);doc.setTextColor(155,164,192);doc.text(fitText(doc,t.name,segW-2),pts[i][0],sparkY+sparkH-1,{align:"center"});}});
-    y+=sparkH+6;
-  }
-  // ── JOURNEY (prompt-05-institution-rollup-narrative.md) ──
-  // Only when a caller passes continuityData (nothing does yet in
-  // production — see PIB §9 continuity-schema-not-built-yet) with
-  // periodCount>1. Reuses the SAME vector-drawing approach as the Test
-  // Trend sparkline just above (doc.line/doc.circle) rather than a
-  // canvas-to-image embed — checked first, per this prompt's own
-  // instruction to reuse an existing pattern before building a new one,
-  // and neither an "Indic-script canvas rendering" pattern nor any
-  // canvas/addImage chart embedding exists anywhere in this file (grepped
-  // for both before writing this) — the real precedent for PDF charts in
-  // this codebase is native jsPDF vector drawing, so that's what this
-  // reuses instead. See PIB §9 pdf-journey-no-existing-pattern-to-reuse.
-  if(continuityData&&continuityData.periods&&continuityData.periods.length>1){
-    const cd=continuityData,student=(cd.students||[]).find(x=>x.id===st.id);
-    if(student){
-      const terms=(typeof deriveContinuityTerminology==="function")?deriveContinuityTerminology(cd.periods,cd.institutionType):{unitLabel:"Period"};
-      const pct=student.pctByPeriod||[];
-      const present=pct.map((v,i)=>({i,v})).filter(d=>d.v!=null);
-      if(present.length>=2){
-        if(y>240){doc.addPage();y=20;}
-        nav.journey=doc.internal.getCurrentPageInfo().pageNumber;
-        doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(26,29,46);
-        doc.text(terms.unitLabel+"-over-"+terms.unitLabel.toLowerCase()+" Journey",10,y);y+=4;
-        const jX=10,jY=y,jW=W-20,jH=20;
-        doc.setFillColor(248,249,255);doc.roundedRect(jX,jY,jW,jH,2,2,"F");
-        const vals=present.map(d=>d.v);
-        const mn=Math.min(...vals)-5,mx=Math.max(...vals)+5,rng=mx-mn||1;
-        const n=cd.periods.length;
-        const xAt=(i)=>jX+4+(i/(n-1))*(jW-8);
-        const yAt=(v)=>jY+jH-4-((v-mn)/rng)*(jH-8);
-        const tcolor=vals[vals.length-1]>=vals[0]?[46,196,182]:[242,92,84];
-        doc.setDrawColor(...tcolor);doc.setLineWidth(0.8);
-        // draw only across CONSECUTIVE present periods — an absent period
-        // is a real gap, never bridged/interpolated (same rule as the
-        // on-screen dashboard: absent periods are gaps, not zeros).
-        for(let k=1;k<present.length;k++){
-          if(present[k].i===present[k-1].i+1){
-            doc.line(xAt(present[k-1].i),yAt(present[k-1].v),xAt(present[k].i),yAt(present[k].v));
-          }
-        }
-        present.forEach(d=>{doc.setFillColor(...tcolor);doc.circle(xAt(d.i),yAt(d.v),1,"F");doc.setFontSize(6);doc.setTextColor(...tcolor);doc.text(d.v+"%",xAt(d.i),yAt(d.v)-2,{align:"center"});});
-        cd.periods.forEach((p,i)=>{doc.setFontSize(6);doc.setTextColor(155,164,192);doc.text(fitText(doc,p.label,(jW/n)-2),xAt(i),jY+jH-1,{align:"center"});});
-        // dashed projection segment — same eligibility rule as the
-        // dashboard (js/continuity-dashboard.js): only when the
-        // student's last present period IS the dataset's last period,
-        // never extrapolating past a period they're already known
-        // absent from.
-        const lastPresentIdx=present[present.length-1].i;
-        if(present.length>=2&&lastPresentIdx===n-1){
-          const a2=present[present.length-2].v,b2=present[present.length-1].v;
-          const nextVal=Math.max(0,Math.min(100,b2+(b2-a2)));
-          const purple=[123,94,167];
-          doc.setDrawColor(...purple);doc.setLineWidth(0.6);
-          if(typeof doc.setLineDashPattern==="function")doc.setLineDashPattern([1,1],0);
-          doc.line(xAt(lastPresentIdx),yAt(b2),jX+jW-4,yAt(nextVal));
-          if(typeof doc.setLineDashPattern==="function")doc.setLineDashPattern([],0);
-          doc.setFillColor(...purple);doc.circle(jX+jW-4,yAt(nextVal),1,"F");
-          y+=jH+3;
-          doc.setFont("helvetica","italic");doc.setFontSize(6.5);doc.setTextColor(155,164,192);
-          doc.text(fitText(doc,"Dashed = trend-based estimate off this student's own history — not a guarantee.",jW),jX,y);
-          y+=6;
-        } else {
-          y+=jH+6;
-        }
-      }
-    }
-  }
-  // ── FLAGS ──
-  if(st.flags&&st.flags.length){
-    if(y>262){doc.addPage();y=20;}
-    nav.flags=doc.internal.getCurrentPageInfo().pageNumber;
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text(pdfT("pdf_alerts_flags","Alerts & Flags"),10,y);y+=4;
-    let fx=10;
-    st.flags.forEach(f=>{
-      const fc=f.type==="at-risk"?[242,92,84]:f.type==="improving"?[46,196,182]:f.type==="declining"?[249,168,38]:f.type==="burnout"?[230,126,34]:[123,94,167];
-      const lbl=(f.label||"")+chapterSuffixForFlag(st,f.type);
-      const tw=doc.getTextWidth(lbl)+12;
-      doc.setFillColor(...fc.map(v=>Math.min(255,v+160)));
-      doc.setDrawColor(...fc);
-      doc.roundedRect(fx,y,tw,6,1,1,"FD");
-      // Coloured dot
-      doc.setFillColor(...fc);
-      doc.circle(fx+3.5,y+3,1.5,"F");
-      doc.setFontSize(7);doc.setFont("helvetica","bold");doc.setTextColor(...fc);
-      doc.text(lbl,fx+6,y+4);
-      fx+=tw+4;
-      if(fx>W-20){fx=10;y+=8;}
-    });
-    y+=10;
-  }
-  // ── TEACHER REMARKS (Task 2a: only if at least one test has a remark) ──
-  const remarkEntries=(s.tests||[]).map(t=>({test:t.name,remark:(st.testData[t.name]||{}).remark})).filter(r=>r.remark);
-  if(remarkEntries.length){
-    if(y>250){doc.addPage();y=20;}
-    nav.remark=doc.internal.getCurrentPageInfo().pageNumber;
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text(pdfT("pdf_teacher_remarks","Teacher Remarks"),10,y);y+=5;
-    remarkEntries.forEach(r=>{
-      if(y>265){doc.addPage();y=20;}
-      doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(90,96,122);doc.text(r.test,10,y);
-      doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(26,29,46);
-      const wrapped=doc.splitTextToSize(r.remark,W-24);
-      doc.text(wrapped,10,y+4);
-      y+=4+wrapped.length*4+3;
-    });
-    y+=4;
-  }
-  // STUDIN-PRO: Chapters Covered — gated per ui-prompt-batch2.md item 3,
-  // wrapped not deleted (comment-block convention per §8).
-  // const chapterEntries=(s.tests||[]).map(t=>({test:t.name,chapter:(st.testData[t.name]||{}).chapter})).filter(c=>c.chapter);
-  // if(chapterEntries.length){
-  //   if(y>258){doc.addPage();y=20;}
-  //   doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text("Chapters Covered",10,y);y+=5;
-  //   doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(90,96,122);
-  //   const chLine=chapterEntries.map(c=>c.test+": "+c.chapter).join("  ·  ");
-  //   const chWrapped=doc.splitTextToSize(chLine,W-20);
-  //   doc.text(chWrapped,10,y);
-  //   y+=chWrapped.length*4+6;
-  // }
-  // ── NARRATIVE SECTIONS (visually boxed) ──
-  // Redesigned: one merged "The Bottom Line" message (was three overlapping
-  // cards — Report Card Comment / For Parents / Motivation — repeating the
-  // same score+trend sentence), a factual computed "What's Changed" box,
-  // and Strengths only when a genuine one exists (previously always
-  // printed, falling back to filler text like "is working hard to build
-  // strengths" when nothing qualified).
-  // STUDIN-PRO: The Bottom Line / What's Changed / Strengths — all three
-  // gated (Strengths per ui-prompt-batch2.md item 3, reversing §8's
-  // original "Strengths stays in the PDF" decision). Wrapped, not
-  // deleted.
-  // const sections=[
-  //   {title:"The Bottom Line",text:a.parentMessage,bg:[238,240,253],border:[43,58,103]},
-  //   {title:"What's Changed",text:a.trendFacts,bg:[244,246,251],border:[140,148,180]},
-  //   {title:"Strengths",text:a.strengthsLetter,bg:[230,249,247],border:[46,196,182]},
-  // ];
-  // sections.filter(s=>s.text).forEach((sec,idx)=>{
-  //   if(y>255){doc.addPage();y=20;}
-  //   if(idx===0)nav.messages=doc.internal.getCurrentPageInfo().pageNumber;
-  //   doc.setFont("helvetica","normal");doc.setFontSize(8.5);
-  //   const lines=doc.splitTextToSize(sec.text,W-28);const bh=lines.length*4.5+11;
-  //   doc.setFillColor(...sec.bg);doc.setDrawColor(...sec.border);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
-  //   doc.setFillColor(...sec.border);doc.rect(8,y,3,bh,"F");
-  //   doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...sec.border);doc.text(sec.title,14,y+7);
-  //   doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(26,29,46);
-  //   doc.text(lines,14,y+13);y+=bh+5;
-  // });
-  // STUDIN-PRO: At Home This Week — gated per §8. Wrapped, not deleted.
-  // if(a.homePlan){
-  //   if(y>240){doc.addPage();y=20;}
-  //   nav.studyPlan=doc.internal.getCurrentPageInfo().pageNumber;
-  //   doc.setFont("helvetica","normal");doc.setFontSize(8.5);
-  //   const lines=doc.splitTextToSize(a.homePlan,W-28);const bh=lines.length*4.5+13;
-  //   doc.setFillColor(255,240,214);doc.setDrawColor(249,168,38);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
-  //   doc.setFillColor(249,168,38);doc.rect(8,y,3,bh,"F");
-  //   doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(122,82,0);doc.text("At Home This Week",14,y+7);
-  //   doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(26,29,46);doc.text(lines,14,y+13);
-  //   y+=bh+5;
-  // }
-  // STUDIN-PRO: At School — gated per §8 (stays in the modal, gated only
-  // in the PDF — deliberate asymmetry, not an oversight). Wrapped, not
-  // deleted.
-  // if(!isIndividual&&a.schoolPlan){
-  //   if(y>252){doc.addPage();y=20;}
-  //   doc.setFont("helvetica","normal");doc.setFontSize(8.5);
-  //   const lines=doc.splitTextToSize(a.schoolPlan,W-28);const bh=lines.length*4.5+12;
-  //   doc.setFillColor(253,236,234);doc.setDrawColor(242,92,84);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
-  //   doc.setFillColor(242,92,84);doc.rect(8,y,3,bh,"F");
-  //   doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(139,26,26);doc.text("At School",14,y+7);
-  //   doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(26,29,46);doc.text(lines,14,y+13);y+=bh+5;
-  // }
-  // ── WIRE UP QUICK NAVIGATION LINKS ──
-  // The nav chips were drawn on page 1; now that every section has been
-  // rendered we know which page each landed on, so go back and lay real
-  // clickable (internal) link rectangles over those chips.
-  const navPage=1; // nav chips are always drawn on page 1, right after the identity block
-  doc.setPage(navPage);
-  navChipCoords.forEach(c=>{
-    const target=nav[c.key];
-    if(target)doc.link(c.x,c.y,c.w,c.h,{pageNumber:target});
-  });
-  // ── FOOTER (stamped on every page) ──
-  stampFooterAllPages(doc,isIndividual?pdfT("pdf_confidential_personal","Personal record — not for redistribution"):pdfT("pdf_confidential_parent","CONFIDENTIAL — For parent/guardian only"));
+  y+=MODULE_GAP-2;
+
+  // Test Trend and Teacher Remarks sections removed (per Aug 2026 review
+  // — the sparkline duplicated the "All Test Scores" table right above it
+  // with no new information, and the remarks line was one teacher's note
+  // repeated on every keepsake copy; both stay available in-app on the
+  // Dashboard). Flags now follow directly after Subject Performance /
+  // All Test Scores with the standard MODULE_GAP.
+
+  // Flags/Alerts section removed from the student keepsake report (per
+  // Aug 2026 review — chip labels like "Burnout Risk" read as alarming on
+  // a printed parent-facing copy without the in-app context to explain
+  // them; the same flag data stays visible on the in-app Dashboard and in
+  // the Teacher/Management reports, where the audience can act on it).
+
+  // ── FOOTER (shared stampFooterAllPages — same rule/text layout as
+  //    Teacher/Management/Certificate, just inset to M/H-12 instead of
+  //    8/H-4 so it sits inside this report's decorative outer frame) ──
+  const footerLabel=isIndividual?pdfT("pdf_confidential_personal","Personal record — not for redistribution"):pdfT("pdf_confidential_parent","CONFIDENTIAL — For parent/guardian only");
+  stampFooterAllPages(doc,footerLabel,M,H-12);
 }
 function buildTeacherPDF(doc){
   const s=APP.setup,W=210,H=297;
+  const T=PDF_THEME;
   const total=APP.students.length||1;
   const atRisk=APP.students.filter(st=>st.flags&&st.flags.some(f=>f.type==="at-risk")).length;
   const improving=APP.students.filter(st=>st.analysis&&st.analysis.trend==="improving").length;
@@ -666,121 +510,141 @@ function buildTeacherPDF(doc){
   const classAvg=Math.round(APP.students.reduce((a,st)=>a+(st.analysis&&st.analysis.overallAvg||0),0)/total);
   const passRate=Math.round(APP.students.filter(st=>st.analysis&&st.analysis.overallAvg>=(s.passThreshold||35)).length/total*100);
 
-  // ── HEADER ──
-  doc.setFillColor(43,58,103);doc.rect(0,0,W,20,"F");
-  doc.setTextColor(255,255,255);doc.setFont("helvetica","bold");doc.setFontSize(12);
-  doc.text("Student Insight",10,9);
-  doc.setFont("helvetica","normal");doc.setFontSize(8);
-  doc.text([s.instName,s.className+(s.section?" "+s.section:""),s.year].filter(Boolean).join(" · "),W/2,12,{align:"center"});
-  doc.text(pdfT("pdf_teacher_report_title","Teacher Report")+"  |  "+new Date().toLocaleDateString(bcp47TagFor(window.SR_LANG)),W-10,12,{align:"right"});
-  doc.setTextColor(26,29,46);let y=26;
+  // ── HEADER (restyled: rule underneath, no filled bar — content/
+  //    components unchanged per Aug 2026 review: teacher copies print in
+  //    small quantities, so page-count wasn't the constraint here, only
+  //    the ink-heavy fills were) ──
+  doc.setTextColor(...T.ACCENT);doc.setFont("helvetica","bold");doc.setFontSize(12);
+  doc.text("Student Insight",10,10);
+  doc.setTextColor(...T.INK_SOFT);doc.setFont("helvetica","normal");doc.setFontSize(8.5);
+  doc.text([s.instName,s.className+(s.section?" "+s.section:""),s.year].filter(Boolean).join(" · "),W/2,10,{align:"center"});
+  doc.text(pdfT("pdf_teacher_report_title","Teacher Report")+"  |  "+new Date().toLocaleDateString(bcp47TagFor(window.SR_LANG)),W-10,10,{align:"right"});
+  let y=15;
+  pdfRule(doc,8,y,W-8,1.6,T.INK);
+  y+=11;
 
-  // ── KPI ROW (compact) ──
+  // ── KPI ROW (compact, bordered cells, no fill) ──
   const kpis=[
-    {l:pdfT("pdf_kpi_students","Students"),v:total,c:[43,58,103]},{l:pdfT("pdf_class_avg","Class Avg"),v:classAvg+"%",c:classAvg>=60?[46,196,182]:[242,92,84]},
-    {l:pdfT("pdf_kpi_pass_rate","Pass Rate"),v:passRate+"%",c:passRate>=60?[46,196,182]:[242,92,84]},{l:pdfT("pdf_kpi_at_risk","At Risk"),v:atRisk,c:atRisk>0?[242,92,84]:[46,196,182]},
-    {l:pdfT("pdf_kpi_improving","Improving"),v:improving,c:[46,196,182]},{l:pdfT("pdf_kpi_declining","Declining"),v:declining,c:declining>0?[249,168,38]:[46,196,182]},
+    {l:pdfT("pdf_kpi_students","Students"),v:total,c:T.ACCENT},{l:pdfT("pdf_class_avg","Class Avg"),v:classAvg+"%",c:classAvg>=60?T.GOOD:T.DANGER},
+    {l:pdfT("pdf_kpi_pass_rate","Pass Rate"),v:passRate+"%",c:passRate>=60?T.GOOD:T.DANGER},{l:pdfT("pdf_kpi_at_risk","At Risk"),v:atRisk,c:atRisk>0?T.DANGER:T.GOOD},
+    {l:pdfT("pdf_kpi_improving","Improving"),v:improving,c:T.GOOD},{l:pdfT("pdf_kpi_declining","Declining"),v:declining,c:declining>0?T.WARN:T.GOOD},
   ];
   const tW=(W-16)/6;
   kpis.forEach((k,i)=>{
     const tx=8+i*tW;
-    doc.setFillColor(248,249,255);doc.setDrawColor(226,229,241);doc.roundedRect(tx,y,tW-1,14,1,1,"FD");
-    doc.setFillColor(...k.c);doc.rect(tx,y,tW-1,2,"F");
-    doc.setFont("helvetica","normal");doc.setFontSize(6);doc.setTextColor(155,164,192);doc.text(k.l,tx+(tW-1)/2,y+7,{align:"center"});
-    doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(...k.c);doc.text(String(k.v),tx+(tW-1)/2,y+13,{align:"center"});
+    doc.setDrawColor(...T.LINE);doc.setLineWidth(0.7*0.352778);doc.roundedRect(tx,y,tW-1,14,1,1);
+    doc.setFont("helvetica","normal");doc.setFontSize(6);doc.setTextColor(...T.INK_SOFT);doc.text(k.l,tx+(tW-1)/2,y+6,{align:"center"});
+    doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(...k.c);doc.text(String(k.v),tx+(tW-1)/2,y+12,{align:"center"});
   });
-  y+=18;
+  y+=19;
 
-  // ── SUBJECT BAR CHART (compact, horizontal) ──
+  // ── SUBJECT BAR CHART (outline track, coloured fill = the data) ──
   if(s.subjects&&s.subjects.length){
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text(pdfT("pdf_subject_averages","Subject Averages"),10,y);y+=4;
+    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...T.INK);doc.text(pdfT("pdf_subject_averages","Subject Averages"),10,y);y+=4;
     const subData=s.subjects.map(sub=>{
       const vals=APP.students.map(st=>st.analysis&&st.analysis.subjectAvgs&&st.analysis.subjectAvgs[sub]).filter(v=>v!=null&&!isNaN(v));
       return{sub,avg:vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0};
     });
-    const bW=W-70,bH=5,lW=46;
+    // Same fix as the student report: reserve real space for the "avg%"
+    // label and right-align it to the margin instead of drawing it 2mm
+    // past the end of a bar that already spans the full remaining width.
+    // Same fix as the student report: reserve real space for the "avg%"
+    // label and right-align it to the margin instead of drawing it 2mm
+    // past the end of a bar that already spans the full remaining width.
+    // bH cut 5→3.2 to match the student report's thinner track (was a
+    // heavier bar than the data needed, more filled ink per copy).
+    const percentColW=14,bW=W-70-percentColW,bH=1.6,lW=46;
     subData.forEach(({sub,avg})=>{
-      doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(26,29,46);
+      doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(...T.INK_SOFT);
       doc.text(fitText(doc,sub,lW-4),10,y+4);
-      doc.setFillColor(226,229,241);doc.roundedRect(lW,y,bW,bH,1,1,"F");
-      const bc=avg>=75?[46,196,182]:avg>=(s.passThreshold||35)?[43,58,103]:[242,92,84];
-      doc.setFillColor(...bc);doc.roundedRect(lW,y,bW*(avg/100),bH,1,1,"F");
-      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...bc);doc.text(avg+"%",lW+bW+2,y+4);
-      y+=8;
+      doc.setDrawColor(...T.LINE);doc.setLineWidth(0.5*0.352778);doc.roundedRect(lW,y,bW,bH,0.8,0.8);
+      const bc=avg>=75?T.GOOD:avg>=(s.passThreshold||35)?T.ACCENT:T.DANGER;
+      doc.setFillColor(...bc);doc.roundedRect(lW,y,bW*(avg/100),bH,0.8,0.8,"F");
+      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...bc);doc.text(avg+"%",W-10,y+4,{align:"right"});
+      y+=7.5;
     });
     y+=3;
   }
 
-  // ── RANK TABLE (compact, fits more rows) ──
-  doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text(pdfT("pdf_student_rankings","Student Rankings"),10,y);y+=4;
+  // ── RANK TABLE (bold rule as header, hairline rows — no fills) ──
+  doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...T.INK);doc.text(pdfT("pdf_student_rankings","Student Rankings"),10,y);y+=4;
   const cols=[12,50,16,14,18,18,60];
   const heads=["#",pdfT("pdf_col_name","Name"),pdfT("pdf_col_avg","Avg"),pdfT("pdf_col_grade","Grade"),pdfT("pdf_trend","Trend"),pdfT("pdf_col_ew","EW"),pdfT("pdf_col_flags","Flags")];
-  // Table header
-  doc.setFillColor(43,58,103);doc.rect(8,y,W-16,6,"F");
-  let cx=10;
-  heads.forEach((h,i)=>{doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setTextColor(255,255,255);doc.text(h,cx,y+4.2);cx+=cols[i];});
-  y+=7;
+  const drawRankHeader=()=>{
+    let hx=10;
+    heads.forEach((h,i)=>{doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setTextColor(...T.INK);doc.text(h,hx,y+4.2);hx+=cols[i];});
+    y+=5.5;
+    pdfRule(doc,8,y,W-8,1.4,T.INK);
+    y+=2.5;
+  };
+  drawRankHeader();
 
   APP.students.forEach((st,idx)=>{
-    if(y>283){doc.addPage();y=10;
-      // Re-draw header on new page
-      doc.setFillColor(43,58,103);doc.rect(8,y,W-16,6,"F");cx=10;
-      heads.forEach((h,i)=>{doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setTextColor(255,255,255);doc.text(h,cx,y+4.2);cx+=cols[i];});
-      y+=7;
-    }
+    if(y>283){doc.addPage();y=10;drawRankHeader();}
     const a=st.analysis||{};
-    doc.setFillColor(idx%2===0?255:248,idx%2===0?255:249,idx%2===0?255:255);doc.rect(8,y-1,W-16,6.5,"F");
-    const tc=a.trend==="improving"?[46,196,182]:a.trend==="declining"?[242,92,84]:[120,120,120];
-    const ac=a.overallAvg>=80?[46,196,182]:a.overallAvg>=(s.passThreshold||35)?[43,58,103]:[242,92,84];
-    const ewc=(a.earlyWarningScore||0)>=50?[242,92,84]:(a.earlyWarningScore||0)>=25?[249,168,38]:[46,196,182];
+    const tc=a.trend==="improving"?T.GOOD:a.trend==="declining"?T.DANGER:T.INK_SOFT;
+    const ac=a.overallAvg>=80?T.GOOD:a.overallAvg>=(s.passThreshold||35)?T.ACCENT:T.DANGER;
+    const ewc=(a.earlyWarningScore||0)>=50?T.DANGER:(a.earlyWarningScore||0)>=25?T.WARN:T.GOOD;
     const fStr=st.flags&&st.flags.length?st.flags.map(f=>f.label).join(", "):"";
-    cx=10;
+    let cx=10;
     doc.setFont("helvetica","bold");doc.setFontSize(7);const fitName=fitText(doc,st.name,cols[1]-3);
     doc.setFont("helvetica","normal");doc.setFontSize(7);const fitFlags=fitText(doc,fStr,cols[6]-3);
-    [[String(a.rank||""),ac],[fitName,[26,29,46]],[a.overallAvg+"%",ac],[a.grade||"",ac],
+    [[String(a.rank||""),ac],[fitName,T.INK],[a.overallAvg+"%",ac],[a.grade||"",ac],
      [a.trend==="improving"?pdfT("pdf_val_up_cap","Up"):a.trend==="declining"?pdfT("pdf_val_down_cap","Down"):pdfT("pdf_val_stable_cap","Stable"),tc],[String(a.earlyWarningScore||0),ewc],
-     [fitFlags,[150,150,150]]
+     [fitFlags,T.INK_SOFT]
     ].forEach(([v,color],i)=>{
       doc.setFont("helvetica",i===1?"bold":"normal");doc.setFontSize(7);doc.setTextColor(...color);
       doc.text(String(v||"—"),cx,y+4);cx+=cols[i];
     });
-    doc.setDrawColor(226,229,241);doc.setLineWidth(0.2);doc.line(8,y+5.5,W-8,y+5.5);
+    pdfRule(doc,8,y+5.5,W-8,0.6,T.LINE);
     y+=6.5;
   });
 
-  // ── AT-RISK BLOCK ──
+  // ── STUDENTS NEEDING SUPPORT (proper 2-col table — Name | Flags — with
+  //    a header row and hairline rules between students, instead of the
+  //    old "Name — flag1, flag2" prose lines wrapped inside a red box.
+  //    Same table conventions as Student Rankings above: bold header,
+  //    1.4pt rule under it, 0.6pt hairline between rows.) ──
   const flagged=APP.students.filter(st=>st.flags&&st.flags.some(f=>["at-risk","burnout","plateau"].includes(f.type)));
   if(flagged.length){
-    if(y>270){doc.addPage();y=10;}
+    const snsNameW=55;
+    if(y>260){doc.addPage();y=10;}
     y+=4;
-    // Wrap each student's flag list to the box width up front so the box
-    // height (bh) can grow to fit however many lines a long flag list
-    // actually needs, instead of a fixed 6mm-per-student guess that a
-    // student with several flags could overflow past the box edge.
-    doc.setFont("helvetica","normal");doc.setFontSize(7.5);
-    const flaggedLines=flagged.map(st=>doc.splitTextToSize(st.name+" — "+st.flags.map(f=>f.label).join(", "),W-30));
-    const totalLines=flaggedLines.reduce((sum,lines)=>sum+lines.length,0);
-    const bh=8+totalLines*4.5;
-    doc.setFillColor(253,236,234);doc.setDrawColor(242,92,84);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
-    doc.setFillColor(242,92,84);doc.rect(8,y,3,bh,"F");
-    doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(139,26,26);doc.text(pdfT("pdf_students_needing_support","Students Needing Support"),14,y+5);y+=8;
-    doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(26,29,46);
-    flaggedLines.forEach(lines=>{doc.text(lines,16,y);y+=lines.length*4.5;});
+    doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(...T.DANGER);
+    doc.text(pdfT("pdf_students_needing_support","Students Needing Support"),10,y);
+    y+=5;
+    doc.setFont("helvetica","bold");doc.setFontSize(6.8);doc.setTextColor(...T.INK);
+    doc.text(pdfT("pdf_col_name","Name"),10,y);
+    doc.text(pdfT("pdf_col_flags","Flags"),10+snsNameW,y);
+    y+=2;
+    pdfRule(doc,8,y,W-8,1.2,T.INK);
+    y+=4;
+    flagged.forEach(st=>{
+      const flagLine=st.flags.map(f=>f.label).join(", ");
+      const wrapped=doc.splitTextToSize(flagLine,W-18-snsNameW);
+      if(y+wrapped.length*4>282){doc.addPage();y=20;}
+      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...T.INK);
+      doc.text(fitText(doc,st.name,snsNameW-4),10,y+3.5);
+      doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(...T.DANGER);
+      doc.text(wrapped,10+snsNameW,y+3.5);
+      y+=Math.max(6,wrapped.length*4)+1.5;
+      pdfRule(doc,8,y-1.5,W-8,0.6,T.LINE);
+    });
     y+=4;
   }
 
-  // ── SUBJECT GAPS (Task 2b: only if the class has a computed weakness list) ──
+  // ── SUBJECT GAPS (outline rows instead of tinted-fill rows) ──
   const subjectWeakness=(APP.classStats&&APP.classStats.subjectWeakness)||[];
   if(subjectWeakness.length){
     if(y>255){doc.addPage();y=20;}
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text(pdfT("pdf_subject_gaps","Subject Gaps"),10,y);y+=5;
-    doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(90,96,122);
+    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...T.INK);doc.text(pdfT("pdf_subject_gaps","Subject Gaps"),10,y);y+=5;
+    doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(...T.INK_SOFT);
     doc.text(pdfT("pdf_subject_gaps_note","Sorted by % of class below the pass threshold in that subject."),10,y);y+=5;
     subjectWeakness.slice(0,6).forEach(sw=>{
       if(y>272){doc.addPage();y=20;}
-      const wc=sw.pctBelow>=40?[242,92,84]:sw.pctBelow>=20?[249,168,38]:[46,196,182];
-      doc.setFillColor(...wc.map(v=>Math.min(255,v+165)));doc.roundedRect(10,y,W-20,7,1,1,"F");
-      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...wc.map(v=>Math.max(0,v-70)));
+      const wc=sw.pctBelow>=40?T.DANGER:sw.pctBelow>=20?T.WARN:T.GOOD;
+      doc.setDrawColor(...wc);doc.setLineWidth(1*0.352778);doc.roundedRect(10,y,W-20,7,1,1);
+      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...wc);
       doc.text(sw.subject,13,y+4.8);
       doc.text(pdfT("pdf_subject_gap_stat","{{pct}}% below pass  ·  class avg {{avg}}%",{pct:sw.pctBelow,avg:sw.avgClass}),W-13,y+4.8,{align:"right"});
       y+=9;
@@ -788,43 +652,43 @@ function buildTeacherPDF(doc){
     y+=3;
   }
 
-  // ── TOP PERFORMERS (Task 2b: top 5 only) ──
+  // ── TOP PERFORMERS (outline rows instead of tinted-fill rows) ──
   const teacherTop5=[...APP.students]
     .sort((x,y2)=>(x.analysis&&x.analysis.rank||999)-(y2.analysis&&y2.analysis.rank||999)).slice(0,5);
   if(teacherTop5.some(st=>st.analysis&&st.analysis.rank<=3)){
     if(y>260){doc.addPage();y=20;}
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text(pdfT("pdf_top_performers","Top Performers"),10,y);y+=5;
+    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...T.INK);doc.text(pdfT("pdf_top_performers","Top Performers"),10,y);y+=5;
     teacherTop5.forEach(st=>{
       if(y>278){doc.addPage();y=20;}
       const a=st.analysis||{};
-      doc.setFillColor(230,249,247);doc.roundedRect(10,y,W-20,6,1,1,"F");
-      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(26,29,46);
+      doc.setDrawColor(...T.GOOD);doc.setLineWidth(1*0.352778);doc.roundedRect(10,y,W-20,6,1,1);
+      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...T.INK);
       doc.text(fitText(doc,"#"+a.rank+" "+st.name,W-45),13,y+4.2);
-      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(46,196,182);
+      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...T.GOOD);
       doc.text(a.overallAvg+"%",W-13,y+4.2,{align:"right"});
       y+=7.5;
     });
     y+=3;
   }
 
-  // ── TEST COMPARISON (Task 2b: only if ≥2 tests exist) ──
+  // ── TEST COMPARISON (outline track, coloured fill = the data) ──
   if(s.tests&&s.tests.length>=2){
     if(y>250){doc.addPage();y=20;}
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text(pdfT("pdf_test_comparison","Test Comparison — Class Average"),10,y);y+=5;
-    const tcBarW=W-70,tcBarH=5,tcLabelW=46;
+    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...T.INK);doc.text(pdfT("pdf_test_comparison","Test Comparison — Class Average"),10,y);y+=5;
+    const tcPercentColW=14,tcBarW=W-70-tcPercentColW,tcBarH=1.6,tcLabelW=46;
     s.tests.forEach(t=>{
       if(y>278){doc.addPage();y=20;}
       const vals=APP.students.map(st=>{const idx=s.tests.indexOf(t);return st.analysis&&st.analysis.testAvgs&&st.analysis.testAvgs[idx];}).filter(v=>v!==null&&v!==undefined);
       const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
-      doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(26,29,46);
+      doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(...T.INK_SOFT);
       doc.text(fitText(doc,t.name,tcLabelW-4),10,y+4);
-      doc.setFillColor(226,229,241);doc.roundedRect(tcLabelW,y,tcBarW,tcBarH,1,1,"F");
+      doc.setDrawColor(...T.LINE);doc.setLineWidth(0.5*0.352778);doc.roundedRect(tcLabelW,y,tcBarW,tcBarH,0.8,0.8);
       if(avg!==null){
-        const tc2=avg>=75?[46,196,182]:avg>=(s.passThreshold||35)?[43,58,103]:[242,92,84];
-        doc.setFillColor(...tc2);doc.roundedRect(tcLabelW,y,tcBarW*(avg/100),tcBarH,1,1,"F");
-        doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...tc2);doc.text(avg+"%",tcLabelW+tcBarW+2,y+4);
+        const tc2=avg>=75?T.GOOD:avg>=(s.passThreshold||35)?T.ACCENT:T.DANGER;
+        doc.setFillColor(...tc2);doc.roundedRect(tcLabelW,y,tcBarW*(avg/100),tcBarH,0.8,0.8,"F");
+        doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...tc2);doc.text(avg+"%",W-10,y+4,{align:"right"});
       }
-      y+=8;
+      y+=7.5;
     });
     y+=3;
   }
@@ -837,26 +701,37 @@ function buildTeacherPDF(doc){
       pdfT("pdf_gender_lead_narrative","{{lead}} are outperforming {{other}} overall by {{gap}} points this term.",{lead:pdfT(ga.leadGroup==="Female"?"pdf_gender_girls":"pdf_gender_boys",ga.leadGroup==="Female"?"Girls":"Boys"),other:pdfT(ga.leadGroup==="Female"?"pdf_gender_boys":"pdf_gender_girls",ga.leadGroup==="Female"?"Boys":"Girls"),gap:ga.overallGap})+
       (ga.maxGapSubject?pdfT("pdf_gender_gap_largest"," The gap is largest in {{subject}} ({{value}} pts).",{subject:ga.maxGapSubject,value:ga.maxGapValue}):"")
       :pdfT("pdf_gender_even","Overall performance is essentially even between the two groups this term.");
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text(pdfT("pdf_gender_analysis","Gender Analysis"),10,y);y+=5;
-    doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(90,96,122);
+    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...T.INK);doc.text(pdfT("pdf_gender_analysis","Gender Analysis"),10,y);y+=5;
+    doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(...T.INK_SOFT);
     const gLines=doc.splitTextToSize(narrative,W-20);
     doc.text(gLines,10,y);y+=gLines.length*4.2+5;
   }
 
   // ── STUDENT REMARKS SUMMARY (Task 2b: only if any student has a remark) ──
+  // Given a header row + column rule + hairline row separators so the
+  // "Student · Test" / "Remark" columns read as a table instead of two
+  // loosely-aligned text runs.
   const remarkedStudents=APP.students.map(st=>({st,entries:(s.tests||[]).map(t=>({test:t.name,remark:(st.testData[t.name]||{}).remark})).filter(e=>e.remark)})).filter(x=>x.entries.length);
   if(remarkedStudents.length){
-    if(y>248){doc.addPage();y=20;}
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text(pdfT("pdf_teacher_remarks_ptm","Teacher Remarks — Notes for PTM"),10,y);y+=5;
+    const remarkColW=60;
+    if(y>245){doc.addPage();y=20;}
+    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...T.INK);doc.text(pdfT("pdf_teacher_remarks_ptm","Teacher Remarks — Notes for PTM"),10,y);y+=5;
+    doc.setFont("helvetica","bold");doc.setFontSize(6.8);doc.setTextColor(...T.INK);
+    doc.text(pdfT("pdf_col_student_test","Student · Test"),10,y);
+    doc.text(pdfT("pdf_col_remark","Remark"),72,y);
+    y+=2;
+    pdfRule(doc,8,y,W-8,1.2,T.INK);
+    y+=4;
     remarkedStudents.forEach(({st,entries})=>{
       entries.forEach(e=>{
-        if(y>278){doc.addPage();y=20;}
-        doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(43,58,103);
-        doc.text(fitText(doc,st.name+" · "+e.test,60),10,y);
-        doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(26,29,46);
         const rLines=doc.splitTextToSize(e.remark,W-80);
-        doc.text(rLines,72,y);
-        y+=Math.max(4.5,rLines.length*4);
+        if(y+rLines.length*4>278){doc.addPage();y=20;}
+        doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(...T.ACCENT);
+        doc.text(fitText(doc,st.name+" · "+e.test,remarkColW),10,y+3);
+        doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(...T.INK);
+        doc.text(rLines,72,y+3);
+        y+=Math.max(6,rLines.length*4)+1.5;
+        pdfRule(doc,8,y-1.5,W-8,0.6,T.LINE);
       });
     });
     y+=3;
@@ -867,6 +742,7 @@ function buildTeacherPDF(doc){
 }
 function buildMgmtPDF(doc){
   const s=APP.setup,sts=APP.students,W=210,H=297;
+  const T=PDF_THEME;
   const n=sts.length||1;
   const classAvg=Math.round(sts.reduce((a,st)=>a+(st.analysis&&st.analysis.overallAvg||0),0)/n);
   const passRate=Math.round(sts.filter(st=>st.analysis&&st.analysis.overallAvg>=(s.passThreshold||35)).length/n*100);
@@ -875,114 +751,115 @@ function buildMgmtPDF(doc){
   const declining=sts.filter(st=>st.analysis&&st.analysis.trend==="declining").length;
   const topper=sts[0];
 
-  // ── HEADER (navy, prestigious) ──
-  doc.setFillColor(30,58,95);doc.rect(0,0,W,24,"F");
-  doc.setFillColor(43,58,103);doc.rect(0,20,W,4,"F");
-  doc.setTextColor(255,255,255);doc.setFont("helvetica","bold");doc.setFontSize(14);
+  // ── HEADER (restyled: rule underneath, no filled bars — content/
+  //    components unchanged per Aug 2026 review: management copies print
+  //    in small quantities, only the ink-heavy fills were the issue) ──
+  doc.setTextColor(...T.ACCENT);doc.setFont("helvetica","bold");doc.setFontSize(12);
   doc.text("Student Insight",10,10);
-  doc.setFont("helvetica","normal");doc.setFontSize(8);
-  doc.text([s.instName,s.className+(s.section?" "+s.section:""),s.year].filter(Boolean).join("   |   "),10,17);
-  doc.text(pdfT("pdf_mgmt_report_title","Management Report")+"   |   "+new Date().toLocaleDateString(bcp47TagFor(window.SR_LANG)),W-10,17,{align:"right"});
-  doc.setTextColor(26,29,46);let y=30;
+  doc.setTextColor(...T.INK_SOFT);doc.setFont("helvetica","normal");doc.setFontSize(8.5);
+  doc.text([s.instName,s.className+(s.section?" "+s.section:""),s.year].filter(Boolean).join("   |   "),10,16);
+  doc.text(pdfT("pdf_mgmt_report_title","Management Report")+"   |   "+new Date().toLocaleDateString(bcp47TagFor(window.SR_LANG)),W-10,16,{align:"right"});
+  let y=20;
+  pdfRule(doc,8,y,W-8,1.6,T.INK);
+  y+=10;
 
-  // ── EXECUTIVE KPI TILES (2 rows of 3) ──
+  // ── EXECUTIVE KPI TILES (2 rows of 3, bordered, no fill) ──
   const kpis=[
-    {l:pdfT("pdf_kpi_total_students","Total Students"),v:n,sub:"",c:[15,32,65]},
-    {l:pdfT("pdf_kpi_class_average","Class Average"),v:classAvg+"%",sub:"",c:classAvg>=60?[46,196,182]:[242,92,84]},
-    {l:pdfT("pdf_kpi_pass_rate","Pass Rate"),v:passRate+"%",sub:sts.filter(st=>st.analysis&&st.analysis.overallAvg>=(s.passThreshold||35)).length+" "+pdfT("pdf_students_lc","students"),c:passRate>=60?[46,196,182]:[242,92,84]},
-    {l:pdfT("pdf_kpi_at_risk","At Risk"),v:atRisk,sub:atRisk>0?pdfT("pdf_needs_attention","Needs attention"):pdfT("pdf_all_clear","All clear"),c:atRisk>0?[242,92,84]:[46,196,182]},
-    {l:pdfT("pdf_kpi_improving","Improving"),v:improving,sub:Math.round(improving/n*100)+"% "+pdfT("pdf_of_class","of class"),c:[46,196,182]},
-    {l:pdfT("pdf_kpi_class_topper","Class Topper"),v:topper?topper.name.split(" ")[0]:"—",sub:topper?topper.analysis.overallAvg+"%":"",c:[249,168,38]},
+    {l:pdfT("pdf_kpi_total_students","Total Students"),v:n,sub:"",c:T.ACCENT},
+    {l:pdfT("pdf_kpi_class_average","Class Average"),v:classAvg+"%",sub:"",c:classAvg>=60?T.GOOD:T.DANGER},
+    {l:pdfT("pdf_kpi_pass_rate","Pass Rate"),v:passRate+"%",sub:sts.filter(st=>st.analysis&&st.analysis.overallAvg>=(s.passThreshold||35)).length+" "+pdfT("pdf_students_lc","students"),c:passRate>=60?T.GOOD:T.DANGER},
+    {l:pdfT("pdf_kpi_at_risk","At Risk"),v:atRisk,sub:atRisk>0?pdfT("pdf_needs_attention","Needs attention"):pdfT("pdf_all_clear","All clear"),c:atRisk>0?T.DANGER:T.GOOD},
+    {l:pdfT("pdf_kpi_improving","Improving"),v:improving,sub:Math.round(improving/n*100)+"% "+pdfT("pdf_of_class","of class"),c:T.GOOD},
+    {l:pdfT("pdf_kpi_class_topper","Class Topper"),v:topper?topper.name.split(" ")[0]:"—",sub:topper?topper.analysis.overallAvg+"%":"",c:T.WARN},
   ];
   const tW=(W-20)/3;
   [[0,1,2],[3,4,5]].forEach((row,ri)=>{
     row.forEach((ki,ci)=>{
       const k=kpis[ki],tx=10+ci*tW,ty=y+ri*22;
-      doc.setFillColor(255,255,255);doc.setDrawColor(226,229,241);doc.roundedRect(tx,ty,tW-4,19,2,2,"FD");
-      doc.setFillColor(...k.c);doc.rect(tx,ty,tW-4,2.5,"F");
-      doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(155,164,192);
-      doc.text(k.l,tx+(tW-4)/2,ty+7,{align:"center"});
+      doc.setDrawColor(...T.LINE);doc.setLineWidth(0.7*0.352778);doc.roundedRect(tx,ty,tW-4,19,2,2);
+      doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(...T.INK_SOFT);
+      doc.text(k.l,tx+(tW-4)/2,ty+6,{align:"center"});
       doc.setFont("helvetica","bold");doc.setFontSize(12);doc.setTextColor(...k.c);
-      doc.text(String(k.v),tx+(tW-4)/2,ty+14,{align:"center"});
-      if(k.sub){doc.setFont("helvetica","normal");doc.setFontSize(6);doc.setTextColor(155,164,192);doc.text(fitText(doc,k.sub,tW-6),tx+(tW-4)/2,ty+17,{align:"center"});}
+      doc.text(String(k.v),tx+(tW-4)/2,ty+13,{align:"center"});
+      if(k.sub){doc.setFont("helvetica","normal");doc.setFontSize(6);doc.setTextColor(...T.INK_SOFT);doc.text(fitText(doc,k.sub,tW-6),tx+(tW-4)/2,ty+17,{align:"center"});}
     });
   });
   y+=48;
 
-  // ── SUBJECT PERFORMANCE (visual bars, side by side) ──
+  // ── SUBJECT PERFORMANCE (outline vertical bars, coloured fill = the
+  //    data — was a filled light-blue background block per bar plus a
+  //    filled colour block; now just an outline + the fill that matters) ──
   if(s.subjects&&s.subjects.length){
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text(pdfT("pdf_subject_perf_overview","Subject Performance Overview"),10,y);y+=5;
+    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...T.INK);doc.text(pdfT("pdf_subject_perf_overview","Subject Performance Overview"),10,y);y+=5;
     const subData=s.subjects.map(sub=>{
       const vals=sts.map(st=>st.analysis&&st.analysis.subjectAvgs&&st.analysis.subjectAvgs[sub]).filter(v=>v!=null&&!isNaN(v));
       const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
       const passing=vals.filter(v=>v>=(s.passThreshold||35)).length;
       return{sub,avg,passing,total:vals.length};
     });
-    const bW=(W-24)/subData.length,bH=20;
-    subData.forEach(({sub,avg,passing,total:tot},i)=>{
+    // Bars were only 3mm narrower than their column (bW-3) — almost no
+    // gap between adjacent bars, reading as one solid thick block instead
+    // of separate columns. bW-9 opens a real gap, so each bar reads as
+    // its own thinner column and less solid colour is printed overall.
+    const bW=(W-24)/subData.length,bH=20,barGap=9;
+    subData.forEach(({sub,avg},i)=>{
       const bx=10+i*bW;
-      const bc=avg>=75?[46,196,182]:avg>=(s.passThreshold||35)?[43,58,103]:[242,92,84];
-      // Background
-      doc.setFillColor(240,242,250);doc.roundedRect(bx,y,bW-3,bH,1,1,"F");
-      // Fill bar (vertical)
+      const bc=avg>=75?T.GOOD:avg>=(s.passThreshold||35)?T.ACCENT:T.DANGER;
+      doc.setDrawColor(...T.LINE);doc.setLineWidth(0.5*0.352778);doc.roundedRect(bx,y,bW-barGap,bH,1,1);
       const fillH=(avg/100)*bH;
-      doc.setFillColor(...bc);doc.roundedRect(bx,y+bH-fillH,bW-3,fillH,1,1,"F");
-      // Label
-      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(255,255,255);
-      if(fillH>8)doc.text(avg+"%",bx+(bW-3)/2,y+bH-fillH+6,{align:"center"});
-      doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(26,29,46);
-      doc.text(fitText(doc,sub,bW-1),bx+(bW-3)/2,y+bH+5,{align:"center"});
+      doc.setFillColor(...bc);doc.roundedRect(bx,y+bH-fillH,bW-barGap,fillH,1,1,"F");
+      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...T.WHITE);
+      if(fillH>8)doc.text(avg+"%",bx+(bW-barGap)/2,y+bH-fillH+6,{align:"center"});
+      doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(...T.INK);
+      doc.text(fitText(doc,sub,bW-1),bx+(bW-barGap)/2,y+bH+5,{align:"center"});
     });
     y+=bH+10;
   }
 
-  // ── TREND SUMMARY BOXES ──
+  // ── TREND SUMMARY BOXES (outline, no tinted fill) ──
   const trendData=[
-    {label:pdfT("pdf_consistently_improving","Consistently Improving"),count:improving,color:[46,196,182],bg:[230,249,247]},
-    {label:pdfT("pdf_consistently_declining","Consistently Declining"),count:declining,color:[242,92,84],bg:[253,236,234]},
-    {label:pdfT("pdf_at_risk_students","At-Risk Students"),count:atRisk,color:[242,92,84],bg:[253,236,234]},
-    {label:pdfT("pdf_stable_performance","Stable Performance"),count:n-improving-declining,color:[43,58,103],bg:[238,240,253]},
+    {label:pdfT("pdf_consistently_improving","Consistently Improving"),count:improving,color:T.GOOD},
+    {label:pdfT("pdf_consistently_declining","Consistently Declining"),count:declining,color:T.DANGER},
+    {label:pdfT("pdf_at_risk_students","At-Risk Students"),count:atRisk,color:T.DANGER},
+    {label:pdfT("pdf_stable_performance","Stable Performance"),count:n-improving-declining,color:T.ACCENT},
   ];
   const tbW=(W-20)/4;
-  trendData.forEach(({label,count,color,bg},i)=>{
+  trendData.forEach(({label,count,color},i)=>{
     const tx=10+i*tbW;
-    doc.setFillColor(...bg);doc.setDrawColor(...color);doc.roundedRect(tx,y,tbW-3,18,2,2,"FD");
+    doc.setDrawColor(...color);doc.setLineWidth(1*0.352778);doc.roundedRect(tx,y,tbW-3,18,2,2);
     doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(...color);doc.text(String(count),tx+(tbW-3)/2,y+12,{align:"center"});
-    doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(90,96,122);doc.text(label,tx+(tbW-3)/2,y+17,{align:"center"});
+    doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(...T.INK_SOFT);doc.text(label,tx+(tbW-3)/2,y+17,{align:"center"});
   });
   y+=24;
 
-  // ── TOP PERFORMERS / NEEDS SUPPORT (Task 2c: top 3 only, gated on class
-  // size > 5; "Needs Support" column only when at-risk count > 0) ──
+  // ── TOP PERFORMERS / AT-RISK (outline rows instead of tinted-fill rows) ──
   const top3=(n>5)?sts.slice(0,Math.min(3,sts.length)):[];
   const bottom3=atRisk>0?[...sts].filter(st=>st.flags&&st.flags.some(f=>f.type==="at-risk")).slice(0,3):[];
   const halfW=(W-24)/2;
 
   if(top3.length||bottom3.length){
-    if(top3.length){doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(46,196,182);doc.text(pdfT("pdf_top_performers","Top Performers"),10,y);}
-    if(bottom3.length){doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(242,92,84);doc.text(pdfT("pdf_at_risk_students","At-Risk Students"),14+halfW,y);}
+    if(top3.length){doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...T.GOOD);doc.text(pdfT("pdf_top_performers","Top Performers"),10,y);}
+    if(bottom3.length){doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...T.DANGER);doc.text(pdfT("pdf_at_risk_students","At-Risk Students"),14+halfW,y);}
     y+=4;
 
     const maxRows=Math.max(top3.length,bottom3.length);
     for(let i=0;i<maxRows;i++){
       if(y>275){break;}
       const ts=top3[i],bs=bottom3[i];
-      // Left: top performer
       if(ts){
         const a=ts.analysis||{};
-        doc.setFillColor(230,249,247);doc.roundedRect(10,y,halfW,7,1,1,"F");
-        doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(26,29,46);
+        doc.setDrawColor(...T.GOOD);doc.setLineWidth(0.8*0.352778);doc.roundedRect(10,y,halfW,7,1,1);
+        doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...T.INK);
         doc.text(fitText(doc,"#"+a.rank+" "+ts.name,halfW-22),13,y+5);
-        doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(46,196,182);
+        doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...T.GOOD);
         doc.text(a.overallAvg+"%",10+halfW-6,y+5,{align:"right"});
       }
-      // Right: at-risk
       if(bs){
         const a=bs.analysis||{};
-        doc.setFillColor(253,236,234);doc.roundedRect(14+halfW,y,halfW,7,1,1,"F");
-        doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(26,29,46);
+        doc.setDrawColor(...T.DANGER);doc.setLineWidth(0.8*0.352778);doc.roundedRect(14+halfW,y,halfW,7,1,1);
+        doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...T.INK);
         doc.text(fitText(doc,bs.name,halfW-22),17+halfW,y+5);
-        doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(242,92,84);
+        doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...T.DANGER);
         doc.text(a.overallAvg+"%",14+halfW+halfW-6,y+5,{align:"right"});
       }
       y+=8;
@@ -990,8 +867,7 @@ function buildMgmtPDF(doc){
     y+=4;
   }
 
-  // ── GENDER PERFORMANCE ANALYSIS (school-level only; diversity_analysis
-  // AI feature) — never shown on the per-student PDF, see computeGenderAnalysis()
+  // ── GENDER PERFORMANCE ANALYSIS (outline panel instead of tinted fill) ──
   if(APP.genderAnalysis){
     const ga=APP.genderAnalysis;
     if(ga.available&&y<230){
@@ -1004,54 +880,55 @@ function buildMgmtPDF(doc){
       const lines=doc.splitTextToSize(narrative,W-28);
       const panelH=20;
       const bh=10+panelH+lines.length*4.2+6;
-      doc.setFillColor(245,240,251);doc.setDrawColor(123,94,167);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
-      doc.setFillColor(123,94,167);doc.rect(8,y,3,bh,"F");
-      doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(123,94,167);doc.text(pdfT("pdf_gender_perf_analysis","Gender Performance Analysis"),14,y+6);
+      doc.setDrawColor(...T.ACCENT);doc.setLineWidth(1*0.352778);doc.roundedRect(8,y,W-16,bh,2,2);
+      doc.setLineWidth(1.4*0.352778);doc.line(8,y,8,y+bh);
+      doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(...T.ACCENT);doc.text(pdfT("pdf_gender_perf_analysis","Gender Performance Analysis"),14,y+6);
       const panelW=(W-32)/2;
       labels.forEach((label,i)=>{
         const g=ga.groups[label];
         const px=14+i*(panelW+4),py=y+10;
-        const pc=label==="Female"?[199,69,150]:[52,120,201];
-        doc.setFillColor(255,255,255);doc.setDrawColor(...pc);doc.roundedRect(px,py,panelW,panelH,1,1,"FD");
+        const pc=label==="Female"?T.DANGER:T.ACCENT;
+        doc.setDrawColor(...pc);doc.setLineWidth(0.8*0.352778);doc.roundedRect(px,py,panelW,panelH,1,1);
         doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...pc);doc.text(label+" ("+g.count+")",px+4,py+6);
-        doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(26,29,46);doc.text(g.avg+"%",px+4,py+13.5);
-        doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(155,164,192);doc.text(pdfT("pdf_pass_rate_prefix","Pass rate: {{rate}}%",{rate:g.passRate}),px+4,py+18);
+        doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...T.INK);doc.text(g.avg+"%",px+4,py+13.5);
+        doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(...T.INK_SOFT);doc.text(pdfT("pdf_pass_rate_prefix","Pass rate: {{rate}}%",{rate:g.passRate}),px+4,py+18);
       });
-      doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(26,29,46);doc.text(lines,14,y+10+panelH+5);
+      doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(...T.INK);doc.text(lines,14,y+10+panelH+5);
       y+=bh+5;
     }
   }
 
-  // ── COMPARE SECTIONS (Task 2c: compare mode only, and only with real data) ──
+  // ── COMPARE SECTIONS (bold rule as header, hairline rows) ──
   if(APP.compareMode&&APP.sectionComparison&&APP.sectionComparison.length){
     if(y>240){doc.addPage();y=20;}
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(26,29,46);doc.text(pdfT("pdf_compare_sections","Compare Sections"),10,y);y+=5;
+    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...T.INK);doc.text(pdfT("pdf_compare_sections","Compare Sections"),10,y);y+=5;
     const ccols=[50,16,18,18,18,40],cheads=[pdfT("pdf_col_section","Section"),"N",pdfT("pdf_col_avg","Avg"),pdfT("pdf_col_pass_pct","Pass%"),pdfT("pdf_col_at_risk_short","At-Risk"),pdfT("pdf_col_topper","Topper")];
-    doc.setFillColor(43,58,103);doc.rect(8,y,W-16,6,"F");
     let ccx=10;
-    cheads.forEach((h,i)=>{doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setTextColor(255,255,255);doc.text(h,ccx,y+4.2);ccx+=ccols[i];});
-    y+=7;
-    APP.sectionComparison.forEach((r,i)=>{
+    cheads.forEach((h,i)=>{doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setTextColor(...T.INK);doc.text(h,ccx,y+4.2);ccx+=ccols[i];});
+    y+=5.5;
+    pdfRule(doc,8,y,W-8,1.4,T.INK);
+    y+=2.5;
+    APP.sectionComparison.forEach((r)=>{
       if(y>282){doc.addPage();y=20;}
-      doc.setFillColor(i%2===0?255:248,i%2===0?255:249,i%2===0?255:255);doc.rect(8,y-1,W-16,6.5,"F");
       ccx=10;
-      [[fitText(doc,r.label,ccols[0]-3),[26,29,46]],[String(r.n),[90,96,122]],[r.avg+"%",[43,58,103]],[r.passRate+"%",r.passRate>=60?[46,196,182]:[242,92,84]],[String(r.atRisk),r.atRisk>0?[242,92,84]:[46,196,182]],[fitText(doc,r.topperName,ccols[5]-3),[90,96,122]]]
+      [[fitText(doc,r.label,ccols[0]-3),T.INK],[String(r.n),T.INK_SOFT],[r.avg+"%",T.ACCENT],[r.passRate+"%",r.passRate>=60?T.GOOD:T.DANGER],[String(r.atRisk),r.atRisk>0?T.DANGER:T.GOOD],[fitText(doc,r.topperName,ccols[5]-3),T.INK_SOFT]]
         .forEach(([v,color],ci)=>{doc.setFont("helvetica",ci===0?"bold":"normal");doc.setFontSize(7);doc.setTextColor(...color);doc.text(String(v),ccx,y+4);ccx+=ccols[ci];});
+      pdfRule(doc,8,y+5.5,W-8,0.6,T.LINE);
       y+=6.5;
     });
     y+=5;
   }
 
-  // ── RECOMMENDATION BOX ──
+  // ── RECOMMENDATION BOX (outline, left rule instead of filled accent bar) ──
   if(y<265){
     const rec=atRisk>n*0.3?pdfT("pdf_rec_high_risk","High at-risk rate detected. Consider remedial sessions for flagged subjects."):improving>n*0.5?pdfT("pdf_rec_strong_trend","Strong positive trend across the class. Recognition programme recommended."):pdfT("pdf_rec_stable","Class performance is stable. Monitor declining students closely.");
     doc.setFont("helvetica","normal");doc.setFontSize(8);
     const lines=doc.splitTextToSize(pdfT("pdf_recommendation_prefix","Recommendation: {{rec}}",{rec:rec}),W-28);
     const bh=lines.length*4.5+10;
-    doc.setFillColor(238,240,253);doc.setDrawColor(43,58,103);doc.roundedRect(8,y,W-16,bh,2,2,"FD");
-    doc.setFillColor(43,58,103);doc.rect(8,y,3,bh,"F");
-    doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(43,58,103);doc.text(pdfT("pdf_strategic_recommendation","Strategic Recommendation"),14,y+6);
-    doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(26,29,46);doc.text(lines,14,y+12);
+    doc.setDrawColor(...T.ACCENT);doc.setLineWidth(1*0.352778);doc.roundedRect(8,y,W-16,bh,2,2);
+    doc.setLineWidth(1.4*0.352778);doc.line(8,y,8,y+bh);
+    doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(...T.ACCENT);doc.text(pdfT("pdf_strategic_recommendation","Strategic Recommendation"),14,y+6);
+    doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(...T.INK);doc.text(lines,14,y+12);
   }
 
   // ── FOOTER (stamped on every page) ──
@@ -1060,7 +937,7 @@ function buildMgmtPDF(doc){
 
 
 // --- ES module exports (added for module-system conversion, HANDOVER #4) ---
-export { PDF_CHAPTER_RELEVANT_FLAG_TYPES, addPDFHeader, buildMgmtPDF, buildStudentPDF, buildTeacherPDF, chapterSuffixForFlag, fitText, generateAllPDFs, pdfT, sanitizePdfDoc, stampFooterAllPages };
+export { PDF_CHAPTER_RELEVANT_FLAG_TYPES, PDF_THEME, addPDFHeader, buildMgmtPDF, buildStudentPDF, buildTeacherPDF, chapterSuffixForFlag, fitText, generateAllPDFs, pdfRule, pdfT, sanitizePdfDoc, stampFooterAllPages };
 
 // Legacy-global compatibility shim: modules don't leak top-level
 // declarations onto window the way classic scripts did. The handful of
@@ -1068,4 +945,4 @@ export { PDF_CHAPTER_RELEVANT_FLAG_TYPES, addPDFHeader, buildMgmtPDF, buildStude
 // (out of scope for HANDOVER #3 — only onclick was converted) still need a
 // bare global to resolve, so every exported name is also mirrored onto
 // window here. Harmless duplication for anything already imported properly.
-if(typeof window!=='undefined'){window.PDF_CHAPTER_RELEVANT_FLAG_TYPES=PDF_CHAPTER_RELEVANT_FLAG_TYPES;window.addPDFHeader=addPDFHeader;window.buildMgmtPDF=buildMgmtPDF;window.buildStudentPDF=buildStudentPDF;window.buildTeacherPDF=buildTeacherPDF;window.chapterSuffixForFlag=chapterSuffixForFlag;window.fitText=fitText;window.generateAllPDFs=generateAllPDFs;window.pdfT=pdfT;window.sanitizePdfDoc=sanitizePdfDoc;window.stampFooterAllPages=stampFooterAllPages;}
+if(typeof window!=='undefined'){window.PDF_CHAPTER_RELEVANT_FLAG_TYPES=PDF_CHAPTER_RELEVANT_FLAG_TYPES;window.PDF_THEME=PDF_THEME;window.addPDFHeader=addPDFHeader;window.buildMgmtPDF=buildMgmtPDF;window.buildStudentPDF=buildStudentPDF;window.buildTeacherPDF=buildTeacherPDF;window.chapterSuffixForFlag=chapterSuffixForFlag;window.fitText=fitText;window.generateAllPDFs=generateAllPDFs;window.pdfRule=pdfRule;window.pdfT=pdfT;window.sanitizePdfDoc=sanitizePdfDoc;window.stampFooterAllPages=stampFooterAllPages;}

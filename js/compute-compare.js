@@ -3,7 +3,7 @@ import { deriveRosterStatus } from './compute-continuity.js';
 import { computeAnalysis, computeGenderAnalysis, parseStudents, runAnalysis, scrollToEl, sleep } from './compute-stats.js';
 import { parseStrictMaxMark } from './mark-parse.js';
 import { bcp47TagFor, srT } from './render-i18n.js';
-import { buildMgmtPDF, buildStudentPDF, buildTeacherPDF, fitText, generateAllPDFs, pdfT, stampFooterAllPages } from './export-pdf.js';
+import { buildMgmtPDF, buildStudentPDF, buildTeacherPDF, fitText, generateAllPDFs, PDF_THEME, pdfRule, pdfT, stampFooterAllPages } from './export-pdf.js';
 import { lockStep, markClean, unlockStep } from './project-setup.js';
 import { buildCompareSectionListHtml, openBucket, openIndividualBucket, renderComparePicker, renderDashboardSampleBanner } from './render-buckets.js';
 import { updateExportGate } from './render-core.js';
@@ -571,6 +571,16 @@ function selectCompareGroup(groupId){
   APP.setup.subjects=group.subjects||[];
   APP._activeCompareSectionId=null;
   APP._activeCompareGroupId=groupId;
+  // Same dead-end fix as openBucket()/selectCompareSection(): this only
+  // touches elements inside #panel-dashboard, so calling it from a bucket
+  // row shown on the Scholarship step (left rail now shows this list
+  // there too) needs to switch the top-level panel back first. goStep's
+  // dashboard branch re-enters here via renderBuckets() using the
+  // APP._activeCompareGroupId just set above.
+  if(APP.currentStep!=="dashboard"){
+    if(typeof goStep==="function") goStep("dashboard");
+    return;
+  }
   if(typeof renderShellLeftRail==="function") renderShellLeftRail("dashboard");
   if(typeof setShellRailsOpen==="function") setShellRailsOpen(true);
   if(typeof setShellRailOpen==="function") setShellRailOpen("end", false);
@@ -823,14 +833,14 @@ async function exportComparisonReportPDF(){
     :(schemaInstNames.length===1?schemaInstNames[0]+" · Multiple classes/sections":"Multiple classes/sections");
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF("p","mm","a4");
-  const W=210;
-  doc.setFillColor(30,58,95);doc.rect(0,0,W,22,"F");
-  doc.setTextColor(255,255,255);doc.setFont("helvetica","bold");doc.setFontSize(13);
+  const W=210,T=PDF_THEME;
+  doc.setTextColor(...T.ACCENT);doc.setFont("helvetica","bold");doc.setFontSize(13);
   doc.text(pdfT("pdf_section_comparison_header","Student Insight  |  Section Comparison Report"),10,10);
-  doc.setFontSize(8);doc.setFont("helvetica","normal");
+  doc.setFontSize(8);doc.setFont("helvetica","normal");doc.setTextColor(...T.INK_SOFT);
   doc.text(headerSubtitle,10,17);
   doc.text("Generated: "+new Date().toLocaleDateString(bcp47TagFor(window.SR_LANG)),W-10,17,{align:"right"});
-  doc.setTextColor(26,29,46);
+  pdfRule(doc,8,20,W-8,1.6,T.INK);
+  doc.setTextColor(...T.INK);
   let y=32;
   const mg=computeManagementGrid();
   // Executive summary now always renders (previously gated entirely behind
@@ -841,55 +851,56 @@ async function exportComparisonReportPDF(){
   {
     doc.setFont("helvetica","bold");doc.setFontSize(13);
     doc.text(mg?pdfT("pdf_exec_summary_all","Executive Summary — All Classes & Sections"):pdfT("pdf_exec_summary","Executive Summary"),10,y);y+=9;
-    doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(90,96,122);
+    doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(...T.INK_SOFT);
     doc.text(mg?(mg.classes.length+" classes × "+mg.sectionKeys.length+" sections · "+mg.totalStudents+" students total"):(rows.length+" section"+(rows.length===1?"":"s")+" compared · "+rows.reduce((a,r)=>a+r.n,0)+" students total"),10,y);y+=8;
-    // KPI strip
+    // KPI strip — outline boxes, no fill (fill would be pure decoration here)
     const kpiBoxes=mg?[[pdfT("pdf_school_avg","School Avg"),mg.schoolAvg+"%"],[pdfT("pdf_pass_rate","Pass Rate"),mg.schoolPassRate+"%"],[pdfT("pdf_total_at_risk","Total At-Risk"),String(mg.totalAtRisk)],[pdfT("pdf_best_class","Best Class"),mg.classes[0].cls]]
       :[[pdfT("pdf_sections","Sections"),String(rows.length)],[pdfT("pdf_top_section","Top Section"),rows[0].label],[pdfT("pdf_needs_attention","Needs Attention"),rows[rows.length-1].label],[pdfT("pdf_total_at_risk","Total At-Risk"),String(rows.reduce((a,r)=>a+r.atRisk,0))]];
     const bw=(W-20-3*4)/4;
     kpiBoxes.forEach((kb,i)=>{
       const bx=10+i*(bw+4);
-      doc.setFillColor(242,244,252);doc.roundedRect(bx,y,bw,16,2,2,"F");
-      doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(90,96,122);doc.text(kb[0],bx+3,y+6);
-      doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(26,29,46);doc.text(fitText(doc,kb[1],bw-6),bx+3,y+12.5);
+      doc.setDrawColor(...T.LINE_STRONG);doc.setLineWidth(0.35);doc.roundedRect(bx,y,bw,16,2,2,"S");
+      doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(...T.INK_SOFT);doc.text(kb[0],bx+3,y+6);
+      doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...T.INK);doc.text(fitText(doc,kb[1],bw-6),bx+3,y+12.5);
     });
     y+=24;
     // Class x Section grid — multi-class only
     if(mg){
-      doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(26,29,46);doc.text("Class × Section Grid (avg %)",10,y);y+=6;
+      doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...T.INK);doc.text("Class × Section Grid (avg %)",10,y);y+=6;
       const gCols=mg.sectionKeys.length,firstW=32,cellW=(W-20-firstW)/Math.max(1,gCols);
-      doc.setFillColor(30,58,95);doc.rect(10,y,W-20,6,"F");
-      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(255,255,255);
+      pdfRule(doc,10,y,W-10,1.6,T.INK);
+      doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...T.INK);
       doc.text("Class",12,y+4.2);
       mg.sectionKeys.forEach((sk,i)=>doc.text(sk,10+firstW+i*cellW+cellW/2,y+4.2,{align:"center"}));
       y+=6;
+      pdfRule(doc,10,y,W-10,1,T.LINE);
       mg.classes.forEach((c,ci)=>{
         if(y>270){doc.addPage();y=20;}
-        doc.setFillColor(ci%2===0?248:255,ci%2===0?249:255,ci%2===0?255:255);doc.rect(10,y,W-20,6,"F");
-        doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(26,29,46);
+        doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...T.INK);
         doc.text(fitText(doc,c.cls,firstW-4),12,y+4.2);
         mg.sectionKeys.forEach((sk,i)=>{
           const row=c.secs.find(r=>r.sec===sk);
           const cx=10+firstW+i*cellW;
-          if(!row){doc.setTextColor(190,196,214);doc.text("—",cx+cellW/2,y+4.2,{align:"center"});return;}
-          const cc=row.avg>=80?[46,196,182]:row.avg>=60?[43,58,103]:row.avg>=35?[201,151,30]:[242,92,84];
-          doc.setTextColor(...cc.map(v=>Math.max(0,v-60)));doc.text(row.avg+"%",cx+cellW/2,y+4.2,{align:"center"});
+          if(!row){doc.setTextColor(...T.LINE);doc.text("—",cx+cellW/2,y+4.2,{align:"center"});return;}
+          const cc=row.avg>=80?T.GOOD:row.avg>=60?T.ACCENT:row.avg>=35?T.WARN:T.DANGER;
+          doc.setTextColor(...cc);doc.text(row.avg+"%",cx+cellW/2,y+4.2,{align:"center"});
         });
         y+=6;
+        pdfRule(doc,10,y,W-10,0.6,T.LINE);
       });
       y+=6;
     }
-    // Weakest subjects — always
+    // Weakest subjects — always (bar fill IS the data, stays filled)
     const weakSubj=computeWeakSubjects(rows).slice(0,5);
     if(weakSubj.length){
       if(y>250){doc.addPage();y=20;}
-      doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(26,29,46);doc.text(mg?pdfT("pdf_school_wide_weakest","School-wide Weakest Subjects"):pdfT("card_weakest_subjects_compared","Weakest Subjects (across compared sections)"),10,y);y+=6;
+      doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...T.INK);doc.text(mg?pdfT("pdf_school_wide_weakest","School-wide Weakest Subjects"):pdfT("card_weakest_subjects_compared","Weakest Subjects (across compared sections)"),10,y);y+=6;
       doc.setFont("helvetica","normal");doc.setFontSize(8.5);
       weakSubj.forEach(w=>{
         if(y>278){doc.addPage();y=20;}
-        doc.setTextColor(26,29,46);doc.text(fitText(doc,w.subject,55),10,y-1.5);
-        doc.setFillColor(230,230,240);doc.rect(70,y-3.5,100,3.5,"F");
-        doc.setFillColor(w.avg<35?242:67,w.avg<35?92:97,w.avg<35?84:238);doc.rect(70,y-3.5,w.avg,3.5,"F");
+        doc.setTextColor(...T.INK);doc.text(fitText(doc,w.subject,55),10,y-1.5);
+        doc.setDrawColor(...T.LINE);doc.setLineWidth(0.3);doc.rect(70,y-3.5,100,3.5,"S");
+        doc.setFillColor(...(w.avg<35?T.DANGER:T.ACCENT));doc.rect(70,y-3.5,w.avg,3.5,"F");
         doc.text(w.avg+"%",174,y-1.5);
         y+=6;
       });
@@ -899,8 +910,8 @@ async function exportComparisonReportPDF(){
     const flagged=computeFlaggedSections(rows);
     if(flagged.length){
       if(y>250){doc.addPage();y=20;}
-      doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(139,26,26);doc.text("Sections Needing Attention",10,y);y+=6;
-      doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(26,29,46);
+      doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...T.DANGER);doc.text("Sections Needing Attention",10,y);y+=6;
+      doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(...T.INK);
       flagged.forEach(r=>{
         if(y>278){doc.addPage();y=20;}
         doc.text("• "+fitText(doc,r.label+" — "+r.avg+"% avg, "+r.atRisk+" at-risk of "+r.n,180),12,y);
@@ -910,12 +921,12 @@ async function exportComparisonReportPDF(){
     }
     doc.addPage();y=20;
   }
-  doc.setFont("helvetica","bold");doc.setFontSize(12);doc.text("Section Ranking",10,y);y+=8;
+  doc.setFont("helvetica","bold");doc.setFontSize(12);doc.setTextColor(...T.INK);doc.text("Section Ranking",10,y);y+=8;
   doc.setFontSize(9);doc.setFont("helvetica","bold");
   const cols=[["Rank",10],["Section",26],["Students",84],["Avg %",106],["Pass %",128],["At-Risk",150],["Topper",170]];
   cols.forEach(([label,x])=>doc.text(label,x,y));
-  y+=5;doc.setDrawColor(226,229,241);doc.line(10,y-3,200,y-3);
-  doc.setFont("helvetica","normal");
+  y+=5;pdfRule(doc,10,y-3,200,1.6,T.INK);
+  doc.setFont("helvetica","normal");doc.setTextColor(...T.INK);
   rows.forEach(r=>{
     if(y>272){doc.addPage();y=20;}
     doc.text(String(r.rank),10,y);
@@ -930,14 +941,14 @@ async function exportComparisonReportPDF(){
   y+=8;
   (APP.setup.subjects||[]).forEach(sub=>{
     if(y>255){doc.addPage();y=20;}
-    doc.setFont("helvetica","bold");doc.setFontSize(11);doc.text(sub+" — Section Averages",10,y);y+=7;
+    doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...T.INK);doc.text(sub+" — Section Averages",10,y);y+=7;
     doc.setFont("helvetica","normal");doc.setFontSize(9);
     rows.forEach(r=>{
       if(y>278){doc.addPage();y=20;}
       const v=r.subjectAvgs[sub]||0;
-      doc.text(fitText(doc,r.label,55),10,y-2.5);
-      doc.setFillColor(230,230,240);doc.rect(70,y-4,100,3.5,"F");
-      doc.setFillColor(43,58,103);doc.rect(70,y-4,v,3.5,"F");
+      doc.setTextColor(...T.INK);doc.text(fitText(doc,r.label,55),10,y-2.5);
+      doc.setDrawColor(...T.LINE);doc.setLineWidth(0.3);doc.rect(70,y-4,100,3.5,"S");
+      doc.setFillColor(...T.ACCENT);doc.rect(70,y-4,v,3.5,"F");
       doc.text(v+"%",174,y-2.5);
       y+=6;
     });

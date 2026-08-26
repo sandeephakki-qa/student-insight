@@ -5,6 +5,7 @@ import { collectSetupForm } from './project-setup.js';
 import { renderBuckets } from './render-buckets.js';
 import { renderCharts, showSampleFiles } from './render-core.js';
 import { loadLanguage, reapplyI18nStrings, showAiTranslationNotice, srT } from './render-i18n.js';
+import { renderScholarshipPanel, updateScholarshipNavVisibility } from './scholarship-nav.js';
 import { swGoto } from './setup-wizard.js';
 import { autoInferSetup, generateMergedTemplate, generateTemplate, renderAICheckboxes, renderHomePage } from './template-upload.js';
 import { renderShellLeftRail, renderShellRightRail, setShellRailsOpen } from './vs-shell.js';
@@ -98,6 +99,11 @@ function goStep(step){
   if(step==="ai"&&APP.compareMode&&APP.sections.filter(s=>s.valid).length<1){toast(srT("val_upload_1_valid_file_home_first"),"warn");return;}
   if((step==="dashboard"||step==="export")&&!APP.compareMode&&!APP.students.length){toast(srT("val_run_analysis_first"),"warn");return;}
   if((step==="dashboard"||step==="export")&&APP.compareMode&&!APP.sections.some(s=>s.valid&&s.students&&s.students.length)){toast(srT("val_run_analysis_first"),"warn");return;}
+  // Task 07: same "file loaded" gate as the nav entry's own visibility
+  // (updateScholarshipNavVisibility()) — the nav item is hidden until a
+  // file loads so this is mostly defensive, but keeps goStep() safe as
+  // the single choke point even if something else tries to jump here.
+  if(step==="scholarship"&&!(APP.homeSingleFile||(APP.compareMode&&APP.sections.some(s=>s.valid)))){toast(srT("val_upload_file_home_first"),"warn");return;}
   APP.currentStep=step;
   // BUG FIX (i18n-lock): analysis narrative (flag_reason_*, findings, AI
   // summaries) is generated once by computeAnalysis() and baked into
@@ -148,6 +154,7 @@ function goStep(step){
   $(".panel").removeClass("active screen-fade-in");$("#panel-"+step).addClass("active screen-fade-in");
   $(".step-item").removeClass("active").removeAttr("aria-current");$("[data-step='"+step+"']").addClass("active").removeClass("locked").attr("aria-current","step");
   updateNavHomeOnlyState();
+  updateScholarshipNavVisibility();
   // v4.2: re-render AI feature checkboxes fresh in the current language on
   // every visit to this panel — reapplyI18nStrings() only catches a
   // language switch made WHILE already on this panel; this covers the
@@ -155,6 +162,7 @@ function goStep(step){
   // navigating here afterward.
   if(step==="ai"&&typeof renderAICheckboxes==="function")renderAICheckboxes();
   if(step==="dashboard") renderBuckets();
+  if(step==="scholarship") renderScholarshipPanel();
   if(step==="export"){
     if(APP.compareMode){populateExportSectionPicker();}
     else $("#exp-count").text(APP.students.length);
@@ -252,7 +260,7 @@ function onLanguageChange(langCode){
 
 
 // --- ES module exports (added for module-system conversion, HANDOVER #4) ---
-export { APP, COUNTRY_LANGUAGES, DEFAULT_COUNTRY, goStep, initThemeToggle, onCountryChange, onLanguageChange, populateCountryDropdown, populateLanguageDropdown, setThemeChoice, updateNavHomeOnlyState };
+export { APP, COUNTRY_LANGUAGES, DEFAULT_COUNTRY, goStep, initThemeToggle, onCountryChange, onLanguageChange, populateCountryDropdown, populateLanguageDropdown, setThemeChoice, updateNavHomeOnlyState, updateScholarshipNavVisibility };
 
 // Legacy-global compatibility shim: modules don't leak top-level
 // declarations onto window the way classic scripts did. The handful of

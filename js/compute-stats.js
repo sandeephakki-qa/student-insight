@@ -411,7 +411,19 @@ function parseStudents(){
     // `.name` is displayed (dashboard, PDFs, remarks, Smart Search…) since
     // they all already read this one field.
     studentData[key]={id:rawId,name:nm||rawId,hasName:!!nm,
-      gender:String(row["Gender"]||"").trim(),testData:{}};
+      gender:String(row["Gender"]||"").trim(),
+      // Phase 1 scholarship fields (studin-scholarship-discussion.md §24) —
+      // all optional/nullable, same blank-to-"" convention as Gender above.
+      // Missing column (old-format sheet) and present-but-blank cell both
+      // resolve here identically, since row[h] is only ever set when the
+      // header existed in parseWorkbookSheets().
+      category:String(row["Category"]||"").trim(),
+      annualFamilyIncome:String(row["Annual Family Income"]||"").trim(),
+      guardianOccupation:String(row["Guardian Occupation"]||"").trim(),
+      priorScholarshipStatus:String(row["Prior Scholarship Status"]||"").trim(),
+      persistentStudentId:String(row["Persistent Student ID"]||"").trim(),
+      specialCategoryFlag:String(row["Special Category Flag"]||"").trim(),
+      testData:{}};
     rosterOrder.push(key);
     tests.forEach(t=>{studentData[key].testData[t.name]={marks:{},absents:0,remark:"",chapter:""};});
   });

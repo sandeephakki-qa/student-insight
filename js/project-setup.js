@@ -4,7 +4,7 @@ import { computeAnalysis } from './compute-stats.js';
 import { parseStrictMaxMark } from './mark-parse.js';
 import { i18nLabel, srT } from './render-i18n.js';
 import { APP, goStep } from './state-nav.js';
-import { handleHomeImportFiles } from './template-upload.js';
+import { handleHomeImportFiles, toggleScholarshipUI } from './template-upload.js';
 
 // FIX (module-system conversion, HANDOVER #4): moved here from state-nav.js
 // (never used there) — this file is the real owner, reading/reassigning
@@ -21,7 +21,7 @@ function startNewSession(){
      prior mode set still defaults to "institution" (APP.setup.mode's
      initial value), so this is a strict superset of the old behaviour. */
   const carryMode=APP.setup.mode==="individual"?"individual":"institution";
-  APP.setup={mode:carryMode,modeLocked:false,instName:"",instType:"",location:"",contact:"",className:"",section:"",year:"",teacher:"",scoring:{marks:true,pct:true,grade:false,pf:false},passThreshold:35,absentAlert:3,dropAlert:20,subjects:[],tests:[]};
+  APP.setup={mode:carryMode,modeLocked:false,instName:"",instType:"",location:"",contact:"",className:"",section:"",year:"",teacher:"",scoring:{marks:true,pct:true,grade:false,pf:false},scholarship:{enabled:false,schemeName:"",eligibilityType:"",minAcademicAvg:null,maxFamilyIncome:null,noFailRule:false,attendanceFloor:null,categoryQuota:null,weightAcademic:60,weightConsistency:20,weightGrowth:20},passThreshold:35,absentAlert:3,dropAlert:20,subjects:[],tests:[]};
   APP.students=[];APP.rawData=null;APP.classStats=null;APP.genderAnalysis=null;subjectCount=0;testCount=0;
   APP.mergeMode=false;APP.mergeSource=null;$("#merge-banner").hide();
   APP.compareMode=false;APP.sections=[];APP.sectionComparison=[];
@@ -50,7 +50,7 @@ function startNewSession(){
 // uploader — Setup stays reachable (unlockStep below) purely as an
 // OPTIONAL path for generating a blank shared template, not a forced stop.
 function startCompareMode(){
-  APP.setup={mode:"institution",modeLocked:true,instName:"",instType:"",location:"",contact:"",className:"",section:"",year:"",teacher:"",scoring:{marks:true,pct:true,grade:false,pf:false},passThreshold:35,absentAlert:3,dropAlert:20,subjects:[],tests:[]};
+  APP.setup={mode:"institution",modeLocked:true,instName:"",instType:"",location:"",contact:"",className:"",section:"",year:"",teacher:"",scoring:{marks:true,pct:true,grade:false,pf:false},scholarship:{enabled:false,schemeName:"",eligibilityType:"",minAcademicAvg:null,maxFamilyIncome:null,noFailRule:false,attendanceFloor:null,categoryQuota:null,weightAcademic:60,weightConsistency:20,weightGrowth:20},passThreshold:35,absentAlert:3,dropAlert:20,subjects:[],tests:[]};
   APP.students=[];APP.rawData=null;APP.classStats=null;APP.genderAnalysis=null;subjectCount=0;testCount=0;
   APP.mergeMode=false;APP.mergeSource=null;$("#merge-banner").hide();
   APP.compareMode=true;APP.sections=[];APP.sectionComparison=[];APP._compareAutoRan=false;APP.homeSingleFile=null;
@@ -201,6 +201,23 @@ function collectSetupForm(){
   APP.setup.absentAlert=clampNum("#absent-alert",0,365,3);
   APP.setup.dropAlert=clampNum("#drop-alert",0,100,20);
   APP.setup.scoring={marks:$("#sc-marks").is(":checked"),pct:$("#sc-pct").is(":checked"),grade:$("#sc-grade").is(":checked"),pf:$("#sc-pf").is(":checked")};
+  // Task 02: Scholarship Criteria — fields only meaningful when Enable is
+  // checked (§26), but collected regardless so an accidental uncheck
+  // doesn't silently discard what was typed. clampNum reused for every
+  // numeric field here, same as Pass Threshold/Absent Alert/Drop Alert above.
+  APP.setup.scholarship={
+    enabled:$("#scholarship-enable").is(":checked"),
+    schemeName:capField($("#scholarship-scheme-name").val().trim(),"Scheme Name"),
+    eligibilityType:$("#scholarship-eligibility-type").val(),
+    minAcademicAvg:clampNum("#scholarship-min-academic-avg",0,100,null),
+    maxFamilyIncome:clampNum("#scholarship-max-family-income",0,999999999,null),
+    noFailRule:$("#scholarship-no-fail-rule").val()===srT("scholarship_yes"),
+    attendanceFloor:clampNum("#scholarship-attendance-floor",0,365,null),
+    categoryQuota:clampNum("#scholarship-category-quota",0,100,null),
+    weightAcademic:clampNum("#scholarship-weightage-academic",0,100,60),
+    weightConsistency:clampNum("#scholarship-weightage-consistency",0,100,20),
+    weightGrowth:clampNum("#scholarship-weightage-growth",0,100,20),
+  };
   APP.setup.subjects=getSubjects();APP.setup.tests=[];
   APP.setup._maxMarkErrors=[]; // reset per collection — see mark-parse.js / recordMaxMarkError() in template-upload.js
   $("#tests-list .test-row-wrap").each(function(){
@@ -240,6 +257,19 @@ function fillSetupForm(s){
   $("#class-year").val(s.year||"");$("#class-teacher").val(s.teacher||"");
   $("#pass-threshold").val(s.passThreshold||35);$("#absent-alert").val(s.absentAlert||3);$("#drop-alert").val(s.dropAlert||20);
   if(s.scoring){$("#sc-marks").prop("checked",!!s.scoring.marks);$("#sc-pct").prop("checked",!!s.scoring.pct);$("#sc-grade").prop("checked",!!s.scoring.grade);$("#sc-pf").prop("checked",!!s.scoring.pf);}
+  const sch=s.scholarship||{};
+  $("#scholarship-enable").prop("checked",!!sch.enabled);
+  toggleScholarshipUI(!!sch.enabled);
+  $("#scholarship-scheme-name").val(sch.schemeName||"");
+  $("#scholarship-eligibility-type").val(sch.eligibilityType||"");
+  $("#scholarship-min-academic-avg").val(sch.minAcademicAvg==null?"":sch.minAcademicAvg);
+  $("#scholarship-max-family-income").val(sch.maxFamilyIncome==null?"":sch.maxFamilyIncome);
+  $("#scholarship-no-fail-rule").val(sch.noFailRule?srT("scholarship_yes"):srT("scholarship_no"));
+  $("#scholarship-attendance-floor").val(sch.attendanceFloor==null?"":sch.attendanceFloor);
+  $("#scholarship-category-quota").val(sch.categoryQuota==null?"":sch.categoryQuota);
+  $("#scholarship-weightage-academic").val(sch.weightAcademic==null?60:sch.weightAcademic);
+  $("#scholarship-weightage-consistency").val(sch.weightConsistency==null?20:sch.weightConsistency);
+  $("#scholarship-weightage-growth").val(sch.weightGrowth==null?20:sch.weightGrowth);
   subjectCount=0;testCount=0;$("#subjects-list").empty();$("#tests-list").empty();
   (s.subjects||[]).forEach(sub=>addSubject(sub));
   (s.tests||[]).forEach((t,ti)=>{addTest(t.name,t.date);});
