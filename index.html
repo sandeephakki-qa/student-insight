@@ -2202,6 +2202,24 @@
         <p data-i18n="about_sec8_p2">"Open" here covers two separate things: open <em>file formats</em> (xlsx/PDF — described above) and the MIT <em>source-code</em> license shown in the stats bar. The source itself is not yet published at a public, stable link — this page will be updated with a direct repository link as soon as that's live, rather than leaving the license claim unverifiable.</p>
       </div>
     </details>
+
+    <details class="about-acc">
+      <summary><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M11 15l-3-3 3-3'/><path d='M18 6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12z'/></svg> <span data-i18n="about_sec9_title">Every Way a Scholarship Scheme Can Be Configured</span><span class="about-acc-chevron">▾</span></summary>
+      <div class="about-prose">
+        <p data-i18n="about_sec9_p1">The scholarship module isn't a fixed list of scheme types — it's a small set of independent switches a school configures once, and the same eligibility engine applies them consistently to every student. There's no separate code path per scheme type; identical calculation logic runs no matter which switches are on.</p>
+        <p data-i18n="about_sec9_p2">Five settings combine to define any scheme: which students qualify on merit, on need, on category, or a mix; whether a no-fail rule applies; whether there's an attendance cutoff; how academic performance, consistency, and growth are weighted against each other; and how category quota is reported alongside the ranked list.</p>
+        <ol style="margin:8px 0 8px 20px;padding:0;font-size:12.5px;color:var(--c-text2);line-height:1.9">
+          <li data-i18n="about_sec9_no1">Merit-only — ranks purely by academic average; income and category are not checked.</li>
+          <li data-i18n="about_sec9_no2">Need-only — an income ceiling is the only gate; academic performance is not checked.</li>
+          <li data-i18n="about_sec9_no3">Merit-cum-Need — both the academic average and the income ceiling must be met together.</li>
+          <li data-i18n="about_sec9_no4">Merit + No-Fail — adds a requirement that no test was failed outright, on top of the academic threshold.</li>
+          <li data-i18n="about_sec9_no5">Merit + Attendance Floor — adds a hard cutoff on total absences, on top of the academic threshold.</li>
+          <li data-i18n="about_sec9_no6">Category-based — eligibility is decided purely by category membership, independent of marks or income.</li>
+          <li data-i18n="about_sec9_no7">Custom — every check active at once: academic threshold, income ceiling, attendance floor, no-fail rule, and category — for schools that want the strictest combination.</li>
+        </ol>
+        <p data-i18n="about_sec9_p3">Every one of these — plus edge cases like an unreachable threshold or a very high income ceiling — has been run against real calculated data as part of testing, not just described. A student with an incomplete record, such as a blank income field, is never silently marked eligible or ineligible — they're flagged separately so the school can complete the record and recalculate.</p>
+      </div>
+    </details>
     </div>
 
     <div class="about-blockquote">
