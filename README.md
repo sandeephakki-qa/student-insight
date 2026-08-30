@@ -24,7 +24,7 @@ A PWA for schools to analyse student performance without sending any data to ext
 
 1. On first visit, the app asks whether you're an **Institution/Teacher** or an **Individual/Parent** — this sets up the right layout below (switchable later in Setup).
 2. Teacher sets up the class (institution, subjects, tests, scoring rules, alert thresholds) — or skips this and lets the app infer it from the uploaded workbook.
-3. Marks are imported from an Excel workbook — a `SETUP` tab (institution/class/subjects/tests/scoring config), a `STUDENTS` tab (roster), and one tab per test — (a downloadable template and 15 sample spreadsheets covering school, PU/junior college, UG, coaching-centre and individual-parent scenarios are available via "Download Template" / the "Sample Files" button).
+3. Marks are imported from an Excel workbook — a `SETUP` tab (institution/class/subjects/tests/scoring config), a `STUDENTS` tab (roster), and one tab per test — (a downloadable template and 11 sample spreadsheets covering school, PU/junior college, coaching-centre and individual-parent scenarios are available via "Download Template" / the "Sample Files" button).
 4. Analysis runs entirely in-browser across five categories the teacher can toggle: performance (averages, rank, trend, predictions), warnings (at-risk, sharp drops, plateaus), narrative summaries (parent summaries, study plans, intervention notes), wellbeing (stress/burnout/resilience indicators), and management-level class health.
 5. A tabbed dashboard (KPIs, student cards, heatmap, flags table, wellbeing panel, charts) and exportable PDF reports (per-student report card, teacher summary, management report) are generated and downloaded locally.
 6. **Compare Sections / Batches** (Institution mode): managing more than one class or batch — Class 5-A/B/C, a coaching batch A/B, anything? Upload each section's already-filled sheet directly — no manual re-entry of Subjects/Tests/Max Marks required, since the first file you upload sets the shared schema automatically — and see every section ranked and charted side by side (section-level comparison, not student-vs-student).
@@ -33,17 +33,44 @@ No data ever leaves the device. No servers. No tracking. No API keys. Nothing is
 
 ---
 
-## Repo structure
+## Architecture
+
+The codebase is layered `UI → BAL → DAL`: UI files render and handle DOM/
+user interaction, calling into BAL (business logic — analysis, ranking,
+eligibility) only; BAL never touches the DOM and calls into DAL only; DAL
+is the one layer that knows where data physically lives (an in-memory
+object populated from the uploaded Excel file today; a database-backed
+API for a future paid tier). See [`planner.md`](planner.md) for the full
+architectural ruleset — every code change in this repo must be checked
+against it first.
 
 ```
-index.html        ← The entire app (single-file PWA)
-manifest.json     ← PWA install manifest
-sw.js             ← Service worker (offline caching of the app shell + CDN libs)
-.github/
-  workflows/
-    deploy.yml    ← Auto-deploy to GitHub Pages on push to main
-README.md         ← This file
+index.html
+core/     ← boot, state, i18n, shared utils — not a togglable feature
+ui/       ← per-feature UI folders + common/
+bal/      ← per-feature business logic folders + common/
+dal/      ← per-feature data access folders + common/
 ```
+
+A few files (`core/setup-wizard.js`, `core/project-setup.js`,
+`core/template-upload.js`) each span more than one layer and needed
+their own split decision — Step 1's reorg moved them into `core/` as an
+interim landing spot rather than leaving them in a now-removed legacy
+`js/` folder. See `planner.md`'s decisions log for those 3.
+`core/continuity-dashboard.js` had the same problem (it was UI rendering
+code — DOM/jQuery/Chart.js — sitting in `core/`, which the layer rule
+above reserves for boot/state/i18n/shared-utils) and was moved to
+`ui/common/continuity-dashboard.js` on 2026-08-30, where it belongs.
+
+## Feature toggles
+
+Togglable features (Scholarship, Compare, Smart Search) are controlled by
+`Feature_X: Yes/No` rows in the Excel `SETUP` tab. A row missing entirely
+— true for every sample file and every institution's file filled out
+before this system existed — is treated as `Yes`, so nothing changes for
+files that predate this system. `core/feature-registry.js` is the master
+list of features; `core/read-feature-flags.js` reads the `SETUP` tab rows
+into a flags object.
 
 ---
 
@@ -74,15 +101,15 @@ Any static server works (`npx serve`, VS Code's Live Server extension, etc).
 
 ## Sample files
 
-15 sample spreadsheets are hosted in the `samples/` folder of this repo and linked from the "Sample Files" button next to About in the app — covering pre-primary through PG/professional programs (UPSC coaching, MBBS, an international Master's program, primary/high school, PU/junior college, plain UG, a 100-student scale example, and two individual/parent examples), plus Compare-Sections examples for the same class split into three sections. They're handy for trying the app out or as a template for formatting your own class data. See `samples/README.md` for the full breakdown of what each one demonstrates.
+11 sample spreadsheets are hosted in the `samples/` folder of this repo and linked from the "Sample Files" button next to About in the app — covering school through PG/professional programs (UPSC coaching, MBBS, an international Master's program, PU/junior college, a 100-student scale example, an individual/parent example, and a scholarship-eligibility example), plus Compare-Sections examples for the same class split into three sections. They're handy for trying the app out or as a template for formatting your own class data. See `samples/README.md` for the full breakdown of what each one demonstrates.
 
-One of the 15 (`Sample_11_..._CONTINUITY.xlsx`) uses a different, multi-period schema — see "Continuity feature" below. It works with the app (as of v4.36) and is included in the one-click "Sample Files" picker as Sample 11, which only works live once this file is uploaded to studin.in; until then, download it from `samples/` and use "Import Filled Excel" instead.
+One of the 11 (`Sample_07_..._CONTINUITY.xlsx`) uses a different, multi-period schema — see "Continuity feature" below. It works with the app (as of v4.36) and is included in the one-click "Sample Files" picker as Sample 7, which only works live once this file is uploaded to studin.in; until then, download it from `samples/` and use "Import Filled Excel" instead.
 
 ---
 
 ## Continuity feature
 
-Tracks one cohort across multiple periods (a class across school years, a section across semesters) in a single workbook — roster continuity (who joined/left), cohort trend charts, per-student trajectory + trend projection, and terminology that adapts to school vs. college automatically. As of v4.36 this works end-to-end on a real file: upload a workbook whose `SETUP` tab has `Period Count` > 1 (repeated `Period N Label`/`Subjects`/`Tests` blocks) plus a shared `STUDENTS` roster and `<PeriodLabel>-Test<N>` marks tabs, and the Continuity tab appears with real data — see `samples/Sample_11_For_Engineering_College_Sem1to5_CONTINUITY.xlsx` for a working example. The current (most recent) period gets the full detailed dashboard/PDF treatment; earlier periods feed the lighter Continuity trend view only.
+Tracks one cohort across multiple periods (a class across school years, a section across semesters) in a single workbook — roster continuity (who joined/left), cohort trend charts, per-student trajectory + trend projection, and terminology that adapts to school vs. college automatically. As of v4.36 this works end-to-end on a real file: upload a workbook whose `SETUP` tab has `Period Count` > 1 (repeated `Period N Label`/`Subjects`/`Tests` blocks) plus a shared `STUDENTS` roster and `<PeriodLabel>-Test<N>` marks tabs, and the Continuity tab appears with real data — see `samples/Sample_07_For_Engineering_College_Sem1to5_CONTINUITY.xlsx` for a working example. The current (most recent) period gets the full detailed dashboard/PDF treatment; earlier periods feed the lighter Continuity trend view only.
 
 Still open: there's no in-app way to *build up* a multi-period file incrementally (re-upload last year's file, add this year's data, get a new period appended automatically) — you construct the multi-period workbook by hand today, following Sample 11's structure. See the PIB in `index.html` (§7 `parseContinuityPeriods`, §9 `continuity-schema-now-built-v4.36`) for full technical status.
 
@@ -91,7 +118,8 @@ Still open: there's no in-app way to *build up* a multi-period file incrementall
 ## Tech stack
 
 - Vanilla JS + jQuery 3.7.1 (no build step, no Node, no bundler)
-- Stateless in-browser data model (no backend, no database, no persisted storage)
+- Layered `UI → BAL → DAL` architecture — see [Architecture](#architecture) above and [`planner.md`](planner.md) for the full ruleset
+- Stateless in-browser data model (no backend, no database, no persisted storage) — the DAL is designed to be swappable (Excel/in-memory today, database-backed for a future paid tier) without UI/BAL changes
 - Excel/CSV import & export via SheetJS (xlsx 0.18.5)
 - PDF generation via jsPDF 2.5.1 (with JSZip 3.10.1 as a supporting dependency)
 - Charts via Chart.js 4.4.1

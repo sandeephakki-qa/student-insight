@@ -436,6 +436,18 @@ textarea:focus-visible,[tabindex]:focus-visible,[role="button"]:focus-visible,
 
 /* TABLE */
 .tbl-wrap{overflow-x:auto}
+/* Vertical+horizontal scroll variant for long rosters (e.g. the cross-
+   section "All Students" ranking table, ~90+ rows) — keeps the header
+   pinned via .data-table th's existing position:sticky, which only takes
+   effect once its scroll ancestor actually has a bounded height. */
+.tbl-wrap-scroll{max-height:520px;overflow-y:auto}
+/* Compare Students Across Sections — one column per uploaded file/section
+   (up to MAX_COMPARE_FILES=5). Framed + scrolls in whichever direction it
+   actually needs: overflow-x for many sections side-by-side on a narrow
+   screen, overflow-y as a fallback if they wrap onto multiple lines. */
+.cross-compare-frame{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;padding:14px;border:1px solid var(--c-border);border-radius:var(--r-md);max-height:280px;overflow:auto;background:var(--c-surface2)}
+.cross-compare-col{flex:1 1 200px;min-width:180px;max-width:260px}
+.cross-compare-col-label{font-size:12px;font-weight:700;color:var(--c-text2);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 table.data-table{border-collapse:collapse;width:100%;font-size:var(--fs-sm);line-height:var(--lh-table)}
 table.data-table th{background:var(--c-surface2);padding:var(--sp-2) var(--sp-3);text-align:left;font-size:var(--fs-xs);font-weight:700;color:var(--c-text3);text-transform:uppercase;border-bottom:1px solid var(--c-border);position:sticky;top:0;z-index:1}
 table.data-table td{padding:var(--sp-2) var(--sp-3);border-bottom:1px solid var(--c-border)}
@@ -561,6 +573,11 @@ table.data-table th[data-sortable]:focus-visible{outline:2px solid var(--c-prima
 
 /* REQUIRED FIELD HIGHLIGHT */
 input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shadow:0 0 0 3px rgba(242,92,84,.1)}
+/* Phase 2 Task 03: incomplete-row highlight for the scholarship edit
+   grid — reuses the same --c-danger-bg token the (superseded) static
+   error grid / has-error inputs already use, not a new color. */
+tr.scholarship-edit-row.se-row-incomplete{background:var(--c-danger-bg)}
+.se-cell{width:100%;box-sizing:border-box}
 
 /* SETUP CTA smooth show */
 #setup-cta-card{transition:all .2s ease}
@@ -621,6 +638,11 @@ input.has-error,select.has-error{border-color:var(--c-danger)!important;box-shad
 .db-tab:hover{color:var(--c-primary)}
 .db-tab.active{color:var(--c-primary);border-bottom-color:var(--c-primary)}
 .db-tab-panel{display:none}
+.db-tab-locked{opacity:.45;cursor:not-allowed}
+.db-tab-locked:hover{color:var(--c-text2)}
+.scholarship-tab-lock-banner{margin:-4px 0 12px;padding:10px 14px;border-radius:8px;
+  background:var(--c-warn-bg,rgba(217,119,6,.1));color:var(--c-warn,#b45309);
+  font-size:13px;font-weight:500}
 .db-tab-panel.active{display:block}
 @media(prefers-reduced-motion:no-preference){
   .db-tab-panel.active{animation:screenFadeIn var(--dur-slow) var(--ease-standard)}

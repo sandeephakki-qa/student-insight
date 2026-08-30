@@ -4,8 +4,8 @@ These workbooks power the "Sample Files" screen (Home → Sample Files) and are
 fetched live from https://studin.in/<filename> by `runSampleFile()` in
 `js/render-dashboard.js` — this local folder is the source copy to upload there.
 
-Samples 1-10 and 12-15 use the current, real, live-parseable multi-tab schema:
-SETUP / STUDENTS / one tab per test / README. Sample 11 is different — see its
+Samples 1-6 and 8-11 use the current, real, live-parseable multi-tab schema:
+SETUP / STUDENTS / one tab per test / README. Sample 7 is different — see its
 own section below.
 
 ## Tab naming convention
@@ -22,38 +22,32 @@ because these files carry multiple periods.
 
 | # | File | Mode | Type | Students | Tests |
 |---|---|---|---|---|---|
-| 1 | Sample_01_For_PrePrimary_Playschool.xlsx | Institution | Pre-primary / Playschool | 15 | 2 developmental-assessment Terms @20 |
-| 2 | Sample_02_For_School_Class_Teacher.xlsx | Institution | Primary School | 30 | 4 (Unit Tests @50, Mid-Term/Final @100) |
-| 3-5 | Sample_03/04/05_..._Section_A/B/C_Class7.xlsx | Compare | Primary School | 30 each | identical schema (required for Compare Sections) |
-| 6 | Sample_06_For_High_School_Class10.xlsx | Institution | High School | 28 | 4 (Unit Tests @50, Mid-Term/Pre-Board @100) |
-| 7 | Sample_07_For_PUC_Junior_College.xlsx | Institution | College / University (II PUC Science PCMB) | 32 | 3 (Unit Test @50, 2 Preparatory Exams @100) |
-| 8 | Sample_08_For_Large_Scale_100_Students.xlsx | Institution | Coaching Centre (PUC II PCM batch) | **100** | **10** monthly exams @100 — scale showcase, no deliberate errors |
-| 9 | Sample_09_For_MBBS_College_Lecturer.xlsx | Institution | College / University | 30 | 4 (Internals/Practical/Sendup, mixed scale) |
-| 10 | Sample_10_For_UG_BSc_Computer_Science.xlsx | Institution | College / University (B.Sc CS, 3rd Yr) | 30 | 3 (2 Internals @30, Semester End Exam @100) |
-| 12 | Sample_12_For_International_Masters_College.xlsx | Institution | College / University | 30 | 4 Module Assessments @100 |
-| 13 | Sample_13_For_UPSC_IAS_Coaching.xlsx | Institution | Coaching Centre | 30 | 4 (Prelims x2, Mains x2 @200) |
-| 14 | Sample_14_For_Individual_UPSC_Aspirant.xlsx | Individual | — | 1 (deliberate — not scaled up) | 4 (Prelims/Mains @200) |
-| 15 | Sample_15_For_Individual_School_Going_Child.xlsx | Individual | — | 1 (deliberate — not scaled up), Class 6 | 4 Terms @100 |
-| 16 | Sample_16_For_School_Scholarship_Eligibility.xlsx | Institution | Primary School (Class 7, Scholarship module) | 31 | 4 (2 Unit Tests @50, Mid-Term/Final @100) |
+| 1-3 | Sample_01/02/03_..._Section_A/B/C_Class7.xlsx | Compare | Primary School | 30 each | identical schema (required for Compare Sections) |
+| 4 | Sample_04_For_PUC_Junior_College.xlsx | Institution | College / University (II PUC Science PCMB) | 32 | 3 (Unit Test @50, 2 Preparatory Exams @100) |
+| 5 | Sample_05_For_Large_Scale_100_Students.xlsx | Institution | Coaching Centre (PUC II PCM batch) | **100** | **10** monthly exams @100 — scale showcase, no deliberate errors |
+| 6 | Sample_06_For_MBBS_College_Lecturer.xlsx | Institution | College / University | 30 | 4 (Internals/Practical/Sendup, mixed scale) |
+| 8 | Sample_08_For_International_Masters_College.xlsx | Institution | College / University | 30 | 4 Module Assessments @100 |
+| 9 | Sample_09_For_UPSC_IAS_Coaching.xlsx | Institution | Coaching Centre | 30 | 4 (Prelims x2, Mains x2 @200) |
+| 10 | Sample_10_For_Individual_School_Going_Child.xlsx | Individual | — | 1 (deliberate — not scaled up), Class 6 | 4 Terms @100 |
+| 11 | Sample_11_For_School_Scholarship_Eligibility.xlsx | Institution | Primary School (Class 7, Scholarship module) | 31 | 4 (2 Unit Tests @50, Mid-Term/Final @100) |
 
-(11 is the Continuity file — see its own section below, out of numeric order in this table since it uses a different schema.)
+(7 is the Continuity file — see its own section below, out of numeric order in this table since it uses a different schema.)
 
-Sample 8 is intentionally clean (0 hard errors, 0 warnings when run through
+Sample 5 is intentionally clean (0 hard errors, 0 warnings when run through
 validateData()) — it's meant to show the app performing well at real
 institutional scale, not to test error-handling. For a deliberately
 edge-case-loaded stress file instead, see STRESS_TEST_REPORT.md from an earlier
 session (not included here).
 
-Every mark cell across samples 1-10 and 12-15 is clamped within its configured max marks
+Every mark cell across samples 1-6 and 8-11 is clamped within its configured max marks
 and every file has been checked against the real `Test N Name` ↔ sheet-name
 matching rule the live parser depends on (`parseWorkbookSheets` →
 `autoInferSetup` → the `APP.rawData[t.name]` lookup in compute-engine.js).
 
-## Sample 16 — School with Scholarship Eligibility Data
+## Sample 11 — School with Scholarship Eligibility Data
 
-`Sample_16_For_School_Scholarship_Eligibility.xlsx` reuses the Sample 2 (School
-Class Teacher) SETUP/STUDENTS/tests shape — Institution mode, Class 7, 31
-students, 4 tests (2 Unit Tests @50, Mid-Term & Final @100) — but with the
+`Sample_11_For_School_Scholarship_Eligibility.xlsx` is Institution mode, Class 7,
+31 students, 4 tests (2 Unit Tests @50, Mid-Term & Final @100), with the
 Scholarship module turned on (`Enable Scholarship Module: Yes`, Merit-cum-Need
 scheme) and the STUDENTS tab extended with the columns that module needs:
 Category, Annual Family Income, Guardian Occupation, Prior Scholarship Status,
@@ -61,9 +55,9 @@ Persistent Student ID, and Special Category Flag. Use it to try the
 Scholarship Eligibility engine and completeness grid rather than the plain
 academic dashboard.
 
-## Sample 11 — Engineering College, Semester 1-5 (CONTINUITY — now live, v4.36)
+## Sample 7 — Engineering College, Semester 1-5 (CONTINUITY — now live, v4.36)
 
-`Sample_11_For_Engineering_College_Sem1to5_CONTINUITY.xlsx` is **not** built on
+`Sample_07_For_Engineering_College_Sem1to5_CONTINUITY.xlsx` is **not** built on
 the schema above — it uses the multi-period schema the continuity feature arc
 (prompt-01 through prompt-05) designed on paper: SETUP's repeated `Period N
 ...` block, one shared STUDENTS roster across all periods, and MARKS tabs
@@ -81,7 +75,7 @@ semesters parsed, ENG011/ENG012's leaver gaps and ENG013/ENG014's joiner gaps
 both read correctly, the 18-student roster correctly narrows to the 16
 actually enrolled in Semester 5 for the detailed dashboard, 0 data issues.
 
-Listed in the in-app "Sample Files" quick-try picker as Sample 11 — that list
+Listed in the in-app "Sample Files" quick-try picker as Sample 7 — that list
 fetches from `https://studin.in/<filename>`, so it only works live once this
 file is uploaded there. Until then, use "Import Filled Excel" / drag-and-drop
 with your own downloaded copy of this file instead of the one-click picker.

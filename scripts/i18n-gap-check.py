@@ -25,7 +25,7 @@ against its group's `en.json` baseline, and reports:
               (a dropped or renamed {{param}} means srT()'s substitution
               silently leaves the raw "{{param}}" in the rendered string)
   - PLURAL_GAP  keys following the `_one`/`_other` convention (see srT()
-              in js/render-i18n.js) where en.json defines both forms but
+              in core/render-i18n.js) where en.json defines both forms but
               the locale only defines one
 
 Run:
