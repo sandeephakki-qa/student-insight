@@ -246,10 +246,29 @@ let updateSmartLauncherVisibility;
     injectDom();
   }
 
+  // FIX (live-browser bug found 2026-08-30, "Cannot access 'APP' before
+  // initialization"): module scripts execute after DOM parsing (like
+  // `defer`), so document.readyState is never actually "loading" here in
+  // practice — this branch always ran init() immediately, at module
+  // top-level. Under ES modules that's a circular-import TDZ crash:
+  // init() -> injectDom() -> applyLauncherVisibility() needs APP from
+  // state-nav.js, and this file is reached via a cycle (state-nav.js ->
+  // template-upload.js -> this file -> state-nav.js, created 2026-08-30
+  // when template-upload.js started importing updateSmartLauncherVisibility
+  // from here) before state-nav.js finishes initializing APP. This crash
+  // also cascaded into a second, separate-looking error in vs-shell.js
+  // (getState() needing the same not-yet-initialized APP) — that file
+  // already had the correct fix for its OWN pre-existing state-nav.js
+  // cycle (deferring initShell() the same way below), but couldn't help
+  // once this crash interrupted state-nav.js's module evaluation before
+  // it ever got there. Same fix as vs-shell.js's initShell(): deferring
+  // via a microtask lets the full synchronous module-evaluation phase
+  // (including state-nav.js's own top-level code) finish first.
+  // Imperceptible timing change (sub-millisecond).
   if(document.readyState === "loading"){
     document.addEventListener("DOMContentLoaded", init);
   } else {
-    init();
+    Promise.resolve().then(init);
   }
 
 })();
