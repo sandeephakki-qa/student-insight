@@ -59,7 +59,15 @@ function safeSheetName(name,usedNames){
 function classPrefixForTabs(){
   const rawClassName=String(APP.setup.className||"");
   const rawSection=String(APP.setup.section||"");
-  let className=rawClassName.replace(/[^a-zA-Z0-9]/g,"");
+  // Keep the dash (className is expected in "Class-5A" style from the
+  // setup-field sanitizer) — previously stripped ALL non-alphanumerics,
+  // which silently dropped it and produced "Class5A-Test-1" instead of
+  // "Class-5A-Test-1".
+  let className=rawClassName.replace(/[^a-zA-Z0-9-]/g,"");
+  // Legacy/imported data saved before the sanitizer existed may still be
+  // "Class5A" with no dash — insert one at the first letter/digit boundary
+  // so old and new data normalize to the same tab-naming convention.
+  className=className.replace(/([A-Za-z])(\d)/,"$1-$2");
   let section=rawSection.replace(/[^a-zA-Z0-9]/g,"");
   // Bug found via real uploaded files (Class / Batch "Class 6-B" + Section
   // "B" produced tab name "Class6BB"): if the class name already ends
@@ -67,7 +75,7 @@ function classPrefixForTabs(){
   // e.g. "6-B" or "6B"), appending Section again just duplicates that
   // last bit rather than adding new information — drop it in that case.
   if(section && className.toLowerCase().endsWith(section.toLowerCase())) section="";
-  let base=className+section;
+  let base=className+(section?"-"+section:"");
   if(!base)base="Class";
   return base.slice(0,18); // leaves room for a reasonably long test name within Excel's 31-char sheet-name limit
 }
@@ -1814,6 +1822,14 @@ function validateSetupData(){
   if(!s.year){errs.push({required:true,msg:srT("val_setup_missing_year")});}
   if(!s.subjects||!s.subjects.length){errs.push({required:true,msg:srT("val_setup_no_subjects")});}
   if(!s.tests||!s.tests.length){errs.push({required:true,msg:srT("val_setup_no_tests")});}
+  // BUG FIX: an empty template (SETUP filled in, but no rows on STUDENTS)
+  // sailed straight through here into afterImportSuccess() — this check
+  // already existed for the "Add Test"/merge upload path
+  // (loadMergeSourceFromArrayBuffer) but was missing from THIS path (Home
+  // quick-import / Step 2 drop-zone / sample-file load), which is what let
+  // a blank template be "analysed" instead of rejected.
+  const studentRows=(APP.rawData&&APP.rawData["STUDENTS"])||[];
+  if(!studentRows.length){errs.push({required:true,msg:srT(s.mode==="individual"?"val_students_tab_empty_individual":"val_students_tab_empty")});}
   if(!s.teacher){errs.push({required:false,msg:srT("val_setup_teacher_not_set")});}
   if(!s.passThreshold){errs.push({required:false,msg:srT("val_setup_pass_threshold_not_set")});}
   // Individual mode is one workbook per child — Subjects/Max Marks in

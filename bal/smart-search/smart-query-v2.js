@@ -478,7 +478,11 @@ const SmartQueryV2 = (function(){
      than a full fuzzy-match; it's matching against a small (dozens,
      not thousands) fixed question set, not free-form documents. ── */
   function tokenize(s){
-    return String(s||"").toLowerCase().replace(/[^a-z0-9\s]/g," ").split(/\s+/).filter(Boolean).map(stem);
+    // BUG FIX: old regex [^a-z0-9\s] stripped ALL non-ASCII chars, so any
+    // regional-language query (Kannada, Hindi, etc.) became empty tokens
+    // and smart search silently failed. \p{L}\p{N} keeps letters/digits
+    // from any script; stem() below only touches ASCII words anyway.
+    return String(s||"").toLowerCase().replace(/[^\p{L}\p{N}\s]/gu," ").split(/\s+/).filter(Boolean).map(stem);
   }
   // Minimal suffix-stripping stemmer — NOT a full Porter stemmer (overkill
   // and riskier for short domain words). Strips at most one suffix per

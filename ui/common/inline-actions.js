@@ -281,11 +281,17 @@ import { vsShellToggle } from '../../core/vs-shell.js';
     v = v.replace(/[^A-Za-z\s'.-]/g, "").replace(/ {2,}/g, " ");
     return v.split(" ").map(function(w){ return w ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w; }).join(" ");
   }
-  // Class/Batch: letters/digits/spaces/'-'/'&' only; a bare number
-  // (e.g. "5") gets the standard "Class-" keyword prefixed.
+  // Class/Batch/Semester: letters/digits/spaces/'-'/'&' only. A bare number
+  // (e.g. "6") gets the standard "Class-" keyword prefixed. Otherwise the
+  // first letter is capitalized, and a dash is inserted between a letter
+  // block and a directly-following digit block (e.g. "sem2" -> "Sem-2").
   function sanitizeClassBatch(v){
     v = v.replace(/[^A-Za-z0-9\s&-]/g, "");
-    if (/^[0-9]+$/.test(v.trim())) v = "class-" + v.trim();
+    var trimmed = v.trim();
+    if (!trimmed) return v;
+    if (/^[0-9]+$/.test(trimmed)) return "Class-" + trimmed;
+    v = v.charAt(0).toUpperCase() + v.slice(1);
+    v = v.replace(/([A-Za-z])(\d)/, "$1-$2");
     return v;
   }
   // Section: at most one letter, forced uppercase — any other input
@@ -299,8 +305,12 @@ import { vsShellToggle } from '../../core/vs-shell.js';
   // Scheme Name / custom Eligibility Type text: alphanumeric + spaces +
   // '-' only (length already capped by the field's maxlength attribute).
   function sanitizeSchemeStyle(v){ return v.replace(/[^A-Za-z0-9\s-]/g, ""); }
-  // Subject/Test names: alphanumeric + spaces + '-' only, 20-char cap.
-  function sanitizeShortName(v){ return v.replace(/[^A-Za-z0-9\s-]/g, "").slice(0, 20); }
+  // Subject/Test names: alphanumeric + spaces + '-' only, 20-char cap,
+  // first letter capitalized.
+  function sanitizeShortName(v){
+    v = v.replace(/[^A-Za-z0-9\s-]/g, "").slice(0, 20);
+    return v ? v.charAt(0).toUpperCase() + v.slice(1) : v;
+  }
   // Numeric setup fields: digits only, optional digit-count cap, optional
   // max value clamp (Min Academic Avg/Attendance Floor/Category Quota/
   // Weightages all reuse this with different limits).
@@ -456,6 +466,32 @@ import { vsShellToggle } from '../../core/vs-shell.js';
       ev.preventDefault();
       smartChatSubmit();
       return;
+    }
+    // BUG FIX (keyboard-flow request): plain text/number/date <input>
+    // fields inside Setup (and any other form) had no Enter behavior, so
+    // a keyboard-only user hit Enter and nothing happened — forcing a
+    // reach for the mouse (or Tab, which some users don't expect either).
+    // Enter now advances to the next focusable field in DOM order, same
+    // as Tab, for the common single-line input types. Buttons/textareas/
+    // selects are excluded — Enter has other native meaning there
+    // (activate / newline / native dropdown), and the chat composer above
+    // already has its own Enter behavior.
+    if (ev.key === 'Enter') {
+      var tgt = ev.target;
+      var tag = tgt.tagName;
+      var isPlainInput = tag === 'INPUT' && ['text','number','date','email','tel','search'].indexOf((tgt.type||'text').toLowerCase()) !== -1;
+      if (isPlainInput) {
+        var focusables = Array.prototype.slice.call(
+          document.querySelectorAll('a[href],button:not([disabled]),textarea,input:not([disabled]),select,[tabindex]:not([tabindex="-1"])')
+        ).filter(function(el){ return el.offsetParent !== null; }); // visible only
+        var idx = focusables.indexOf(tgt);
+        if (idx !== -1) {
+          ev.preventDefault();
+          var next = focusables[idx + 1];
+          if (next) next.focus();
+        }
+        return;
+      }
     }
     if (ev.key !== 'Enter' && ev.key !== ' ') return;
     var btn = ev.target.closest('[role="button"][data-action]');
