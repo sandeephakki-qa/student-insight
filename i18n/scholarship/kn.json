@@ -98,5 +98,8 @@
   "scholarship_export_sheet_by_category": "ವರ್ಗದ ಪ್ರಕಾರ",
   "scholarship_export_sheet_subject_toppers": "ವಿಷಯ ಟಾಪರ್‌ಗಳು",
   "scholarship_export_toast_success": "{{fname}} ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ",
-  "pdf_confidential_scholarship": "ಗೌಪ್ಯ — ವಿದ್ಯಾರ್ಥಿವೇತನ ದಾಖಲೆ"
+  "pdf_confidential_scholarship": "ಗೌಪ್ಯ — ವಿದ್ಯಾರ್ಥಿವೇತನ ದಾಖಲೆ",
+  "scholarship.error_grid.missing_test_data": "ಪರೀಕ್ಷೆಯ ಅಂಕಗಳು ಲಭ್ಯವಿಲ್ಲ",
+  "scholarship.error_grid.missing_annual_family_income": "ವಾರ್ಷಿಕ ಕುಟುಂಬ ಆದಾಯ ಲಭ್ಯವಿಲ್ಲ",
+  "scholarship.error_grid.missing_category": "ವರ್ಗ ಲಭ್ಯವಿಲ್ಲ"
 }

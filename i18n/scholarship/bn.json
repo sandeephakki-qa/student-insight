@@ -98,5 +98,8 @@
   "scholarship_export_sheet_by_category": "শ্রেণী অনুযায়ী",
   "scholarship_export_sheet_subject_toppers": "বিষয় টপার",
   "scholarship_export_toast_success": "{{fname}} ডাউনলোড হয়েছে",
-  "pdf_confidential_scholarship": "গোপনীয় — বৃত্তি রেকর্ড"
+  "pdf_confidential_scholarship": "গোপনীয় — বৃত্তি রেকর্ড",
+  "scholarship.error_grid.missing_test_data": "পরীক্ষার নম্বর অনুপস্থিত",
+  "scholarship.error_grid.missing_annual_family_income": "বার্ষিক পারিবারিক আয় অনুপস্থিত",
+  "scholarship.error_grid.missing_category": "শ্রেণী অনুপস্থিত"
 }

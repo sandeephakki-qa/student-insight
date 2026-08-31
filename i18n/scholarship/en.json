@@ -98,5 +98,8 @@
   "scholarship_export_sheet_by_category": "By Category",
   "scholarship_export_sheet_subject_toppers": "Subject Toppers",
   "scholarship_export_toast_success": "Downloaded {{fname}}",
-  "pdf_confidential_scholarship": "CONFIDENTIAL — Scholarship record"
+  "pdf_confidential_scholarship": "CONFIDENTIAL — Scholarship record",
+  "scholarship.error_grid.missing_test_data": "Test scores are missing",
+  "scholarship.error_grid.missing_annual_family_income": "Annual family income is missing",
+  "scholarship.error_grid.missing_category": "Category is missing"
 }

@@ -98,5 +98,8 @@
   "scholarship_export_sheet_by_category": "വിഭാഗം അനുസരിച്ച്",
   "scholarship_export_sheet_subject_toppers": "വിഷയ ടോപ്പർമാർ",
   "scholarship_export_toast_success": "{{fname}} ഡൗൺലോഡ് ചെയ്തു",
-  "pdf_confidential_scholarship": "രഹസ്യം — സ്കോളർഷിപ്പ് രേഖ"
+  "pdf_confidential_scholarship": "രഹസ്യം — സ്കോളർഷിപ്പ് രേഖ",
+  "scholarship.error_grid.missing_test_data": "ടെസ്റ്റ് സ്കോറുകൾ ലഭ്യമല്ല",
+  "scholarship.error_grid.missing_annual_family_income": "വാർഷിക കുടുംബ വരുമാനം ലഭ്യമല്ല",
+  "scholarship.error_grid.missing_category": "വിഭാഗം ലഭ്യമല്ല"
 }

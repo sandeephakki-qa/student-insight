@@ -98,5 +98,8 @@
   "scholarship_export_sheet_by_category": "ਸ਼੍ਰੇਣੀ ਅਨੁਸਾਰ",
   "scholarship_export_sheet_subject_toppers": "ਵਿਸ਼ਾ ਟਾਪਰ",
   "scholarship_export_toast_success": "{{fname}} ਡਾਊਨਲੋਡ ਹੋਈ",
-  "pdf_confidential_scholarship": "ਗੁਪਤ — ਸਕਾਲਰਸ਼ਿਪ ਰਿਕਾਰਡ"
+  "pdf_confidential_scholarship": "ਗੁਪਤ — ਸਕਾਲਰਸ਼ਿਪ ਰਿਕਾਰਡ",
+  "scholarship.error_grid.missing_test_data": "ਟੈਸਟ ਦੇ ਅੰਕ ਉਪਲਬਧ ਨਹੀਂ ਹਨ",
+  "scholarship.error_grid.missing_annual_family_income": "ਸਾਲਾਨਾ ਪਰਿਵਾਰਕ ਆਮਦਨ ਉਪਲਬਧ ਨਹੀਂ ਹੈ",
+  "scholarship.error_grid.missing_category": "ਸ਼੍ਰੇਣੀ ਉਪਲਬਧ ਨਹੀਂ ਹੈ"
 }

@@ -98,5 +98,8 @@
   "scholarship_export_sheet_by_category": "வகை வாரியாக",
   "scholarship_export_sheet_subject_toppers": "பாட முதலிடம்",
   "scholarship_export_toast_success": "{{fname}} பதிவிறக்கம் செய்யப்பட்டது",
-  "pdf_confidential_scholarship": "ரகசியம் — உதவித்தொகை பதிவு"
+  "pdf_confidential_scholarship": "ரகசியம் — உதவித்தொகை பதிவு",
+  "scholarship.error_grid.missing_test_data": "தேர்வு மதிப்பெண்கள் இல்லை",
+  "scholarship.error_grid.missing_annual_family_income": "ஆண்டு குடும்ப வருமானம் இல்லை",
+  "scholarship.error_grid.missing_category": "பிரிவு இல்லை"
 }

@@ -98,5 +98,8 @@
   "scholarship_export_sheet_by_category": "শ্ৰেণী অনুসৰি",
   "scholarship_export_sheet_subject_toppers": "বিষয় টপাৰ",
   "scholarship_export_toast_success": "{{fname}} ডাউনলোড হ'ল",
-  "pdf_confidential_scholarship": "গোপনীয় — বৃত্তি ৰেকৰ্ড"
+  "pdf_confidential_scholarship": "গোপনীয় — বৃত্তি ৰেকৰ্ড",
+  "scholarship.error_grid.missing_test_data": "পৰীক্ষাৰ নম্বৰ উপলব্ধ নাই",
+  "scholarship.error_grid.missing_annual_family_income": "বাৰ্ষিক পাৰিয়াল আয় উপলব্ধ নাই",
+  "scholarship.error_grid.missing_category": "শ্ৰেণী উপলব্ধ নাই"
 }

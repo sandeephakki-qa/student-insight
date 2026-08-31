@@ -98,5 +98,8 @@
   "scholarship_export_sheet_by_category": "వర్గం ప్రకారం",
   "scholarship_export_sheet_subject_toppers": "సబ్జెక్ట్ టాపర్లు",
   "scholarship_export_toast_success": "{{fname}} డౌన్‌లోడ్ అయింది",
-  "pdf_confidential_scholarship": "గోప్యం — స్కాలర్‌షిప్ రికార్డు"
+  "pdf_confidential_scholarship": "గోప్యం — స్కాలర్‌షిప్ రికార్డు",
+  "scholarship.error_grid.missing_test_data": "పరీక్ష మార్కులు లేవు",
+  "scholarship.error_grid.missing_annual_family_income": "వార్షిక కుటుంబ ఆదాయం లేదు",
+  "scholarship.error_grid.missing_category": "వర్గం లేదు"
 }

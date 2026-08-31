@@ -98,5 +98,8 @@
   "scholarship_export_sheet_by_category": "श्रेणी के अनुसार",
   "scholarship_export_sheet_subject_toppers": "विषय टॉपर्स",
   "scholarship_export_toast_success": "{{fname}} डाउनलोड हुई",
-  "pdf_confidential_scholarship": "गोपनीय — छात्रवृत्ति रिकॉर्ड"
+  "pdf_confidential_scholarship": "गोपनीय — छात्रवृत्ति रिकॉर्ड",
+  "scholarship.error_grid.missing_test_data": "परीक्षा के अंक उपलब्ध नहीं हैं",
+  "scholarship.error_grid.missing_annual_family_income": "वार्षिक पारिवारिक आय उपलब्ध नहीं है",
+  "scholarship.error_grid.missing_category": "श्रेणी उपलब्ध नहीं है"
 }

@@ -98,5 +98,8 @@
   "scholarship_export_sheet_by_category": "ବର୍ଗ ଅନୁସାରେ",
   "scholarship_export_sheet_subject_toppers": "ବିଷୟ ଟପର୍ସ",
   "scholarship_export_toast_success": "{{fname}} ଡାଉନଲୋଡ୍ ହେଲା",
-  "pdf_confidential_scholarship": "ଗୋପନୀୟ — ବୃତ୍ତି ରେକର୍ଡ"
+  "pdf_confidential_scholarship": "ଗୋପନୀୟ — ବୃତ୍ତି ରେକର୍ଡ",
+  "scholarship.error_grid.missing_test_data": "ପରୀକ୍ଷା ନମ୍ବର ଉପଲବ୍ଧ ନାହିଁ",
+  "scholarship.error_grid.missing_annual_family_income": "ବାର୍ଷିକ ପାରିବାରିକ ଆୟ ଉପଲବ୍ଧ ନାହିଁ",
+  "scholarship.error_grid.missing_category": "ବର୍ଗ ଉପଲବ୍ଧ ନାହିଁ"
 }

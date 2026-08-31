@@ -98,5 +98,8 @@
   "scholarship_export_sheet_by_category": "زمرہ کے مطابق",
   "scholarship_export_sheet_subject_toppers": "مضمون ٹاپرز",
   "scholarship_export_toast_success": "{{fname}} ڈاؤن لوڈ ہو گئی",
-  "pdf_confidential_scholarship": "خفیہ — وظیفہ ریکارڈ"
+  "pdf_confidential_scholarship": "خفیہ — وظیفہ ریکارڈ",
+  "scholarship.error_grid.missing_test_data": "ٹیسٹ کے نمبر دستیاب نہیں ہیں",
+  "scholarship.error_grid.missing_annual_family_income": "سالانہ خاندانی آمدنی دستیاب نہیں ہے",
+  "scholarship.error_grid.missing_category": "زمرہ دستیاب نہیں ہے"
 }

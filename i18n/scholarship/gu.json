@@ -98,5 +98,8 @@
   "scholarship_export_sheet_by_category": "કેટેગરી પ્રમાણે",
   "scholarship_export_sheet_subject_toppers": "વિષય ટોપર્સ",
   "scholarship_export_toast_success": "{{fname}} ડાઉનલોડ થઈ",
-  "pdf_confidential_scholarship": "ગોપનીય — શિષ્યવૃત્તિ રેકોર્ડ"
+  "pdf_confidential_scholarship": "ગોપનીય — શિષ્યવૃત્તિ રેકોર્ડ",
+  "scholarship.error_grid.missing_test_data": "કસોટીના ગુણ ઉપલબ્ધ નથી",
+  "scholarship.error_grid.missing_annual_family_income": "વાર્ષિક કૌટુંબિક આવક ઉપલબ્ધ નથી",
+  "scholarship.error_grid.missing_category": "શ્રેણી ઉપલબ્ધ નથી"
 }
