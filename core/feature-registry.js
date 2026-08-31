@@ -61,7 +61,7 @@
 export const FEATURE_REGISTRY = {
   scholarship: {
     setupKey: "Feature_Scholarship",
-    defaultState: "on", // CHANGED (step 5) from defaultEnabled:true —
+    defaultState: "locked", // CHANGED (step 5) from defaultEnabled:true —
                               // the deliberate, Sandy-authorized change
                               // this step implements.
     // Genuinely lazy as of 2026-08-28 — core's static imports of
