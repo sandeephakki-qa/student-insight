@@ -102,6 +102,22 @@ async function runAnalysis(){
     if(APP.setup.periodCount>1){
       APP.students=APP.students.filter(st=>Object.values(st.testData||{}).some(td=>td&&Object.keys(td.marks||{}).length));
     }
+    // BUG FIX: parseStudents() drops untouched SAMPLE-1..5 rows (see its own
+    // comment above), which is correct when real students exist alongside
+    // them — but a file that's ONLY the untouched template (every roster row
+    // still a sample) now has zero students at this point. Nothing below
+    // here checked for that, so computeAnalysis() ran over an empty array
+    // and goStep("dashboard") on the last line fired unconditionally,
+    // landing the teacher on a blank dashboard with no error shown.
+    if(!APP.students.length){
+      $("#ai-loader").hide();
+      stopAiLoaderCardCycle();
+      const el=document.getElementById("validation-warnings");
+      if(el){el.innerHTML=`<div class="card" style="border-color:var(--c-danger)"><b style="color:var(--c-danger)">${esc(srT("val_no_student_rows_students_tab"))}</b></div>`;el.style.display="block";}
+      goStep("ai");
+      toast(srT("val_no_student_rows_students_tab"),"error");
+      return;
+    }
     await computeAnalysis();await computeGenderAnalysis();
     $("#ai-loader").hide();
     stopAiLoaderCardCycle();
@@ -117,6 +133,13 @@ async function runAnalysis(){
     // no persistence. Editing Setup again after this still re-dirties via
     // the existing markDirty() calls, so the dot stays meaningful.
     markClean();
+    // BUG FIX: openBucket(APP._currentBucketId||"class") in renderBuckets()
+    // already defaults to Class when nothing is set — but nothing here ever
+    // cleared a stale id left over from a previous run (e.g. "top"/"help"/a
+    // student), so re-running analysis reopened whatever bucket was last
+    // viewed instead of Class. Compare mode already resets this on its own
+    // re-entry points (compute-compare.js); this path never did.
+    APP._currentBucketId=null;
     toast(srT("toast_analysis_complete",{n:APP.students.length},APP.students.length),"success");goStep("dashboard");
   } finally {
     if(_runBtn)_runBtn.disabled=false;
