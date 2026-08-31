@@ -1677,11 +1677,27 @@ function handleHomeImport(file){
         const errHtml=errs.map(e=>`<div style="padding:5px 0;border-bottom:1px solid var(--c-border);font-size:12px"><span style="color:${e.required?"var(--c-danger)":"var(--c-warn)"}">${e.required?"✕":"⚠"}</span> ${e.msg}</div>`).join("");
         const hasRequired=errs.some(e=>e.required);
         if(hasRequired){
+          // BUG FIX: this card used to always say "issue(s) found in SETUP
+          // tab" and always show "Edit Setup in App" — accurate for a
+          // missing Institution Name/Subjects/etc, but wrong for a
+          // STUDENTS-tab problem (empty roster, all-5-rows-still-sample,
+          // 2+ children in one Individual-mode file): those aren't Setup
+          // fields, there's nothing to "Edit Setup" to fix, and the button
+          // just sent the user to a screen that couldn't help. Only offer
+          // it when at least one blocking issue is actually a Setup field;
+          // title/CTA copy fall back to a tab-agnostic phrasing otherwise
+          // since each issue's own message already names its tab.
+          const requiredErrs=errs.filter(e=>e.required);
+          const hasSetupTabIssue=requiredErrs.some(e=>e.tab==="setup");
+          const allSetupTab=requiredErrs.every(e=>e.tab==="setup");
+          const cardTitle=allSetupTab?`Setup Incomplete — ${errs.length} issue(s) found in SETUP tab`:`${errs.length} issue(s) found in your file`;
+          const fixHint=allSetupTab?"Fix the required fields in your Excel SETUP tab and re-import.":"Fix the issue(s) listed above in your Excel file and re-import.";
+          const editSetupBtn=hasSetupTabIssue?`<button class="btn btn-secondary btn-sm" style="margin-top:10px" data-action="goStep" data-arg="setup">Edit Setup in App</button>`:"";
           statusEl.innerHTML=`<div class="card" style="border-color:var(--c-danger)">
-            <div style="font-weight:700;font-size:13px;margin-bottom:8px;color:var(--c-danger)"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10'/><line x1='15' y1='9' x2='9' y2='15'/><line x1='9' y1='9' x2='15' y2='15'/></svg> Setup Incomplete — ${errs.length} issue(s) found in SETUP tab</div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:8px;color:var(--c-danger)"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10'/><line x1='15' y1='9' x2='9' y2='15'/><line x1='9' y1='9' x2='15' y2='15'/></svg> ${cardTitle}</div>
             ${errHtml}
-            <div style="margin-top:10px;font-size:12px;color:var(--c-text2)">Fix the required fields in your Excel SETUP tab and re-import.</div>
-            <button class="btn btn-secondary btn-sm" style="margin-top:10px" data-action="goStep" data-arg="setup">Edit Setup in App</button>
+            <div style="margin-top:10px;font-size:12px;color:var(--c-text2)">${fixHint}</div>
+            ${editSetupBtn}
             <div style="margin-top:10px;font-size:11px"><button type="button" data-action="resetHomeImport" style="background:none;border:none;padding:0;font:inherit;cursor:pointer;color:var(--c-text3);text-decoration:underline">↺ Not this file — start over / import a different one</button></div>
           </div>`;
           statusEl.style.display="block";
@@ -1855,11 +1871,11 @@ function isUntouchedSampleTemplate(rawData){
 /* ════ SETUP COMPLETENESS VALIDATION ════ */
 function validateSetupData(){
   const s=APP.setup;const errs=[];
-  if(!s.instName){errs.push({required:true,msg:srT("val_setup_missing_institution")});}
-  if(!s.className){errs.push({required:true,msg:srT("val_setup_missing_class")});}
-  if(!s.year){errs.push({required:true,msg:srT("val_setup_missing_year")});}
-  if(!s.subjects||!s.subjects.length){errs.push({required:true,msg:srT("val_setup_no_subjects")});}
-  if(!s.tests||!s.tests.length){errs.push({required:true,msg:srT("val_setup_no_tests")});}
+  if(!s.instName){errs.push({required:true,tab:"setup",msg:srT("val_setup_missing_institution")});}
+  if(!s.className){errs.push({required:true,tab:"setup",msg:srT("val_setup_missing_class")});}
+  if(!s.year){errs.push({required:true,tab:"setup",msg:srT("val_setup_missing_year")});}
+  if(!s.subjects||!s.subjects.length){errs.push({required:true,tab:"setup",msg:srT("val_setup_no_subjects")});}
+  if(!s.tests||!s.tests.length){errs.push({required:true,tab:"setup",msg:srT("val_setup_no_tests")});}
   // BUG FIX: an empty template (SETUP filled in, but no rows on STUDENTS)
   // sailed straight through here into afterImportSuccess() — this check
   // already existed for the "Add Test"/merge upload path
@@ -1867,7 +1883,7 @@ function validateSetupData(){
   // quick-import / Step 2 drop-zone / sample-file load), which is what let
   // a blank template be "analysed" instead of rejected.
   const studentRows=(APP.rawData&&APP.rawData["STUDENTS"])||[];
-  if(!studentRows.length){errs.push({required:true,msg:srT(s.mode==="individual"?"val_students_tab_empty_individual":"val_students_tab_empty")});}
+  if(!studentRows.length){errs.push({required:true,tab:"students",msg:srT(s.mode==="individual"?"val_students_tab_empty_individual":"val_students_tab_empty")});}
   // BUG FIX: a file whose STUDENTS tab still has only the 5 untouched
   // SAMPLE-1..5 template rows (non-zero length, so the check above didn't
   // catch it) used to sail through here, enable Run Analysis, and only
@@ -1875,9 +1891,9 @@ function validateSetupData(){
   // finished (parseStudents() drops those rows late, in compute-stats.js).
   // Caught here instead, at the same point the genuinely-empty case is
   // caught, so Run Analysis never becomes clickable for this file either.
-  else if(isUntouchedSampleTemplate(APP.rawData)){errs.push({required:true,msg:srT("val_students_tab_all_sample")});}
-  if(!s.teacher){errs.push({required:false,msg:srT("val_setup_teacher_not_set")});}
-  if(!s.passThreshold){errs.push({required:false,msg:srT("val_setup_pass_threshold_not_set")});}
+  else if(isUntouchedSampleTemplate(APP.rawData)){errs.push({required:true,tab:"students",msg:srT("val_students_tab_all_sample")});}
+  if(!s.teacher){errs.push({required:false,tab:"setup",msg:srT("val_setup_teacher_not_set")});}
+  if(!s.passThreshold){errs.push({required:false,tab:"setup",msg:srT("val_setup_pass_threshold_not_set")});}
   // Individual mode is one workbook per child — Subjects/Max Marks in
   // SETUP are workbook-global, so a second child in the same STUDENTS tab
   // silently inherits the first child's subject list and max-marks scale
@@ -1886,7 +1902,7 @@ function validateSetupData(){
   // sample-file load) already runs through.
   if(s.mode==="individual"){
     const rosterRows=(APP.rawData&&APP.rawData["STUDENTS"])||[];
-    if(rosterRows.length>1){errs.push({required:true,msg:srT("val_individual_one_child_per_file")});}
+    if(rosterRows.length>1){errs.push({required:true,tab:"students",msg:srT("val_individual_one_child_per_file")});}
   }
   // Duplicate subject/test names (case-insensitive, after trimming)
   // silently corrupt per-subject/per-test aggregation downstream since
@@ -1899,8 +1915,8 @@ function validateSetupData(){
   const findDupes=list=>{const seen=new Set(),dupes=new Set();(list||[]).forEach(v=>{const k=String(v).trim().toLowerCase();if(seen.has(k))dupes.add(v);seen.add(k);});return[...dupes];};
   const dupeSubjects=findDupes(s.subjects);
   const dupeTests=findDupes((s.tests||[]).map(t=>t.name));
-  if(dupeSubjects.length)errs.push({required:true,msg:srT("val_setup_dupe_subjects",{names:dupeSubjects.join(", ")})});
-  if(dupeTests.length)errs.push({required:true,msg:srT("val_setup_dupe_tests",{names:dupeTests.join(", ")})});
+  if(dupeSubjects.length)errs.push({required:true,tab:"setup",msg:srT("val_setup_dupe_subjects",{names:dupeSubjects.join(", ")})});
+  if(dupeTests.length)errs.push({required:true,tab:"setup",msg:srT("val_setup_dupe_tests",{names:dupeTests.join(", ")})});
   // Check that tests have subjects with max marks — only for subjects this
   // test actually includes (t.subjectsIncluded). A subject deliberately
   // excluded from a test (unchecked in the per-test picker, or absent from
@@ -1912,7 +1928,7 @@ function validateSetupData(){
   (s.tests||[]).forEach((t,i)=>{
     const relevantSubjects=(t.subjectsIncluded&&t.subjectsIncluded.length)?t.subjectsIncluded:(s.subjects||[]);
     const missing=relevantSubjects.filter(sub=>!t.maxMarks||!t.maxMarks[sub]);
-    if(missing.length)errs.push({required:false,msg:srT("val_setup_max_marks_not_set",{test:t.name,subjects:missing.join(", ")})});
+    if(missing.length)errs.push({required:false,tab:"setup",msg:srT("val_setup_max_marks_not_set",{test:t.name,subjects:missing.join(", ")})});
   });
   // Invalid (supplied-but-not-usable) max marks — 0, negative, decimal,
   // non-numeric — collected by readMaxMark() during autoInferSetup()/
@@ -1921,7 +1937,7 @@ function validateSetupData(){
   // depends on it, with no visible sign anything went wrong. See
   // EXCEL_DATA_MATH_AUDIT_PROMPT.md item 4.
   (s._maxMarkErrors||[]).forEach(e=>{
-    errs.push({required:true,msg:`Invalid maximum mark for "${e.label}": entered "${e.raw}" — ${e.reason}.`});
+    errs.push({required:true,tab:"setup",msg:`Invalid maximum mark for "${e.label}": entered "${e.raw}" — ${e.reason}.`});
   });
   // Scholarship Criteria (Task 02, §26): Enable = Yes makes every field in
   // the section required, and the three weightages must sum to 100 — both
@@ -1932,20 +1948,21 @@ function validateSetupData(){
   // stay non-blocking).
   const sch=s.scholarship;
   if(sch&&sch.enabled){
-    if(!sch.schemeName)errs.push({required:true,msg:srT("scholarship_required_error",{field:srT("scholarship_scheme_name_label")})});
-    if(!sch.eligibilityType)errs.push({required:true,msg:srT("scholarship_required_error",{field:srT("scholarship_eligibility_type_label")})});
-    if(sch.minAcademicAvg===null||sch.minAcademicAvg===undefined)errs.push({required:true,msg:srT("scholarship_required_error",{field:srT("scholarship_min_academic_avg_label")})});
-    if(sch.maxFamilyIncome===null||sch.maxFamilyIncome===undefined)errs.push({required:true,msg:srT("scholarship_required_error",{field:srT("scholarship_max_family_income_label")})});
-    if(sch.attendanceFloor===null||sch.attendanceFloor===undefined)errs.push({required:true,msg:srT("scholarship_required_error",{field:srT("scholarship_attendance_floor_label")})});
-    if(sch.categoryQuota===null||sch.categoryQuota===undefined)errs.push({required:true,msg:srT("scholarship_required_error",{field:srT("scholarship_category_quota_label")})});
+    if(!sch.schemeName)errs.push({required:true,tab:"setup",msg:srT("scholarship_required_error",{field:srT("scholarship_scheme_name_label")})});
+    if(!sch.eligibilityType)errs.push({required:true,tab:"setup",msg:srT("scholarship_required_error",{field:srT("scholarship_eligibility_type_label")})});
+    if(sch.minAcademicAvg===null||sch.minAcademicAvg===undefined)errs.push({required:true,tab:"setup",msg:srT("scholarship_required_error",{field:srT("scholarship_min_academic_avg_label")})});
+    if(sch.maxFamilyIncome===null||sch.maxFamilyIncome===undefined)errs.push({required:true,tab:"setup",msg:srT("scholarship_required_error",{field:srT("scholarship_max_family_income_label")})});
+    if(sch.attendanceFloor===null||sch.attendanceFloor===undefined)errs.push({required:true,tab:"setup",msg:srT("scholarship_required_error",{field:srT("scholarship_attendance_floor_label")})});
+    if(sch.categoryQuota===null||sch.categoryQuota===undefined)errs.push({required:true,tab:"setup",msg:srT("scholarship_required_error",{field:srT("scholarship_category_quota_label")})});
     const wSum=(sch.weightAcademic||0)+(sch.weightConsistency||0)+(sch.weightGrowth||0);
-    if(wSum!==100)errs.push({required:true,msg:srT("scholarship_weightage_sum_error",{sum:wSum})});
+    if(wSum!==100)errs.push({required:true,tab:"setup",msg:srT("scholarship_weightage_sum_error",{sum:wSum})});
   }
   // Sheet-name collisions (two worksheet tabs that normalize to the same
   // name) — see EXCEL_DATA_MATH_AUDIT_PROMPT.md item 5. Always blocking:
-  // there is no safe way to guess which tab a SETUP test name refers to.
+  // not a SETUP field, so it's not fixable via the in-app Setup form —
+  // needs the actual tab renamed in Excel and re-imported.
   ((APP.rawData&&APP.rawData._sheetCollisions)||[]).forEach(c=>{
-    errs.push({required:true,msg:`Two worksheet tabs have the same name once trimmed/case-folded: "${c.names[0]}" and "${c.names[1]}" — rename one of them and re-import.`});
+    errs.push({required:true,tab:"file",msg:`Two worksheet tabs have the same name once trimmed/case-folded: "${c.names[0]}" and "${c.names[1]}" — rename one of them and re-import.`});
   });
   return errs;
 }
