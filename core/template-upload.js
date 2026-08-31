@@ -1814,6 +1814,44 @@ function showHomeRunAnalysisButton(){
   scrollToEl(btn);
 }
 
+// Same reserved template placeholder IDs compute-stats.js's parseStudents()
+// filters out post-analysis (kept as a separate copy here, not an import,
+// to avoid pulling analysis code into the import path — see that file's
+// own comment for why these 5 IDs exist). Used below to catch the file
+// BEFORE Run Analysis even becomes clickable, not just after.
+const SAMPLE_STUDENT_IDS=new Set(["SAMPLE-1","SAMPLE-2","SAMPLE-3","SAMPLE-4","SAMPLE-5"]);
+// True only when EVERY roster row is one of the reserved sample IDs AND
+// none of them has anything entered anywhere else in the workbook (any
+// test tab, any column besides Student ID). A real student who happens to
+// reuse a SAMPLE-N id but has actual marks/absence/remark/chapter data
+// still counts as real here — same "any real data anywhere disqualifies
+// it" rule parseStudents() uses, just checked on the raw cells since
+// nothing has been parsed into marks yet at this point in the flow.
+function isUntouchedSampleTemplate(rawData){
+  const normId=v=>String(v||"").trim().toUpperCase();
+  const studentRows=(rawData&&rawData["STUDENTS"])||[];
+  const realRows=studentRows.filter(r=>normId(r["Student ID"]));
+  if(!realRows.length)return false; // handled separately by the "no rows at all" check
+  if(!realRows.every(r=>SAMPLE_STUDENT_IDS.has(normId(r["Student ID"]))))return false;
+  const reservedSheets=new Set(["STUDENTS","SETUP","README","REFERENCE"]);
+  for(const sheetName of Object.keys(rawData||{})){
+    if(sheetName.startsWith("_"))continue; // skip _sheetIndex/_sheetCollisions/_arr_*/_hdr_* internal keys
+    if(reservedSheets.has(sheetName.trim().toUpperCase()))continue;
+    const rows=rawData[sheetName];
+    if(!Array.isArray(rows))continue;
+    for(const row of rows){
+      const id=normId(row["Student ID"]);
+      if(!id||!SAMPLE_STUDENT_IDS.has(id))continue;
+      for(const key of Object.keys(row)){
+        if(key==="Student ID")continue;
+        const v=row[key];
+        if(v!==null&&v!==undefined&&String(v).trim()!=="")return false;
+      }
+    }
+  }
+  return true;
+}
+
 /* ════ SETUP COMPLETENESS VALIDATION ════ */
 function validateSetupData(){
   const s=APP.setup;const errs=[];
@@ -1830,6 +1868,14 @@ function validateSetupData(){
   // a blank template be "analysed" instead of rejected.
   const studentRows=(APP.rawData&&APP.rawData["STUDENTS"])||[];
   if(!studentRows.length){errs.push({required:true,msg:srT(s.mode==="individual"?"val_students_tab_empty_individual":"val_students_tab_empty")});}
+  // BUG FIX: a file whose STUDENTS tab still has only the 5 untouched
+  // SAMPLE-1..5 template rows (non-zero length, so the check above didn't
+  // catch it) used to sail through here, enable Run Analysis, and only
+  // fail — silently, with a blank dashboard — after the loader animation
+  // finished (parseStudents() drops those rows late, in compute-stats.js).
+  // Caught here instead, at the same point the genuinely-empty case is
+  // caught, so Run Analysis never becomes clickable for this file either.
+  else if(isUntouchedSampleTemplate(APP.rawData)){errs.push({required:true,msg:srT("val_students_tab_all_sample")});}
   if(!s.teacher){errs.push({required:false,msg:srT("val_setup_teacher_not_set")});}
   if(!s.passThreshold){errs.push({required:false,msg:srT("val_setup_pass_threshold_not_set")});}
   // Individual mode is one workbook per child — Subjects/Max Marks in

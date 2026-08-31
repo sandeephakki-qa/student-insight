@@ -1344,6 +1344,7 @@ const SR_STRINGS_EN={
   val_students_tab_empty_individual:"That file's STUDENTS tab doesn't have any filled-in rows yet — nothing to bring forward. Use Download Template to start fresh instead.",
   val_individual_one_child_per_file:"This file has more than one child in the STUDENTS tab. Individual mode supports one child per workbook — Subjects and Max Marks are set once for the whole file, so a second child (different grade, different subjects, different max marks) can't share it safely. Download a separate template for each child instead.",
   val_students_tab_empty:"That file's STUDENTS tab has a header but no student rows yet — nothing to preserve. Use a fresh Download Template instead.",
+  val_students_tab_all_sample:"That file's STUDENTS tab still has only the 5 unfilled template sample rows (SAMPLE-1..5) — replace them with your real students, then re-upload.",
   val_no_new_test_found:"No new test found — every test in your Setup form already has a tab in the loaded sheet. Add the new test's name first (✚ Add Test).",
   val_subjects_list_changed:"Your Subjects list is different from the loaded file's. Existing test tabs are untouched either way, but double-check this was intentional.",
   val_subjects_added_to_existing:"New subject(s) added — {{subjects}}. A blank column for each has been added to every existing test tab too, so you can fill in marks for them on past tests, not just new ones.",
