@@ -2,12 +2,14 @@ import { FEATURE_REGISTRY } from './feature-registry.js';
 
 // Reads Feature_X rows from the parsed SETUP sheet.
 //
-// STEP 5 (05-premium-feature-locking.md): two-state (true/false) →
-// three-state ("on"/"off"/"locked"). Missing row now defaults to
-// "locked" (was "true"/on) — this is the deliberate, Sandy-authorized
-// behavior change this step implements, NOT a bug: Compare/Scholarship/
-// SmartSearch/Reports move from "everyone has it" to "Pro-only, unlock
-// by contacting Sandy" as of this step forward. A row explicitly present
+// STEP 5 (05-premium-feature-locking.md) introduced three-state
+// ("on"/"off"/"locked") flags with missing-row defaulting to "locked".
+// REVERTED (Sandy-authorized, see planner.md Index table): every
+// feature's defaultState in feature-registry.js is back to "on", so a
+// missing row again means "everyone has it", matching pre-Step-5 Free
+// behavior. The three-state mechanism itself is untouched — an explicit
+// "No" row still produces "off", and the on/off/locked plumbing stays in
+// place for future use. A row explicitly present
 // still works both directions: "Yes" → "on", anything else present
 // (including "No") → "off". See core/feature-registry.js's isFeatureOn()
 // and its callers for how "off" and "locked" now differ (RESOLVED

@@ -61,9 +61,8 @@
 export const FEATURE_REGISTRY = {
   scholarship: {
     setupKey: "Feature_Scholarship",
-    defaultState: "locked", // CHANGED (step 5) from defaultEnabled:true —
-                              // the deliberate, Sandy-authorized change
-                              // this step implements.
+    defaultState: "on", // REVERTED (Sandy-authorized): back to on-by-default —
+                              // see planner.md Index table for this change.
     // Genuinely lazy as of 2026-08-28 — core's static imports of
     // scholarship-nav.js/scholarship-dashboard.js/scholarship-audit-detail.js/
     // scholarship-edit-grid.js were removed from every always-loaded file.
