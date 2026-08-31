@@ -350,7 +350,7 @@ function injectScholarshipDataValidations(wbBytes){
         });
       });
     })
-  ).then(zip=>zip.generateAsync({type:"array"}));
+  ).then(zip=>zip.generateAsync({type:"uint8array"})); // BUG FIX: "array" gave plain JS Array (Blob stringifies it via comma-join → corrupt file); "uint8array" gives real binary bytes
 }
 // Task 03: write+download path for a workbook that needs the REFERENCE
 // dropdown validation injected (see injectScholarshipDataValidations()
@@ -2157,10 +2157,6 @@ function autoInferSetup(){
   // identically to before this step. See core/read-feature-flags.js.
   APP.features=readFeatureFlags(setupSheet);
   updateSmartLauncherVisibility();
-  if(APP.features._anyRowMissing&&!APP._featureFlagsToastShown){
-    APP._featureFlagsToastShown=true;
-    toast(srT("feature_flags_default_info"),"info");
-  }
   // Issue 3 fix: a single-period workbook replacing a file within an
   // already-open Home page must not leave a PRIOR file's continuity state
   // behind. parseContinuityPeriods(kv) below only runs (and rebuilds

@@ -711,6 +711,15 @@ import { getRecentFiles } from './template-upload.js';
     // criteria. Gated on isSchemeConfigured() now, same check the main
     // panel uses (scholarship-nav.js), so both surfaces agree on what
     // counts as a real, usable scheme.
+    // BUG FIX: neither check above is the feature-lock gate — a scheme
+    // configured BEFORE Scholarship got locked (or one left over from a
+    // demo) still passed isSchemeConfigured(), so the rail kept showing
+    // the live download/certificate section even while the main panel
+    // correctly showed the locked upsell (scholarship-nav.js's own
+    // isFeatureOn() check). Rail must agree with the main panel: bail
+    // out here the same way if the feature itself isn't "on".
+    const { isFeatureOn } = await import('../core/feature-registry.js');
+    if(!isFeatureOn(APP.features, "scholarship")){ setRightRail(""); return; }
     const { isSchemeConfigured } = await import('../ui/scholarship/scholarship-nav.js');
     const { computeScholarshipData, getScholarshipVisibleIds } = await import('../ui/scholarship/scholarship-dashboard.js');
     const configured = isSchemeConfigured(APP.setup && APP.setup.scholarship);

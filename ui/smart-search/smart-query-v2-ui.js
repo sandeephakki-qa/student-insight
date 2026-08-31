@@ -87,8 +87,13 @@ let updateSmartLauncherVisibility;
     document.getElementById("sqv2-input").addEventListener("keydown", function(e){
       if(e.key === "Enter") handleAsk();
     });
+    // Snapshot of the real, unlocked body markup — restored by openPanel()
+    // if a locked view ever overwrote it (see the BUG FIX note there).
+    _bodyDefaultHtml = document.getElementById("sqv2-body").innerHTML;
     applyLauncherVisibility();
   }
+  let _bodyDefaultHtml = "";
+  let _bodyShowingLocked = false;
 
   // Sandy decision (2026-08-28, planner.md decisions log): "off"
   // (Feature_SmartSearch: No, an institution explicitly declining the
@@ -124,17 +129,29 @@ let updateSmartLauncherVisibility;
     // opens on click, but its body shows the decorated locked
     // explanation instead of the Q&A UI (no popup/modal, same as
     // everywhere else this feature is gated).
-    // NOTE: this overwrites #sqv2-body's DOM once, in-session — fine
-    // since unlocking a feature happens via a fresh file/session (Sandy
-    // manually flips the flag), not live mid-session, so there's no real
-    // path back to the unlocked UI without a reload to re-run injectDom().
+    // BUG FIX: the old comment here claimed overwriting #sqv2-body once
+    // was "fine since unlocking happens via a fresh file/session... no
+    // real path back to the unlocked UI without a reload" — that
+    // assumption was wrong (feature flags CAN flip live mid-session, e.g.
+    // loading a new file with a different SETUP sheet, or a flag edit
+    // during testing). Once locked, the panel was permanently stuck
+    // showing the locked message and a hidden input row forever after,
+    // even once isFeatureOn() started returning true. Restore the real
+    // body markup + input row whenever we open unlocked and the last
+    // open left it in the locked state.
     const panel = document.getElementById("sqv2-panel");
     if(!isFeatureOn(APP.features,"smartSearch")){
       panel.classList.add("open");
       document.getElementById("sqv2-body").innerHTML =
         '<div style="text-align:center;padding:10px 4px">' + buildFeatureLockedHtml("smartSearch") + '</div>';
       document.getElementById("sqv2-inputrow").style.display = "none";
+      _bodyShowingLocked = true;
       return;
+    }
+    if(_bodyShowingLocked){
+      document.getElementById("sqv2-body").innerHTML = _bodyDefaultHtml;
+      document.getElementById("sqv2-inputrow").style.display = "";
+      _bodyShowingLocked = false;
     }
     panel.classList.add("open");
     ensureLoaded();
@@ -209,6 +226,11 @@ let updateSmartLauncherVisibility;
     const input = document.getElementById("sqv2-input");
     const text = input ? input.value.trim() : "";
     if(!text) return;
+    // BUG FIX: input value was never reset after Ask — every prior
+    // question stayed sitting in the box after the answer came back
+    // (matches core/render-buckets.js's smartChatSubmit(), which already
+    // clears its own composer the same way).
+    if(input) input.value = "";
     clearAnswer();
     clearResults();
 

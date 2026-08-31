@@ -1,4 +1,4 @@
-import { esc, toast } from './app-utils-init.js';
+import { esc, switchDbTab, toast } from './app-utils-init.js';
 import { runAnalysis } from '../bal/common/compute-stats.js';
 import { collectSetupForm } from './project-setup.js';
 import { renderBuckets } from '../ui/common/render-buckets.js';
@@ -10,7 +10,7 @@ import { renderShellLeftRail, renderShellRightRail, setShellRailsOpen } from './
 
 
 /* ════ APP STATE ════ */
-const APP={currentStep:"home",features:{},setup:{mode:"institution",modeLocked:false,instName:"",instType:"",location:"",contact:"",className:"",section:"",year:"",teacher:"",scoring:{marks:true,pct:true,grade:false,pf:false},passThreshold:35,absentAlert:3,dropAlert:20,subjects:[],tests:[]},rawData:null,students:[],classStats:null,genderAnalysis:null,filter:"all",sort:"rank",aiFeatures:new Set(),individualSelectedId:null,
+const APP={currentStep:"home",features:{},setupCard1Choice:"new",setup:{mode:"institution",modeLocked:false,instName:"",instType:"",location:"",contact:"",className:"",section:"",year:"",teacher:"",scoring:{marks:true,pct:true,grade:false,pf:false},passThreshold:35,absentAlert:3,dropAlert:20,subjects:[],tests:[]},rawData:null,students:[],classStats:null,genderAnalysis:null,filter:"all",sort:"rank",aiFeatures:new Set(),individualSelectedId:null,
   // mergeSource holds the already-filled MARKS+CONTEXT sheet (header row +
   // real student rows, as plain arrays) when the teacher loads an existing
   // workbook via "Update Existing Sheet" on the Setup step. When set,
@@ -253,7 +253,17 @@ async function goStep(step){
   // (likely more common) case of switching language elsewhere first, then
   // navigating here afterward.
   if(step==="ai"&&typeof renderAICheckboxes==="function")renderAICheckboxes();
-  if(step==="dashboard") renderBuckets();
+  if(step==="dashboard"){
+    renderBuckets();
+    // BUG FIX: db-tab active state lives purely in the DOM (switchDbTab()
+    // just toggles classes) and #panel-dashboard is never rebuilt, so
+    // whichever tab was last open (e.g. Insights) stayed active across
+    // completely unrelated analyses — a fresh run landed the teacher back
+    // on the last-viewed tab instead of Students. Reset to the first/
+    // default tab every time Dashboard is freshly entered.
+    const firstTab=document.getElementById("dbtab-students");
+    if(firstTab) switchDbTab("students",firstTab);
+  }
   if(step==="scholarship"){
     const { renderScholarshipPanel } = await import('../ui/scholarship/scholarship-nav.js');
     renderScholarshipPanel();

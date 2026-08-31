@@ -61,7 +61,7 @@
 export const FEATURE_REGISTRY = {
   scholarship: {
     setupKey: "Feature_Scholarship",
-    defaultState: "on", // CHANGED (step 5) from defaultEnabled:true —
+    defaultState: "locked", // CHANGED (step 5) from defaultEnabled:true —
                               // the deliberate, Sandy-authorized change
                               // this step implements.
     // Genuinely lazy as of 2026-08-28 — core's static imports of
@@ -71,7 +71,7 @@ export const FEATURE_REGISTRY = {
   },
   compare: {
     setupKey: "Feature_Compare",
-    defaultState: "on",
+    defaultState: "locked",
     // TBD: compute-compare.js is still a single mixed UI+BAL file living
     // in bal/compare/ (see planner.md decisions log) — folder-structure.md
     // left ui/compare/ empty pending that split. No clean UI-only entry
@@ -81,7 +81,7 @@ export const FEATURE_REGISTRY = {
   },
   smartSearch: {
     setupKey: "Feature_SmartSearch",
-    defaultState: "on",
+    defaultState: "locked",
     // Genuinely lazy as of 2026-08-28 — core/vs-shell.js's and
     // core/render-i18n.js's static imports of this file (and of
     // bal/smart-search/smart-query-v2.js, both here and in the standalone
@@ -102,7 +102,7 @@ export const FEATURE_REGISTRY = {
     // it's 3 separate export buttons scattered across other features'
     // screens) rather than because it's still blocked.
     setupKey: "Feature_Reports",
-    defaultState: "on",
+    defaultState: "locked",
     loadUI: null,
   },
 };
