@@ -147,7 +147,15 @@ async function generateAllPDFs(){
   const studentCbs=$(".exp-student-cb");
   const selectedStudents=studentCbs.length
     ? (function(){
-        const ids=new Set(studentCbs.filter(":checked").map((i,el)=>el.getAttribute("data-id")).get());
+        // BUG FIX: this app's $ is a minimal jQuery-shim (core/dom-shim.js),
+        // not real jQuery — its .filter() only accepts a callback
+        // function(i,el), never a CSS pseudo-selector string. Passing
+        // ":checked" here called fn.call() on a string, throwing
+        // "fn.call is not a function" and aborting PDF export entirely
+        // (both the per-student loop below and, upstream, generateAllPDFs()
+        // in inline-actions.js). Swap the selector for the equivalent
+        // predicate the shim actually supports.
+        const ids=new Set(studentCbs.filter((i,el)=>el.checked).map((i,el)=>el.getAttribute("data-id")).get());
         return APP.students.filter(st=>ids.has(String(st.id)));
       })()
     : APP.students;
