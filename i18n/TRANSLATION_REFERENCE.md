@@ -17,46 +17,50 @@ To add a new language:
 4. Add the language to the country→language dropdown mapping in
    index.html (see COUNTRY_LANGUAGES in js/state-nav.js).
 
-## IMPORTANT — current scope (updated v3.9)
+## IMPORTANT — current scope (updated v4.1)
 
-As of v3.9, this system covers ~198 keys across all 13 languages:
-- Smart Reveal bucket screens and Smart Search feature (~40 keys, from
-  earlier phases)
+As of v4.1, this system covers ~1,494 keys across all 13 languages (4
+active shards: `common`, `smart-search`, `compare`, `validation`, plus
+`setup`, `about`, `faq`, `pdf`, `scholarship`, `ai`, `shell`,
+`onboarding`):
+- Smart Reveal bucket screens and Smart Search feature (full coverage,
+  including the "Ask a question" panel chrome — launcher tooltip, header,
+  empty-state example text, Ask/Close buttons)
 - **Setup wizard** — all 4 steps: purpose selection, institution/mode,
-  class & scoring, subjects/tests/download (v3.9, new)
+  class & scoring, subjects/tests/download
 - **About page** — hero, stats, all 8 accordion sections, philosophy
-  quote, formulas callout, bio card (v3.9, new)
+  quote, formulas callout, bio card
 - **FAQ page chrome** — hero, search box, jump-link, all 9 section
-  captions, all 8 answer-tag labels (Serious/Practical/Silly/Core/
-  App-defined/Admin/Statistics/Technical) (v3.9, new)
+  captions, all 8 answer-tag labels
+- **Main Dashboard** (v4.1, new) — KPI labels (Class Avg, Trend, Best/
+  Weakest Test, Health Score, Total Absences, Competitive Readiness),
+  card titles (Progress Trend, Subject Averages, Class Trend Over Tests,
+  Subject Breakdown), Save/Download Updated Sheet/Sample Files buttons,
+  narrative-editor save buttons, Clear/search-by-name/search-by-subject
+  affordances on the Help/Top/Subject pickers, rank badges and rank-
+  movement tooltips (▲/▼), the peer-outlier flag label, empty/no-data
+  states across buckets and continuity view
+- **School/Section Comparison mode** (v4.1, new) — KPI labels (School
+  Avg, Pass Rate, Total At-Risk, Sections Compared, Top/Needs-Attention
+  Section), Section Ranking table, no-valid-files / drop-another-file
+  states, section-label input, and the inline PDF export this feature
+  generates (report header, Generated-date line, Class×Section grid,
+  Sections Needing Attention list, ranking table column headers)
+- **Validation/error messages, toasts** (v4.1, new) — import-failed
+  card, merge/"Add Test" flow toasts (existing-sheet-loaded, no-new-
+  test-found, update-aborted-integrity), no-data/no-students-match-
+  filter/no-subject-data/no-multiperiod-data/no-prior-period states,
+  and the empty-template / all-sample-rows (SAMPLE-1..5) blocking
+  checks — see `val_students_tab_empty`, `val_students_tab_all_sample`
 
 Still NOT covered — remains English-only regardless of language selected:
 - The individual FAQ questions and answers themselves (100+ Q&A pairs;
   translating the full text is a much larger follow-up task, intentionally
   out of scope here since these are dense technical/procurement answers
   best reviewed carefully rather than machine-translated in bulk)
-- Export / PDF generation screens
-- Most Dashboard labels, table headers, button text outside buckets
-- Error messages, toasts, validation text — includes the new
-  `val_individual_one_child_per_file` key (individual-mode "one child per
-  workbook" enforcement) and the corrected `sample_5_desc` /
-  `setup_multi_child_hint` / `setup_indiv_multichild_hint` strings (the
-  Sample 15 content changed from two children to one — old per-language
-  translations describing two children were removed rather than left
-  stale; they fall back to the corrected English text until retranslated)
-- The `readme_add_test_note` key gained an extra sentence noting the new
-  auto-filled Student ID column in new test tabs (live formulas pulling
-  from STUDENTS) — only en.json and the inline SR_STRINGS_EN fallback
-  were updated; the other 12 languages still have the shorter pre-formula
-  text and will fall back to the corrected English sentence until
-  retranslated
-- `toast_analysis_complete_one` / `toast_analysis_complete_other` were
-  added (singular-aware "Analysis complete" toast, fixing "1 students
-  processed") — only en.json and the inline SR_STRINGS_EN fallback were
-  updated; the other 12 languages keep their existing single-form
-  `toast_analysis_complete` string (grammatically unaffected, since
-  `srT()` only pluralizes when the active language table itself has a
-  `_one`/`_other` pair) until a translator adds their own plural forms
+- The pitch-deck screen (`ui/common/pitch-deck.js`) — English-only by its
+  own documented design (stakeholder-facing, not part of translated
+  in-app UI), left untouched deliberately
 - The Institution "Type" dropdown (`#inst-type`) — intentionally left
   English-only. Its `<option>` text doubles as the stored value written
   into the exported Excel SETUP sheet (no separate `value=` attribute),
@@ -64,10 +68,41 @@ Still NOT covered — remains English-only regardless of language selected:
   and could break re-import matching between sessions in different
   languages. Needs a code change (decouple label from stored value)
   before this one is safe to localize.
+- The Scholarship module's own strings (out of scope by product decision
+  as of v4.1 — the feature reflects Indian reservation-policy categories
+  and quotas, which need product rework, not translation, before a
+  global audience)
+
+## Architecture notes for a global (non-Indian-language) audience
+
+Before adding a fully new language (e.g. German, French, Russian) rather
+than another Indian language, be aware of two structural gaps this
+system does NOT yet handle:
+
+1. **Pluralization is binary (`_one`/`_other`) today**, matching English/
+   Hindi/Bengali/etc., which only distinguish "1" from "everything else".
+   This is NOT sufficient for Russian (needs one/few/many/other — 1,
+   2-4, 5-20, and the rest use different word forms) or similarly-ruled
+   languages (Polish, Arabic). `srT()`'s plural resolution needs to move
+   to `Intl.PluralRules(locale).select(count)` (native in all modern
+   browsers, gives correct CLDR categories for free) before shipping a
+   language with more than 2 plural forms.
+2. **No automated check catches a new hardcoded string before it ships.**
+   Every gap fixed in v4.1 (~74 strings across ~9 files) got there
+   because a screen literally wasn't wired to `srT()`/`pdfT()` at all —
+   caught by manual QA, not CI. Before scaling to more languages, add a
+   lint/CI check that flags un-wrapped string literals in template
+   output (title=/placeholder=/aria-label= attributes, text nodes in
+   common tags, toast()/alert() calls) so this class of bug is caught
+   at PR time instead of after a customer screenshots it.
+
+Locale-aware number/date/currency formatting (Indian lakh/crore vs.
+European thousand-separator conventions, ₹ vs. other currencies) is also
+unaddressed and will need its own pass for a non-Indian market.
 
 Every string in ur.json (Urdu) renders right-to-left automatically —
 `dir="rtl"` is driven by `_meta.rtl:true` in that file, already wired in
-js/render-dashboard.js's `reapplyI18nStrings()`.
+core/render-i18n.js's `reapplyI18nStrings()`.
 
 All translations here are machine-assisted (AI-generated), same caveat
 as the earlier phases: recommend native-speaker review before wide

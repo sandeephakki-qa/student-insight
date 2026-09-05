@@ -167,7 +167,7 @@ const CONTINUITY_BADGE_CLASS={continuing:"continuity-badge-continuing",joined:"c
 function renderContinuityBucket(){
   const c=APP.continuity;
   if(!c||!c.periods||!c.periods.length){
-    $("#bucket-answer-screen").html("<div style='color:var(--c-text3);padding:16px'>No multi-period data loaded.</div>");
+    $("#bucket-answer-screen").html(`<div style='color:var(--c-text3);padding:16px'>${esc(srT("val_no_multiperiod_data"))}</div>`);
     return;
   }
   if(APP._continuityActivePeriodIdx==null)APP._continuityActivePeriodIdx=c.periods.length-1;
@@ -182,7 +182,7 @@ function renderContinuityBucket(){
         <div class="continuity-cohort-col">
           <div id="continuity-cohort-view">
             <div class="continuity-card">
-              <div class="continuity-panel-title">Cohort average % across periods</div>
+              <div class="continuity-panel-title">${esc(srT("continuity_cohort_avg_title"))}</div>
               <canvas id="continuity-cohort-chart" height="160"></canvas>
             </div>
             <div class="continuity-card">
@@ -190,7 +190,7 @@ function renderContinuityBucket(){
               <div class="continuity-diff-stats" id="continuity-diff-stats"></div>
             </div>
             <div class="continuity-card">
-              <div class="continuity-panel-title" id="continuity-subjects-title">Subjects</div>
+              <div class="continuity-panel-title" id="continuity-subjects-title">${esc(srT("th_subjects"))}</div>
               <div id="continuity-subject-chips"></div>
             </div>
           </div>
@@ -402,7 +402,7 @@ function renderContinuityPanels(){
       `<div class="continuity-stat"><div class="continuity-stat-num" style="color:var(--c-danger)">${left}</div><div class="continuity-stat-label">${continuityBadgeLabels().left}</div></div>`
     );
   } else {
-    $("#continuity-diff-stats").html("<div style='color:var(--c-text3);font-size:12.5px'>No prior period to compare against.</div>");
+    $("#continuity-diff-stats").html(`<div style='color:var(--c-text3);font-size:12.5px'>${esc(srT("val_no_prior_period"))}</div>`);
   }
 
   // --- subject chips for the active transition, via matchSubjectsAcrossPeriods ---

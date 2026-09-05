@@ -15,7 +15,18 @@ function saveSession(){
 }
 
 /* ════ UTILS ════ */
-function esc(v){return String(v||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+// Review P1 #6: extend esc() to also escape single quote and backtick so
+// values are safe in single-quoted attribute contexts too (template literals
+// inside ${} contexts, e.g. `class='${esc(x)}'`, attribute selectors).
+function esc(v){
+  return String(v||"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;")
+    .replace(/`/g,"&#96;");
+}
 
 // Relocated from bal/compare/compute-compare.js (2026-08-30, Compare
 // lazy-load pass) — this is called unconditionally at page boot (below,
@@ -183,8 +194,27 @@ function validateSetup(){
   if(typeof swRefresh==="function") swRefresh();
   return valid;
 }
-function toast(msg,type=""){const wrap=$("#toast-wrap");const cap=2;while(wrap.children().length>=cap)wrap.children().first().remove();const el=$(`<div class="toast ${type}" role="${type==="error"?"alert":"status"}">${msg}</div>`);wrap.append(el);setTimeout(()=>el.fadeOut(300,()=>el.remove()),3500);}
-function initEnvBadge(){const env=(window.APP_CONFIG&&window.APP_CONFIG.env)||"PROD";if(env!=="PROD"){$("#env-badge").text(env).show();}$("#project-page-link,#footer-project-link").attr("href",(window.APP_CONFIG&&window.APP_CONFIG.projectPageUrl)||"https://studin.in/");}
+// Review P0 #2: toast() no longer writes `msg` into innerHTML. Use toast()
+// for plain strings (auto-escaped via textContent) and toastHTML() for the
+// rare case where you intentionally need markup. Past callers passed only
+// text or esc()-wrapped text — none passed raw HTML — verified via repo grep.
+function _showToastInner(html, type){
+  const wrap=$("#toast-wrap");const cap=2;
+  while(wrap.children().length>=cap)wrap.children().first().remove();
+  const el=$(`<div class="toast ${type}" role="${type==="error"?"alert":"status"}">${html}</div>`);
+  wrap.append(el);
+  setTimeout(()=>el.fadeOut(300,()=>el.remove()),3500);
+}
+function toast(msg,type=""){
+  const d=document.createElement("div");
+  d.textContent=String(msg);
+  _showToastInner(d.innerHTML, type);
+}
+// toastHTML: explicit opt-in for callers that intentionally need markup.
+// Caller is responsible for sanitizing the input (use esc() or build with
+// DOM APIs).
+function toastHTML(html, type=""){_showToastInner(html, type);}
+function initEnvBadge(){const env=(window.APP_CONFIG&&window.APP_CONFIG.env)||"PROD";if(env!=="PROD"){$("#env-badge").text(env).show();}$("#project-page-link").attr("href",(window.APP_CONFIG&&window.APP_CONFIG.projectPageUrl)||"https://studin.in/");}
 
 
 /* TRUST ACCORDION */
@@ -250,6 +280,14 @@ $("#modal-overlay").on("click",function(e){if($(e.target).is("#modal-overlay"))c
 // any hosting shape (root domain, GH Pages project subpath, local folder)
 // with zero env-detection code needed here.
 if("serviceWorker" in navigator&&location.protocol!=="file:"){
+  // P2#13 fix: catch the case where a new SW takes over via skipWaiting()+
+  // clients.claim() without firing `updatefound` on this page (e.g. the SW
+  // was already `installed`/`waiting` from a previous tab and just activated).
+  // The banner below is the same one updatefound() shows — show it again here.
+  navigator.serviceWorker.addEventListener("controllerchange", function(){
+    if(document.getElementById("sw-update-banner"))return;
+    if(typeof showUpdateBanner === "function") showUpdateBanner();
+  });
   navigator.serviceWorker.register("sw.js").then(function(reg){
     // H3 fix (robustness audit): sw.js's skipWaiting()/clients.claim() take
     // over immediately with no notice — if this tab is open (mid-Setup, mid-
@@ -352,7 +390,7 @@ $(function(){
 
 
 // --- ES module exports (added for module-system conversion, HANDOVER #4) ---
-export { _activeTrust, _lastGlobalErrorToastAt, _reportGlobalError, applyCompareModeUI, emptyStateHtml, esc, initEnvBadge, saveSession, showScreen, startAiLoaderCardCycle, stopAiLoaderCardCycle, switchDbTab, toast, toggleTrust, validateSetup };
+export { _activeTrust, _lastGlobalErrorToastAt, _reportGlobalError, applyCompareModeUI, emptyStateHtml, esc, initEnvBadge, saveSession, showScreen, startAiLoaderCardCycle, stopAiLoaderCardCycle, switchDbTab, toast, toastHTML, toggleTrust, validateSetup };
 
 // Legacy-global compatibility shim: modules don't leak top-level
 // declarations onto window the way classic scripts did. The handful of

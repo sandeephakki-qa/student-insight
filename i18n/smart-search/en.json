@@ -52,5 +52,8 @@
   "smart_ambiguous_student": "I found more than one student matching \"{{names}}\" — which one did you mean?",
   "smart_name_count_one": "Found 1 student matching \"{{token}}\": {{names}}.",
   "smart_name_count_many": "Found {{n}} students matching \"{{token}}\": {{names}}.",
-  "smart_which_student_prompt": "Which student would you like to ask about? Type their name and try again."
+  "smart_which_student_prompt": "Which student would you like to ask about? Type their name and try again.",
+  "smart_ask_a_question": "Ask a question",
+  "smart_empty_example": "Type a question below — e.g. \"which subject is weakest\" or \"any students at risk\".",
+  "smart_launcher_title": "Ask a question about this class"
 }

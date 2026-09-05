@@ -15,7 +15,7 @@
    no hostname or path string-matching needed anywhere in this file.
 ============================================================ */
 
-const CACHE_VERSION = 'sia-v12.16-wow';
+const CACHE_VERSION = 'sia-v12.18-logo';
 const CACHE_NAME    = CACHE_VERSION;
 
 // e.g. "https://studin.in/" on prod, or
@@ -28,6 +28,8 @@ const SHELL_ASSETS = [
   SCOPE,
   SCOPE + 'index.html',
   SCOPE + 'manifest.json',
+  SCOPE + 'img/logo.png',
+  SCOPE + 'img/author.png',
 ];
 
 // CDN assets the app depends on (cache on first fetch)
@@ -53,23 +55,14 @@ self.addEventListener('install', event => {
   );
 });
 
-// FIX (review #9, partial): CACHE_VERSION above is still a hand-typed string —
+/* ── Activate: clean up old caches ── */
+// FIX (review #9): CACHE_VERSION above is still a hand-typed string —
 // switching that to a build/content hash needs a build step this static-file
 // project intentionally doesn't have, so left as a manual bump for now (just
 // remember to bump it every deploy, or updates silently won't reach users).
-// What IS added here: a postMessage broadcast on activate so index.html/
-// app-utils-init.js CAN show a "new version available, refresh?" toast instead
-// of the update sitting silently until next full close+reopen. Wire-up on the
-// page side is a small follow-up (registration.addEventListener('controllerchange', ...)).
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    self.clients.matchAll().then(clients => {
-      clients.forEach(c => c.postMessage({ type: 'SW_UPDATED', version: CACHE_VERSION }));
-    })
-  );
-});
-
-/* ── Activate: clean up old caches ── */
+// After cleanup, claim clients so the page-side `controllerchange` listener
+// (see core/app-utils-init.js) fires a "new version available" toast instead
+// of the update sitting silently until next full close+reopen.
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>

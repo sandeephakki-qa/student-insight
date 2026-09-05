@@ -27,6 +27,12 @@ let updateSmartLauncherVisibility;
 
   const STYLE = `
 #sqv2-launcher{position:fixed;right:20px;bottom:20px;z-index:1200;width:52px;height:52px;border-radius:50%;background:#2b3a67;color:#fff;border:none;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center}
+/* Hidden for now per product decision (2026-09-01) — Smart Search chat
+   launcher isn't needed on screen at this time. Kept as a hard CSS
+   override (not deleted / not toggled via .sqv2-launcher-hidden) so the
+   existing show/hide logic in this file is untouched and this is a
+   one-line, easy-to-revert change when the launcher is wanted again. */
+#sqv2-launcher{display:none!important}
 #sqv2-launcher.sqv2-launcher-hidden{display:none}
 #sqv2-launcher:hover{background:#3451d1}
 #sqv2-panel{position:fixed;right:20px;bottom:82px;z-index:1200;width:340px;max-width:calc(100vw - 40px);max-height:70vh;background:#fff;border-radius:14px;box-shadow:0 12px 40px rgba(20,25,60,.25);border:1px solid #e2e5f1;display:none;flex-direction:column;overflow:hidden;font-family:"SF Pro Text","Inter",system-ui,-apple-system,sans-serif}
@@ -60,22 +66,22 @@ let updateSmartLauncherVisibility;
     const launcher = document.createElement("button");
     launcher.id = "sqv2-launcher";
     launcher.type = "button";
-    launcher.title = "Ask a question about this class";
+    launcher.title = srT("smart_launcher_title");
     launcher.innerHTML = "💬";
     launcher.addEventListener("click", togglePanel);
 
     const panel = document.createElement("div");
     panel.id = "sqv2-panel";
     panel.innerHTML =
-      '<div id="sqv2-header"><span>Ask a question</span><button id="sqv2-close" type="button" aria-label="Close">✕</button></div>' +
+      '<div id="sqv2-header"><span>'+escapeHtml(srT("smart_ask_a_question"))+'</span><button id="sqv2-close" type="button" aria-label="'+escapeHtml(srT("btn_close"))+'">✕</button></div>' +
       '<div id="sqv2-body">' +
         '<div id="sqv2-answer"></div>' +
         '<div id="sqv2-results"></div>' +
-        '<div id="sqv2-empty">Type a question below — e.g. "which subject is weakest" or "any students at risk".</div>' +
+        '<div id="sqv2-empty">'+escapeHtml(srT("smart_empty_example"))+'</div>' +
       '</div>' +
       '<div id="sqv2-inputrow">' +
         '<input id="sqv2-input" type="text" placeholder="'+escapeHtml(srT("smart_ask_placeholder"))+'" autocomplete="off"/>' +
-        '<button id="sqv2-ask" type="button">Ask</button>' +
+        '<button id="sqv2-ask" type="button">'+escapeHtml(srT("btn_ask"))+'</button>' +
       '</div>' +
       '<div style="font-size:10.5px;color:#9ba4c0;padding:4px 12px 8px">'+escapeHtml(srT("smart_v2_prefix_tip"))+'</div>';
 
@@ -287,11 +293,19 @@ let updateSmartLauncherVisibility;
   // via a microtask lets the full synchronous module-evaluation phase
   // (including state-nav.js's own top-level code) finish first.
   // Imperceptible timing change (sub-millisecond).
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    Promise.resolve().then(init);
-  }
+  // INTERNATIONAL-AUDIENCE ROLLOUT: the floating chat/"Smart Search"
+  // launcher (bottom-right corner bubble) is disabled — commented out,
+  // not deleted, for a one-line revert. updateSmartLauncherVisibility()
+  // stays exported and safe to call from core/template-upload.js: it
+  // already null-checks `document.getElementById("sqv2-launcher")` and
+  // returns immediately when the element doesn't exist (see
+  // applyLauncherVisibility() above), so leaving that import/call in
+  // place elsewhere is a harmless no-op now rather than a crash risk.
+  // if(document.readyState === "loading"){
+  //   document.addEventListener("DOMContentLoaded", init);
+  // } else {
+  //   Promise.resolve().then(init);
+  // }
 
 })();
 

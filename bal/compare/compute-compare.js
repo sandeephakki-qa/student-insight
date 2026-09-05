@@ -249,7 +249,7 @@ function renderHomeFileList(){
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between">
             <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:220px">
               <span style="font-size:16px" aria-hidden="true">${sec.valid?"<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false' style='color:var(--c-success)'><path d='M22 11.1V12a10 10 0 1 1-5.9-9.1'/><polyline points='22 4 12 14.5 9 11.5'/></svg>":"<svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false' style='color:var(--c-danger)'><circle cx='12' cy='12' r='10'/><line x1='15' y1='9' x2='9' y2='15'/><line x1='9' y1='9' x2='15' y2='15'/></svg>"}</span>
-              <input type="text" value="${esc(sec.label)}" data-input-action="renameHomeCompareFile" data-arg="${sec.id}" aria-label="Section label for ${esc(sec.fileName)}" style="padding:5px 8px;font-size:13px;font-weight:700;border:1px solid var(--c-border);border-radius:var(--r-sm);min-width:160px" placeholder="Section label"/>
+              <input type="text" value="${esc(sec.label)}" data-input-action="renameHomeCompareFile" data-arg="${sec.id}" aria-label="${esc(srT("compare_section_label_aria",{file:sec.fileName}))}" style="padding:5px 8px;font-size:13px;font-weight:700;border:1px solid var(--c-border);border-radius:var(--r-sm);min-width:160px" placeholder="${esc(srT("compare_section_label_placeholder"))}"/>
               <span style="font-size:11.5px;color:var(--c-text3)">${esc(sec.fileName)} · ${sec.rowCount} row${sec.rowCount===1?"":"s"}</span>
             </div>
             <button class="btn btn-secondary btn-sm" data-action="removeHomeCompareFile" data-arg="${sec.id}">✕ Remove</button>
@@ -271,7 +271,7 @@ function renderHomeFileList(){
           <span style="font-size:16px" aria-hidden="true"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false' style='color:var(--c-success)'><path d='M22 11.1V12a10 10 0 1 1-5.9-9.1'/><polyline points='22 4 12 14.5 9 11.5'/></svg></span>
           <div>
             <div style="font-weight:700;font-size:13px">${esc(f.fileName)}</div>
-            <div style="font-size:11.5px;color:var(--c-text3)">${f.rowCount} row${f.rowCount===1?"":"s"} detected</div>
+            <div style="font-size:11.5px;color:var(--c-text3)">${esc(srT("val_rows_detected",{n:f.rowCount},f.rowCount))}</div>
           </div>
         </div>
         <button class="btn btn-secondary btn-sm" data-action="resetHomeImport">✕ Remove</button>
@@ -308,8 +308,8 @@ function removeHomeCompareFile(id){
     if(btn){btn.style.display="none";}
     const statusEl=document.getElementById("home-import-status");
     statusEl.innerHTML=`<div class="card" style="border-color:var(--c-warn)">
-      <b style="color:var(--c-warn)">No valid files left</b>
-      <div style="font-size:12.5px;color:var(--c-text2);margin-top:6px">Drop another Student Insight file below.</div>
+      <b style="color:var(--c-warn)">${esc(srT("compare_no_valid_files_left"))}</b>
+      <div style="font-size:12.5px;color:var(--c-text2);margin-top:6px">${esc(srT("compare_drop_another_file"))}</div>
     </div>`;
     statusEl.style.display="block";
   }
@@ -730,9 +730,9 @@ function renderManagementGrid(mg){
   if(!mg)return "";
   const kpis=`<div class="grid-4" style="margin-bottom:16px">
     <div class="kpi-card"><div class="kpi-label">Classes × Sections</div><div class="kpi-val">${mg.classes.length} × ${mg.sectionKeys.length}</div></div>
-    <div class="kpi-card"><div class="kpi-label">School Avg</div><div class="kpi-val" style="color:${mg.schoolAvg>=60?"var(--c-success)":mg.schoolAvg>=35?"var(--c-warn)":"var(--c-danger)"}">${mg.schoolAvg}%</div></div>
-    <div class="kpi-card"><div class="kpi-label">School Pass Rate</div><div class="kpi-val">${mg.schoolPassRate}%</div></div>
-    <div class="kpi-card"><div class="kpi-label">Total At-Risk</div><div class="kpi-val" style="color:${mg.totalAtRisk>0?"var(--c-danger)":"inherit"}">${mg.totalAtRisk}</div></div>
+    <div class="kpi-card"><div class="kpi-label">${esc(srT("kpi_school_avg"))}</div><div class="kpi-val" style="color:${mg.schoolAvg>=60?"var(--c-success)":mg.schoolAvg>=35?"var(--c-warn)":"var(--c-danger)"}">${mg.schoolAvg}%</div></div>
+    <div class="kpi-card"><div class="kpi-label">${esc(srT("kpi_school_pass_rate"))}</div><div class="kpi-val">${mg.schoolPassRate}%</div></div>
+    <div class="kpi-card"><div class="kpi-label">${esc(srT("kpi_total_at_risk"))}</div><div class="kpi-val" style="color:${mg.totalAtRisk>0?"var(--c-danger)":"inherit"}">${mg.totalAtRisk}</div></div>
   </div>`;
   const cellColor=v=>v>=80?"#e3f9f2":v>=60?"#eef1fe":v>=35?"#fff6e5":"#fdecea";
   const cellText=v=>v>=80?"#0e7a63":v>=60?"#3346a8":v>=35?"#8a5b00":"#b23328";
@@ -877,7 +877,7 @@ function renderAllStudentsRankingTable(rows){
 function renderCompareOverview(){
   const rows=APP.sectionComparison||[];
   const wrap=$("#bucket-answer-screen");
-  if(!rows.length){wrap.html('<div class="bucket-empty">No analysed sections yet.</div>');return;}
+  if(!rows.length){wrap.html(`<div class="bucket-empty">${esc(srT("bucket_no_analysed_sections"))}</div>`);return;}
   const mg=computeManagementGrid();
   // mgHtml now only covers the banner + KPI strip + Class×Section grid
   // table (all genuinely multi-class-only) — the weak-subjects and
@@ -886,9 +886,9 @@ function renderCompareOverview(){
   const mgHtml=mg?renderManagementGrid(mg):"";
   const best=rows[0],worst=rows[rows.length-1];
   const kpis=`<div class="grid-4" style="margin-bottom:16px">
-    <div class="kpi-card"><div class="kpi-label">Sections Compared</div><div class="kpi-val">${rows.length}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Top Section</div><div class="kpi-val" style="font-size:16px">${esc(best.label)} (${best.avg}%)</div></div>
-    <div class="kpi-card"><div class="kpi-label">Needs Attention</div><div class="kpi-val" style="font-size:16px">${esc(worst.label)} (${worst.avg}%)</div></div>
+    <div class="kpi-card"><div class="kpi-label">${esc(srT("kpi_sections_compared"))}</div><div class="kpi-val">${rows.length}</div></div>
+    <div class="kpi-card"><div class="kpi-label">${esc(srT("kpi_top_section"))}</div><div class="kpi-val" style="font-size:16px">${esc(best.label)} (${best.avg}%)</div></div>
+    <div class="kpi-card"><div class="kpi-label">${esc(srT("kpi_needs_attention"))}</div><div class="kpi-val" style="font-size:16px">${esc(worst.label)} (${worst.avg}%)</div></div>
     <div class="kpi-card"><div class="kpi-label">${esc(srT("kpi_total_students"))}</div><div class="kpi-val">${rows.reduce((a,r)=>a+r.n,0)}</div></div>
   </div>`;
   const tableRows=rows.map(r=>`<tr style="cursor:pointer" data-action="selectCompareSection" data-arg="${r.id}" title="${esc(srT("title_click_to_open",{label:r.label}))}">
@@ -901,9 +901,9 @@ function renderCompareOverview(){
     <td>${esc(r.topperName)} (${r.topperAvg}%)</td>
   </tr>`).join("");
   const table=`<div class="card" style="margin-bottom:16px">
-    <div class="card-title" style="margin-bottom:2px">Section Ranking</div>
-    <div style="font-size:11px;color:var(--c-text2);margin-bottom:10px">Click any row to open that section's full dashboard.</div>
-    <div class="tbl-wrap"><table class="data-table"><thead><tr><th>Rank</th><th>Section</th><th>Students</th><th>Avg %</th><th>Pass Rate</th><th>At-Risk</th><th>Topper</th></tr></thead><tbody>${tableRows}</tbody></table></div>
+    <div class="card-title" style="margin-bottom:2px">${esc(srT("card_section_ranking"))}</div>
+    <div style="font-size:11px;color:var(--c-text2);margin-bottom:10px">${esc(srT("compare_click_row_hint"))}</div>
+    <div class="tbl-wrap"><table class="data-table"><thead><tr><th>${esc(srT("pdf_kpi_rank"))}</th><th>${esc(srT("pdf_col_section"))}</th><th>${esc(srT("pdf_col_students"))}</th><th>${esc(srT("pdf_col_avg_pct"))}</th><th>${esc(srT("pdf_pass_rate"))}</th><th>${esc(srT("pdf_col_at_risk_short"))}</th><th>${esc(srT("pdf_col_topper"))}</th></tr></thead><tbody>${tableRows}</tbody></table></div>
   </div>`;
   const weakCard=renderWeakSubjectsCard(computeWeakSubjects(rows));
   const flagCard=renderFlaggedSectionsCard(computeFlaggedSections(rows));
@@ -1032,7 +1032,7 @@ async function exportComparisonReportPDF(){
   doc.text(pdfT("pdf_section_comparison_header","Student Insight  |  Section Comparison Report"),10,10);
   doc.setFontSize(8);doc.setFont("helvetica","normal");doc.setTextColor(...T.INK_SOFT);
   doc.text(headerSubtitle,10,17);
-  doc.text("Generated: "+new Date().toLocaleDateString(bcp47TagFor(window.SR_LANG)),W-10,17,{align:"right"});
+  doc.text(pdfT("pdf_generated_label","Generated: {{date}}",{date:new Date().toLocaleDateString(bcp47TagFor(window.SR_LANG))}),W-10,17,{align:"right"});
   pdfRule(doc,8,20,W-8,1.6,T.INK);
   doc.setTextColor(...T.INK);
   let y=32;
@@ -1060,11 +1060,11 @@ async function exportComparisonReportPDF(){
     y+=24;
     // Class x Section grid — multi-class only
     if(mg){
-      doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...T.INK);doc.text("Class × Section Grid (avg %)",10,y);y+=6;
+      doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...T.INK);doc.text(pdfT("pdf_class_section_grid","Class × Section Grid (avg %)"),10,y);y+=6;
       const gCols=mg.sectionKeys.length,firstW=32,cellW=(W-20-firstW)/Math.max(1,gCols);
       pdfRule(doc,10,y,W-10,1.6,T.INK);
       doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...T.INK);
-      doc.text("Class",12,y+4.2);
+      doc.text(pdfT("pdf_kpi_class","Class"),12,y+4.2);
       mg.sectionKeys.forEach((sk,i)=>doc.text(sk,10+firstW+i*cellW+cellW/2,y+4.2,{align:"center"}));
       y+=6;
       pdfRule(doc,10,y,W-10,1,T.LINE);
@@ -1104,20 +1104,20 @@ async function exportComparisonReportPDF(){
     const flagged=computeFlaggedSections(rows);
     if(flagged.length){
       if(y>250){doc.addPage();y=20;}
-      doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...T.DANGER);doc.text("Sections Needing Attention",10,y);y+=6;
+      doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...T.DANGER);doc.text(pdfT("pdf_sections_needing_attention","Sections Needing Attention"),10,y);y+=6;
       doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(...T.INK);
       flagged.forEach(r=>{
         if(y>278){doc.addPage();y=20;}
-        doc.text("• "+fitText(doc,r.label+" — "+r.avg+"% avg, "+r.atRisk+" at-risk of "+r.n,180),12,y);
+        doc.text("• "+fitText(doc,pdfT("pdf_section_flagged_line","{{label}} — {{avg}}% avg, {{atRisk}} at-risk of {{n}}",{label:r.label,avg:r.avg,atRisk:r.atRisk,n:r.n}),180),12,y);
         y+=5.5;
       });
       y+=4;
     }
     doc.addPage();y=20;
   }
-  doc.setFont("helvetica","bold");doc.setFontSize(12);doc.setTextColor(...T.INK);doc.text("Section Ranking",10,y);y+=8;
+  doc.setFont("helvetica","bold");doc.setFontSize(12);doc.setTextColor(...T.INK);doc.text(pdfT("card_section_ranking","Section Ranking"),10,y);y+=8;
   doc.setFontSize(9);doc.setFont("helvetica","bold");
-  const cols=[["Rank",10],["Section",26],["Students",84],["Avg %",106],["Pass %",128],["At-Risk",150],["Topper",170]];
+  const cols=[[pdfT("pdf_kpi_rank","Rank"),10],[pdfT("pdf_col_section","Section"),26],[pdfT("pdf_col_students","Students"),84],[pdfT("pdf_col_avg_pct","Avg %"),106],[pdfT("pdf_col_pass_pct_full","Pass %"),128],[pdfT("pdf_col_at_risk_short","At-Risk"),150],[pdfT("pdf_col_topper","Topper"),170]];
   cols.forEach(([label,x])=>doc.text(label,x,y));
   y+=5;pdfRule(doc,10,y-3,200,1.6,T.INK);
   doc.setFont("helvetica","normal");doc.setTextColor(...T.INK);

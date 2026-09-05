@@ -388,6 +388,7 @@ textarea:focus-visible,[tabindex]:focus-visible,[role="button"]:focus-visible,
 #ai-loader.card-loader{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r);box-shadow:var(--c-shadow-md);margin-bottom:16px}
 .loader-ring{width:48px;height:48px;border:4px solid var(--c-border);border-top-color:var(--c-primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
 @keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.loader-ring{animation:none;border-top-color:var(--c-border)}}
 .loader-msg{font-size:13.5px;color:var(--c-text2);margin-bottom:12px;font-weight:600}
 .loader-step-count{font-size:11px;color:var(--c-text3);margin-bottom:10px}
 .loader-hint{font-size:12px;color:var(--c-text3);margin-top:10px;font-style:italic}
@@ -463,7 +464,42 @@ table.data-table th[data-sortable]:focus-visible{outline:2px solid var(--c-prima
 .wb-val{font-size:20px;font-weight:700;font-family:var(--font-display)}
 
 /* FOOTER */
-#footer{text-align:center;font-size:11px;color:var(--c-text3);padding:8px;border-top:1px solid var(--c-border);background:var(--c-surface);flex-shrink:0;margin-top:24px}
+#footer{padding:0;border-top:1px solid var(--c-border);background:var(--c-surface);flex-shrink:0;margin-top:24px}
+
+/* StudInPro ticker runs directly inside #footer (no separate static
+   footer text, no extra row). Calm speed, pauses fully on hover/touch
+   rather than just slowing down — a mid-speed "slow but still moving"
+   state is harder to read than a full stop. */
+#studinpro-ticker{
+  display:flex;align-items:center;
+  cursor:pointer;user-select:none;overflow:hidden;position:relative;
+  padding:8px 10px 8px 130px;font-size:11.5px;color:var(--c-primary);
+  background:var(--c-primary)0d;
+  transition:background .15s;
+  /* CONFIRMED BUG (measured live in Chromium): css/vs-shell.css's desktop
+     media query sets #footer{display:flex;justify-content:center}, which
+     CENTERS a flex item at its natural content width rather than
+     stretching it. With no explicit width here, this div shrinks to fit
+     just its own padding/badge (~140px) and sits centered in the footer —
+     which is exactly why the scroll viewport next to it can measure 0px
+     wide with no text ever visible. width:100% forces it to fill the
+     footer regardless of that justify-content:center. DO NOT REMOVE. */
+  width:100%;
+}
+#studinpro-ticker:hover,#studinpro-ticker:focus-visible{background:var(--c-primary)1a;outline:none}
+#studinpro-ticker-badge{
+  position:fixed;left:14px;bottom:10px;z-index:5;
+  font-weight:700;letter-spacing:.3px;padding:3px 10px;border-radius:999px;
+  background:var(--c-primary);color:#fff;font-size:10px;
+}
+#studinpro-ticker-scroll{flex:1;width:100%;overflow:hidden;white-space:nowrap;position:relative;height:1.4em}
+/* Position is driven entirely by JS (ui/common/studinpro-ticker.js)
+   setting transform:translateX(...) directly on every animation frame —
+   no CSS @keyframes/animation properties needed here. */
+#studinpro-ticker-text{
+  position:absolute;top:0;left:0;white-space:nowrap;will-change:transform;
+}
+#studinpro-ticker-hint{font-weight:600;text-decoration:underline;flex-shrink:0;white-space:nowrap}
 
 /* RESPONSIVE FIXES — 1024 (tablet) / 768 (small tablet/large phone) / 480 (phone) / 360 (small phone/foldable) */
 @media(max-width:1024px){

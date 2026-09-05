@@ -1,6 +1,8 @@
 import { esc, switchDbTab, toast } from './app-utils-init.js';
 import { runAnalysis } from '../bal/common/compute-stats.js';
 import { collectSetupForm } from './project-setup.js';
+import { loadCountryManifest } from './country-language-loader.js';
+import { applyCountryScholarshipGate } from './feature-registry.js';
 import { renderBuckets } from '../ui/common/render-buckets.js';
 import { renderCharts, showSampleFiles } from '../ui/common/render-core.js';
 import { loadLanguage, reapplyI18nStrings, showAiTranslationNotice, srT } from './render-i18n.js';
@@ -10,7 +12,7 @@ import { renderShellLeftRail, renderShellRightRail, setShellRailsOpen } from './
 
 
 /* ════ APP STATE ════ */
-const APP={currentStep:"home",features:{},setupCard1Choice:"new",setup:{mode:"institution",modeLocked:false,instName:"",instType:"",location:"",contact:"",className:"",section:"",year:"",teacher:"",scoring:{marks:true,pct:true,grade:false,pf:false},passThreshold:35,absentAlert:3,dropAlert:20,subjects:[],tests:[]},rawData:null,students:[],classStats:null,genderAnalysis:null,filter:"all",sort:"rank",aiFeatures:new Set(),individualSelectedId:null,
+const APP={currentStep:"home",country:"IN",features:{},setupCard1Choice:"new",setup:{mode:"institution",modeLocked:false,instName:"",instType:"",location:"",contact:"",className:"",section:"",year:"",teacher:"",scoring:{marks:true,pct:true,grade:false,pf:false},passThreshold:35,absentAlert:3,dropAlert:20,subjects:[],tests:[]},rawData:null,students:[],classStats:null,genderAnalysis:null,filter:"all",sort:"rank",aiFeatures:new Set(),individualSelectedId:null,
   // mergeSource holds the already-filled MARKS+CONTEXT sheet (header row +
   // real student rows, as plain arrays) when the teacher loads an existing
   // workbook via "Update Existing Sheet" on the Setup step. When set,
@@ -325,59 +327,118 @@ function updateScholarshipNavVisibility(){
   if(el) el.classList.toggle("nav-file-loaded", fileIsLoaded());
 }
 
-// PHASE 3 — Only India is active right now; other countries are listed
-// but disabled ("coming soon") in the dropdown, per explicit direction.
-// All 13 Indian languages now have real (AI-draft, unreviewed) i18n/
-// files with exact key parity to en.json (verified). ur.json is RTL
-// script — the app has no dir="rtl" layout support yet, so Urdu text
-// will render but surrounding UI won't mirror; a real follow-up item.
+// PHASE 4 — all countries now listed in the dropdown (previously only
+// India was rendered; see the removed `.filter()` this replaced). Real
+// translated CONTENT is still only complete for the 13 Indian languages
+// (i18n/<shard>/en.json + hi.json etc, untouched by this change) — every
+// other country/language combination here is dropdown-listing plumbing
+// only, wired to the new i18n-countries/ skeleton (index.json + one
+// manifest.json per country). Selecting e.g. Germany still calls the
+// same loadLanguage("de") used everywhere else; render-i18n.js's
+// existing table[key]||SR_STRINGS_EN[key] fallback means it renders in
+// English until de.json content actually exists — same safe fallback
+// behavior as any other missing-translation case, nothing new to guard.
+//
+// `folder` here is each country's directory name under i18n-countries/
+// — used to fetch that single country's manifest.json lazily (only the
+// moment it's selected, not all of them up front). This object is also
+// the synchronous first-paint seed for the dropdown (so there's no
+// empty-<select> flash while the network request is in flight) and
+// remains the fallback data source for ui/common/onboarding-slider.js
+// exactly as documented there.
 const COUNTRY_LANGUAGES = {
-  IN: { label:"India", defaultLang:"en", languages:[
+  IN: { label:"India", folder:"i18n-India", defaultLang:"en", languages:[
     {code:"en",label:"English"},{code:"hi",label:"हिन्दी (Hindi)"},{code:"kn",label:"ಕನ್ನಡ (Kannada)"},
     {code:"ta",label:"தமிழ் (Tamil)"},{code:"te",label:"తెలుగు (Telugu)"},{code:"mr",label:"मराठी (Marathi)"},
     {code:"bn",label:"বাংলা (Bengali)"},{code:"gu",label:"ગુજરાતી (Gujarati)"},{code:"ml",label:"മലയാളം (Malayalam)"},
     {code:"pa",label:"ਪੰਜਾਬੀ (Punjabi)"},{code:"or",label:"ଓଡ଼ିଆ (Odia)"},{code:"as",label:"অসমীয়া (Assamese)"},
     {code:"ur",label:"اردو (Urdu)"}
   ]},
-  US: { label:"United States", defaultLang:"en", languages:[{code:"en",label:"English"}] },
-  GB: { label:"United Kingdom", defaultLang:"en", languages:[{code:"en",label:"English"}] },
-  AE: { label:"UAE", defaultLang:"en", languages:[{code:"en",label:"English"},{code:"ur",label:"اردو (Urdu)"}] },
-  SG: { label:"Singapore", defaultLang:"en", languages:[{code:"en",label:"English"},{code:"ta",label:"தமிழ் (Tamil)"}] },
-  AU: { label:"Australia", defaultLang:"en", languages:[{code:"en",label:"English"}] },
-  CA: { label:"Canada", defaultLang:"en", languages:[{code:"en",label:"English"}] }
+  CN: { label:"China", folder:"i18n-China", defaultLang:"en", languages:[{code:"en",label:"English"},{code:"zh",label:"中文 (Chinese)"}] },
+  US: { label:"United States", folder:"i18n-UnitedStates", defaultLang:"en", languages:[{code:"en",label:"English"}] },
+  GB: { label:"United Kingdom", folder:"i18n-UnitedKingdom", defaultLang:"en", languages:[{code:"en",label:"English"}] },
+  DE: { label:"Germany", folder:"i18n-Germany", defaultLang:"en", languages:[{code:"en",label:"English"},{code:"de",label:"Deutsch (German)"}] },
+  FR: { label:"France", folder:"i18n-France", defaultLang:"en", languages:[{code:"en",label:"English"},{code:"fr",label:"Français (French)"}] },
+  RU: { label:"Russia", folder:"i18n-Russia", defaultLang:"en", languages:[{code:"en",label:"English"},{code:"ru",label:"Русский (Russian)"}] },
+  AE: { label:"UAE", folder:"i18n-UAE", defaultLang:"en", languages:[{code:"en",label:"English"},{code:"ur",label:"اردو (Urdu)"}] },
+  SG: { label:"Singapore", folder:"i18n-Singapore", defaultLang:"en", languages:[{code:"en",label:"English"},{code:"ta",label:"தமிழ் (Tamil)"}] },
+  AU: { label:"Australia", folder:"i18n-Australia", defaultLang:"en", languages:[{code:"en",label:"English"}] },
+  CA: { label:"Canada", folder:"i18n-Canada", defaultLang:"en", languages:[{code:"en",label:"English"}] }
 };
 const DEFAULT_COUNTRY = "IN";
+// Per-country manifests fetched from i18n-countries/ are cached here after
+// their first lazy load, keyed by country code, so re-selecting a country
+// already visited this session doesn't re-fetch.
+const _lazyManifestCache = {};
 
 function populateCountryDropdown(){
   const sel = $("#country-select");
   if(!sel.length) return;
-  // Only India is offered as a selectable option — the other countries in
-  // COUNTRY_LANGUAGES are NOT rendered into the <select> at all. An
-  // earlier version tried native <option disabled> instead, but that
-  // styling is too subtle in some browsers/OS combos to read as
-  // "disabled" at a glance — this is the unambiguous fix: if it's not in
-  // the list, it can't be picked, full stop. The other countries stay
-  // defined in COUNTRY_LANGUAGES (unused for now) so re-enabling one
-  // later is just adding it back into this .filter().
-  const active = Object.entries(COUNTRY_LANGUAGES).filter(([code])=>code===DEFAULT_COUNTRY);
-  sel.html(active.map(([code,c])=>
-    `<option value="${code}" selected>${esc(c.label)}</option>`
+  // All countries listed now (was: only India, via a `.filter()` to just
+  // DEFAULT_COUNTRY — removed). Instant sync render from the seed object
+  // above; the language side is what actually lazy-loads, per spec.
+  sel.html(Object.entries(COUNTRY_LANGUAGES).map(([code,c])=>
+    `<option value="${code}" ${code===DEFAULT_COUNTRY?"selected":""}>${esc(c.label)}</option>`
   ).join(""));
   $("#i18n-more-countries-note").remove();
   populateLanguageDropdown(DEFAULT_COUNTRY);
 }
-function populateLanguageDropdown(countryCode){
-  const country = COUNTRY_LANGUAGES[countryCode] || COUNTRY_LANGUAGES[DEFAULT_COUNTRY];
+
+// Genuinely lazy: only fetches i18n-countries/<folder>/manifest.json for
+// the ONE country actually selected, only the first time it's selected
+// (cached in _lazyManifestCache after). This is the real wiring to the
+// new per-country folder structure — the language list rendered here
+// comes from that fetched manifest, not from the static seed above, once
+// the fetch resolves. The seed's own `languages` array is used only as
+// an instant-paint fallback for the very first frame (and if the fetch
+// ever fails — offline, static assets not deployed, etc.) so the
+// dropdown is never left empty.
+async function populateLanguageDropdown(countryCode){
+  const seed = COUNTRY_LANGUAGES[countryCode] || COUNTRY_LANGUAGES[DEFAULT_COUNTRY];
   const sel = $("#language-select");
   if(!sel.length) return;
-  sel.html(country.languages.map(l=>
-    `<option value="${l.code}" ${l.code===country.defaultLang?"selected":""}>${esc(l.label)}</option>`
-  ).join(""));
+  const renderFrom=(country)=>{
+    sel.html(country.languages.map(l=>
+      `<option value="${l.code}" ${l.code===country.defaultLang?"selected":""}>${esc(l.label)}</option>`
+    ).join(""));
+  };
+  renderFrom(seed); // instant paint, no flash of an empty dropdown
+  try{
+    let manifest=_lazyManifestCache[countryCode];
+    if(!manifest){
+      manifest = await loadCountryManifest(seed.folder);
+      _lazyManifestCache[countryCode]=manifest;
+    }
+    // Only re-render if the country selection hasn't changed again while
+    // this fetch was in flight (fast clicking between countries) and the
+    // fetched manifest actually differs from the seed already painted.
+    if($("#country-select").val()===countryCode) renderFrom(manifest);
+  }catch(e){
+    // i18n-countries/ not deployed / offline / 404 — seed above already
+    // rendered a working dropdown, so this is a silent no-op, not a
+    // user-facing error. Matches the same graceful-fallback philosophy
+    // as render-i18n.js's table[key]||SR_STRINGS_EN[key] chain.
+  }
 }
-function onCountryChange(countryCode){
-  populateLanguageDropdown(countryCode);
+async function onCountryChange(countryCode){
+  await populateLanguageDropdown(countryCode);
   const country = COUNTRY_LANGUAGES[countryCode] || COUNTRY_LANGUAGES[DEFAULT_COUNTRY];
-  loadLanguage(country.defaultLang);
+  const manifest = _lazyManifestCache[countryCode];
+  loadLanguage((manifest&&manifest.defaultLang)||country.defaultLang);
+  // Scholarship is India-only (see applyCountryScholarshipGate()'s own
+  // comment) — recompute the *effective* feature set from the untouched
+  // raw one so switching back to India restores the file's real
+  // Feature_Scholarship setting instead of it staying stuck "off" from
+  // an earlier non-India selection. Only meaningful once a file has
+  // actually been analyzed (APP._rawFeatures set); before that there's
+  // no dashboard/rails showing a scholarship row yet, so this is a
+  // no-op on the Home screen.
+  APP.country = countryCode;
+  if(APP._rawFeatures){
+    APP.features = applyCountryScholarshipGate(APP._rawFeatures, APP.country);
+    if(typeof renderShellLeftRail==="function") renderShellLeftRail(APP.currentStep);
+    if(typeof renderShellRightRail==="function") renderShellRightRail(APP.currentStep);
+  }
 }
 function onLanguageChange(langCode){
   loadLanguage(langCode).then(()=>{

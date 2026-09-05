@@ -344,7 +344,7 @@ function individualBucketDefs(st){
 // (window._individualBucketCurrent instead of APP._currentBucketId).
 function buildIndividualDashboardControlsHtml(){
   const st=currentIndividualStudent();
-  if(!st) return `<div class="bucket-list"><div class="bucket-row" style="cursor:default"><span class="bucket-text"><span class="bucket-label">No student data yet</span></span></div></div>`;
+  if(!st) return `<div class="bucket-list"><div class="bucket-row" style="cursor:default"><span class="bucket-text"><span class="bucket-label">${esc(srT("bucket_no_student_data_yet"))}</span></span></div></div>`;
   const buckets=individualBucketDefs(st);
   const active=window._individualBucketCurrent||"report";
   const rows=buckets.map(b=>{
@@ -434,7 +434,7 @@ function renderIndividualReportAnswer(st){
     ${buildStudentKpiBottomGridHtml(st)}
     ${hasTrend?`<div class="chart-container" style="margin-top:14px">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div class="card-title">Progress Trend</div>
+        <div class="card-title">${esc(srT("card_progress_trend"))}</div>
         <button class="btn btn-secondary btn-sm" data-action="shareInsightAsImage" data-arg="${esc(st.id)}"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 15V3'/><path d='M7 8l5-5 5 5'/><path d='M4 21h16'/></svg> Share as Image</button>
       </div>
       <canvas id="bucket-chart-student-trend"></canvas>
@@ -460,9 +460,9 @@ function renderTargetScoreCard(studentId){
   const st=APP.students.find(s=>s.id===studentId);if(!st)return;
   const a=st.analysis||{};
   const savedTarget=_targetScoreInputs[studentId];
-  const html=`<div class="card-title" style="margin-bottom:8px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2'/></svg> Target for Next Test</div>
+  const html=`<div class="card-title" style="margin-bottom:8px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2'/></svg> ${esc(srT("card_target_next_test"))}</div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <label style="font-size:12.5px;color:var(--c-text2)">Target %</label>
+      <label style="font-size:12.5px;color:var(--c-text2)">${esc(srT("val_target_pct"))}</label>
       <input type="number" id="target-score-input" min="0" max="100" step="1" value="${savedTarget!=null?savedTarget:""}" placeholder="e.g. 85" style="width:80px;text-align:center;padding:6px 8px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:13px" data-input-action="setTargetScore" data-arg="${esc(studentId)}"/>
     </div>
     <div id="target-score-gap" style="margin-top:10px"></div>
@@ -499,11 +499,11 @@ function renderIndividualSubjectsAnswer(st){
   const rows=Object.entries(avgs).sort((a,b)=>a[1]-b[1]).map(([subj,val])=>`<div class="subject-row"><span>${esc(subj)}</span><span>${esc(String(val))}%</span></div>`).join("");
   const validTestCount=((st.analysis&&st.analysis.testAvgs)||[]).filter(v=>v!==null&&v!==undefined).length;
   const hasTrend=validTestCount>=2;
-  const chartTitle=hasTrend?"Progress Trend":"Subject Breakdown";
+  const chartTitle=hasTrend?srT("card_progress_trend"):srT("card_subject_breakdown");
   $("#bucket-answer-screen").html(`
-    <div class="bucket-answer-title">Subjects & Marks — ${esc(st.name)}</div>
+    <div class="bucket-answer-title">${esc(srT("bucket_subjects_marks_title",{name:st.name}))}</div>
     <div class="bucket-answer-body">
-      <div class="subject-row-list">${rows||"<p>No subject data available yet.</p>"}</div>
+      <div class="subject-row-list">${rows||`<p>${esc(srT("val_no_subject_data_yet"))}</p>`}</div>
     </div>
     <div class="chart-container" style="margin-top:14px"><div class="card-title">${esc(chartTitle)}</div><canvas id="bucket-chart-student-trend2"></canvas></div>
   `).addClass("screen-fade-in").show();
@@ -550,7 +550,7 @@ function renderDashboardSampleBanner(){
   if(!APP._isSampleData){ el.html(""); return; }
   el.html(`<div class="card dashboard-sample-banner-card" style="padding:10px 14px;margin-bottom:14px;border-color:var(--c-warn,#f9a826);background:#fff8ec;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
     <div style="font-size:12.5px;color:#8a5a00"><strong>${esc(srT("bucket_viewing_sample_data"))}</strong> ${esc(srT("bucket_sample_data_desc"))}</div>
-    <button type="button" class="btn btn-secondary btn-sm" data-action="dismissSampleBanner" aria-label="Dismiss">✕</button>
+    <button type="button" class="btn btn-secondary btn-sm" data-action="dismissSampleBanner" aria-label="${esc(srT("btn_dismiss"))}">✕</button>
   </div>`);
 }
 
@@ -1148,12 +1148,12 @@ function renderComparePicker(){
   const students=APP.students||[];
   const opts=students.map(st=>`<option value="${esc(st.id)}">${esc(st.name)}</option>`).join("");
   $("#bucket-answer-screen").html(`
-    <div class="bucket-answer-title">Compare Two Students</div>
-    <div class="bucket-picker-hint">Pick any two students from this class — comparison only ever uses this same roster, so it's always apples-to-apples.</div>
+    <div class="bucket-answer-title">${esc(srT("bucket_compare_label"))}</div>
+    <div class="bucket-picker-hint">${esc(srT("compare_students_hint"))}</div>
     <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px">
-      <select id="compare-pick-a" style="flex:1;min-width:180px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:13px" ><option value="">Select student A…</option>${opts}</select>
+      <select id="compare-pick-a" style="flex:1;min-width:180px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:13px" ><option value="">${esc(srT("compare_select_student_a"))}</option>${opts}</select>
       <span style="color:var(--c-text3);font-weight:700">vs</span>
-      <select id="compare-pick-b" style="flex:1;min-width:180px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:13px" ><option value="">Select student B…</option>${opts}</select>
+      <select id="compare-pick-b" style="flex:1;min-width:180px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:13px" ><option value="">${esc(srT("compare_select_student_b"))}</option>${opts}</select>
     </div>
     <div id="compare-result" style="margin-top:16px"></div>
   `);
@@ -1188,7 +1188,7 @@ function renderCompareResult(){
     rows+=rowsFor(s,va!==undefined?va:null,vb!==undefined?vb:null,"%");
   });
   el.html(`<div style="overflow-x:auto"><table class="data-table"><thead><tr><th></th><th style="text-align:center">${esc(stA.name)}</th><th style="text-align:center">${esc(stB.name)}</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <div style="font-size:11px;color:var(--c-text3);margin-top:10px">Same class, same subjects, same tests, same max marks — this comparison is always apples-to-apples. Highlighted cell = better on that row.</div>`);
+    <div style="font-size:11px;color:var(--c-text3);margin-top:10px">${esc(srT("compare_apples_to_apples_note"))}</div>`);
 }
 function backToBuckets(){
   $("#bucket-list-screen,#bucket-answer-screen").hide();

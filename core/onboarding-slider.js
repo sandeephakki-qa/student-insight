@@ -518,7 +518,15 @@ const StudInOnboarding = (function () {
     if (skipBtn) skipBtn.addEventListener("click", finish);
     render();
 
-    if (lsGet(LS_SEEN) !== "1") open();
+    // INTERNATIONAL-AUDIENCE ROLLOUT: auto-opening the first-time demo/
+    // intro slider on load has been disabled — the tool now loads with
+    // the Home screen visible immediately instead. Commented out, not
+    // deleted, so it's a one-line revert if this is ever wanted back.
+    // The manual "Replay intro / demo mode" button (#si-replay-btn,
+    // wired via open() a few lines above in this same init()) still
+    // works exactly as before — a user can still choose to watch it,
+    // it just no longer force-opens on first visit.
+    // if (lsGet(LS_SEEN) !== "1") open();
   }
 
   return { init, open };

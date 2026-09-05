@@ -150,7 +150,7 @@ function renderKPIs(){
 function renderStudentCards(){
   const isIndividual=APP.setup.mode==="individual";
   const filtered=getFilteredStudents();
-  if(!filtered.length){$("#student-grid").html("<div style='color:var(--c-text3);padding:20px'>No students match the filter.</div>");return;}
+  if(!filtered.length){$("#student-grid").html(`<div style='color:var(--c-text3);padding:20px'>${esc(srT("val_no_students_match_filter"))}</div>`);return;}
   $("#student-grid").html(filtered.map(st=>{
     const a=st.analysis,color=a.overallAvg>=85?"var(--c-success)":a.overallAvg>=60?"var(--c-primary)":a.overallAvg>=APP.setup.passThreshold?"var(--c-warn)":"var(--c-danger)";
     const sparkData=a.testAvgs.filter(v=>v!==null);const sparkSvg=buildSparkPath(sparkData);
@@ -161,8 +161,8 @@ function renderStudentCards(){
     // only means something when there's a cohort to rank within, so both
     // are dropped in Individual mode.
     const rm=a.rankMovement;
-    const rmBadge=rm==null?"":rm>0?` <span style="color:var(--c-success);font-weight:700" title="Moved up ${rm} place(s) since the previous test">▲${rm}</span>`:rm<0?` <span style="color:var(--c-danger);font-weight:700" title="Moved down ${-rm} place(s) since the previous test">▼${-rm}</span>`:` <span style="color:var(--c-text3)" title="No change in rank since the previous test">—</span>`;
-    const idLine=isIndividual?esc(st.id):`${esc(st.id)} · Rank #${a.rank}${rmBadge}`;
+    const rmBadge=rm==null?"":rm>0?` <span style="color:var(--c-success);font-weight:700" title="${esc(srT("rank_movement_up_tip",{n:rm}))}">▲${rm}</span>`:rm<0?` <span style="color:var(--c-danger);font-weight:700" title="${esc(srT("rank_movement_down_tip",{n:-rm}))}">▼${-rm}</span>`:` <span style="color:var(--c-text3)" title="${esc(srT("rank_movement_none_tip"))}">—</span>`;
+    const idLine=isIndividual?esc(st.id):`${esc(st.id)} · ${esc(srT("rank_hash_only",{rank:a.rank}))}${rmBadge}`;
     return `<div class="student-card" data-student-id="${esc(st.id)}"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:8px"><div style="min-width:0;flex:1" title="${esc(st.name)}"><div class="sc-name">${esc(st.name)}</div><div class="sc-id">${idLine}</div></div><div style="text-align:right;flex-shrink:0"><div class="sc-avg" style="color:${color}">${a.overallAvg}%</div><div style="display:flex;align-items:center;gap:4px;justify-content:flex-end"><span style="font-size:11px;color:var(--c-text3)">${a.grade}</span>${a.healthScore!=null?`<span style="font-size:11px;padding:1px 5px;border-radius:99px;font-weight:700;background:${a.healthScore>=80?'#e6f9f7':a.healthScore>=65?'#eef0fd':a.healthScore>=50?'#fff4e0':'#fdecea'};color:${a.healthScore>=80?'#1a5c50':a.healthScore>=65?'#2d3ab1':a.healthScore>=50?'#9a6200':'#8b1a1a'}">♥${a.healthScore}</span>`:''}</div></div></div><div class="sc-bar"><div class="sc-bar-fill" style="transform:scaleX(${(a.overallAvg/100).toFixed(4)});background:${color}"></div></div>${sparkData.length>1?`<div style="margin:6px 0">${sparkSvg}</div>`:""}<div class="sc-flags">${flagBadges}</div></div>`;
   }).join(""));
 }
@@ -176,7 +176,7 @@ function renderHeatmap(){
   const isIndividual=APP.setup.mode==="individual";
   const sts=getFilteredStudents().slice(0,30),{subjects}=APP.setup;
   $("#heatmap-card-title").text(isIndividual?srT("card_subject_performance"):srT("card_performance_heatmap"));
-  if(!sts.length||!subjects.length){$("#heatmap-wrap").html("<div style='color:var(--c-text3);padding:10px'>No data.</div>");return;}
+  if(!sts.length||!subjects.length){$("#heatmap-wrap").html(`<div style='color:var(--c-text3);padding:10px'>${esc(srT("val_no_data_short"))}</div>`);return;}
   function hmClass(p){return p>=85?"hm-ex":p>=70?"hm-good":p>=50?"hm-avg":p>=APP.setup.passThreshold?"hm-below":"hm-risk";}
   // U5: with exactly one row (Individual mode), a "Student" column just
   // repeats the same name in every row and adds no information — drop it
@@ -217,7 +217,7 @@ function configureChartDefaults(){
 let _bucketCharts={};
 function destroyBucketCharts(){Object.values(_bucketCharts).forEach(c=>c&&c.destroy());_bucketCharts={};}
 function bucketHeatmapHtml(students,subjects){
-  if(!students.length||!subjects.length)return "<div style='color:var(--c-text3);padding:10px'>No data.</div>";
+  if(!students.length||!subjects.length)return `<div style='color:var(--c-text3);padding:10px'>${esc(srT("val_no_data_short"))}</div>`;
   const hmClass=p=>p>=85?"hm-ex":p>=70?"hm-good":p>=50?"hm-avg":p>=APP.setup.passThreshold?"hm-below":"hm-risk";
   const hdr="<th>Student</th>"+subjects.map(s=>`<th>${esc(s)}</th>`).join("")+"<th>Avg</th>";
   const rows=students.slice(0,30).map(st=>`<tr><td style="font-weight:600;white-space:nowrap">${esc(st.name)}</td>${subjects.map(s=>`<td class="${hmClass(st.analysis.subjectAvgs[s]||0)}">${st.analysis.subjectAvgs[s]||0}%</td>`).join("")}<td style="font-weight:700">${st.analysis.overallAvg}%</td></tr>`).join("");
@@ -512,7 +512,7 @@ function buildStudentDetailHtml(st){
   const hasTrend=validTestCount>=2;
   const trendChartHtml=hasTrend?`<div class="chart-container" style="margin-top:14px;margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div class="card-title">Progress Trend</div>
+        <div class="card-title">${esc(srT("card_progress_trend"))}</div>
         <button class="btn btn-secondary btn-sm" data-action="shareInsightAsImage" data-arg="${esc(st.id)}"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><path d='M12 15V3'/><path d='M7 8l5-5 5 5'/><path d='M4 21h16'/></svg> Share as Image</button>
       </div>
       <canvas id="bucket-chart-student-trend"></canvas>
@@ -524,8 +524,8 @@ ${buildStudentHealthScoreHtml(st)}
 ${buildStudentKpiBottomGridHtml(st)}
 ${trendChartHtml}
 <div class="grid-4" style="margin-bottom:14px">
-  <div class="kpi-card"><div class="kpi-label">Best Test</div><div class="kpi-val" style="font-size:14px">${a.bestTest?esc(a.bestTest.name)+" ("+a.bestTest.pct+"%)":"—"}</div></div>
-  <div class="kpi-card"><div class="kpi-label">Weakest Test</div><div class="kpi-val" style="font-size:14px">${a.worstTest?esc(a.worstTest.name)+" ("+a.worstTest.pct+"%)":"—"}</div></div>
+  <div class="kpi-card"><div class="kpi-label">${esc(srT("kpi_best_test"))}</div><div class="kpi-val" style="font-size:14px">${a.bestTest?esc(a.bestTest.name)+" ("+a.bestTest.pct+"%)":"—"}</div></div>
+  <div class="kpi-card"><div class="kpi-label">${esc(srT("kpi_weakest_test"))}</div><div class="kpi-val" style="font-size:14px">${a.worstTest?esc(a.worstTest.name)+" ("+a.worstTest.pct+"%)":"—"}</div></div>
 </div>
 ${a.explainedWarnings&&a.explainedWarnings.length?`<div style="margin-bottom:12px"><div style="font-weight:600;font-size:11px;margin-bottom:6px">⚠ ${esc(srT("detail_alerts_explanations"))}</div>${a.explainedWarnings.map(f=>`<div style="margin-bottom:5px;padding:6px 10px;border-radius:var(--r-sm);background:${f.color}18;border-left:3px solid ${f.color}"><div style="font-weight:700;font-size:11px;color:${f.color}">${f.label}</div><div style="font-size:11px;color:var(--c-text2);margin-top:2px">${(f.reason||'')+flagChapterSuffix(st,f.type)}</div></div>`).join('')}</div>`:st.flags.length?`<div style="margin-bottom:14px"><div style="font-weight:600;margin-bottom:6px">${esc(srT("detail_flags_label"))}</div>${st.flags.map(f=>`<span class="badge" style="background:${f.color}22;color:${f.color};margin-right:6px">${f.label}</span>`).join("")}</div>`:""}
 ${!isIndividual&&a.subjectDeltas&&Object.keys(a.subjectDeltas).length?`<div class="card" style="padding:12px;margin-bottom:14px"><div class="card-title" style="margin-bottom:6px"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><line x1='6' y1='20' x2='6' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='18' y1='20' x2='18' y2='14'/></svg> vs. Class Average, by Subject</div><div style="display:flex;flex-wrap:wrap;gap:6px">${Object.entries(a.subjectDeltas).map(([s,d])=>`<span class="badge" style="background:${d>=0?'var(--c-success)':'var(--c-danger)'}18;color:${d>=0?'var(--c-success)':'var(--c-danger)'}" title="${esc(s)}: ${d>=0?'above':'below'} the class average by ${Math.abs(d)} points">${esc(s)} ${d>=0?"+":""}${d}</span>`).join("")}</div></div>`:""}
@@ -563,7 +563,7 @@ let _sampleFilesModalLockedLang=false;
 // only ever touches its own field on st.analysis, in-memory, same stateless
 // model as everything else.
 function narrativeCard(icon,title,field,value,studentId){
-  return `<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">${icon} ${title} <span style="font-weight:400;color:var(--c-text3);font-size:11px">(editable — used in the exported PDF)</span></div><textarea class="narrative-edit" data-field="${field}" style="width:100%;min-height:56px;font-size:13px;font-family:inherit;padding:8px;border:1px solid var(--c-border);border-radius:var(--r-sm);resize:vertical" data-input-action="narrativeEdit">${esc(value||"")}</textarea><div class="narrative-save-row" style="display:flex;justify-content:flex-end;margin-top:6px"><button class="btn btn-secondary" style="padding:5px 14px;font-size:12px" disabled data-action="saveNarrativeField" data-arg="${esc(studentId)}" data-arg2="${field}">Save</button></div></div>`;
+  return `<div class="card" style="padding:12px"><div class="card-title" style="margin-bottom:6px">${icon} ${title} <span style="font-weight:400;color:var(--c-text3);font-size:11px">(editable — used in the exported PDF)</span></div><textarea class="narrative-edit" data-field="${field}" style="width:100%;min-height:56px;font-size:13px;font-family:inherit;padding:8px;border:1px solid var(--c-border);border-radius:var(--r-sm);resize:vertical" data-input-action="narrativeEdit">${esc(value||"")}</textarea><div class="narrative-save-row" style="display:flex;justify-content:flex-end;margin-top:6px"><button class="btn btn-secondary" style="padding:5px 14px;font-size:12px" disabled data-action="saveNarrativeField" data-arg="${esc(studentId)}" data-arg2="${field}">${esc(srT("btn_save"))}</button></div></div>`;
 }
 function saveNarrativeField(id,field,btnEl){
   const st=APP.students.find(s=>s.id===id);if(!st)return;
@@ -597,7 +597,7 @@ function remarkCardsHtml(st){
     const rlen=remark.length;
     const rcountText=rlen+" characters"+(rlen>300?" — long remarks may push other sections to extra pages in the PDF":"");
     const rcountColor=rlen>300?"var(--c-warn,#f9a826)":"var(--c-text3)";
-    return `<div><div style="font-size:11.5px;font-weight:700;color:var(--c-text2);margin-bottom:4px">${esc(t.name)}${remarkToneBadgeHtml(remarkTone)}</div><textarea class="narrative-edit remark-edit" data-test="${esc(t.name)}" id="${remarkId}" style="width:100%;min-height:44px;font-size:13px;font-family:inherit;padding:8px;border:1px solid var(--c-border);border-radius:var(--r-sm);resize:vertical" data-input-action="remarkEdit">${esc(remark)}</textarea><div class="narrative-save-row" style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><span class="remark-char-count" data-for="${remarkId}" style="font-size:11px;color:${rcountColor}">${rcountText}</span><button class="btn btn-secondary" style="padding:5px 14px;font-size:12px" disabled data-action="saveRemarkField" data-arg="${esc(st.id)}" data-arg2="${esc(t.name)}">Save</button></div></div>`;
+    return `<div><div style="font-size:11.5px;font-weight:700;color:var(--c-text2);margin-bottom:4px">${esc(t.name)}${remarkToneBadgeHtml(remarkTone)}</div><textarea class="narrative-edit remark-edit" data-test="${esc(t.name)}" id="${remarkId}" style="width:100%;min-height:44px;font-size:13px;font-family:inherit;padding:8px;border:1px solid var(--c-border);border-radius:var(--r-sm);resize:vertical" data-input-action="remarkEdit">${esc(remark)}</textarea><div class="narrative-save-row" style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><span class="remark-char-count" data-for="${remarkId}" style="font-size:11px;color:${rcountColor}">${rcountText}</span><button class="btn btn-secondary" style="padding:5px 14px;font-size:12px" disabled data-action="saveRemarkField" data-arg="${esc(st.id)}" data-arg2="${esc(t.name)}">${esc(srT("btn_save"))}</button></div></div>`;
   }).join("")}</div></div>`;
 }
 // STRESS-TEST FIX (BUG-4, STRESS_TEST_REPORT.md): a very long remark (400+
@@ -636,7 +636,7 @@ function showRemarksDirtyBanner(){
   if($("#remarks-dirty-banner").length)return; // already showing
   const banner=$(`<div id="remarks-dirty-banner" style="position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:1200;padding:10px 16px;background:#e6f7ee;border:1px solid #1a7a4c33;border-radius:var(--r-sm);font-size:12.5px;color:#1a7a4c;box-shadow:0 4px 18px rgba(0,0,0,.15);display:flex;align-items:center;gap:10px">
     <span>Remarks updated — download a fresh copy to keep them.</span>
-    <button class="btn btn-success btn-sm" style="padding:4px 12px;font-size:12px" data-action="downloadUpdatedSheet">Download Updated Sheet</button>
+    <button class="btn btn-success btn-sm" style="padding:4px 12px;font-size:12px" data-action="downloadUpdatedSheet">${esc(srT("btn_download_updated_sheet"))}</button>
   </div>`);
   $("body").append(banner);
 }
@@ -648,7 +648,7 @@ function showRemarksDirtyBanner(){
    once the new multi-tab version below has been confirmed working.
    ════════════════════════════════════════════════════════════════════
 function downloadUpdatedSheet_OLD(){
-  if(!APP.rawData||!APP.students.length){toast("No data loaded.","warn");return;}
+  if(!APP.rawData||!APP.students.length){toast(srT("val_no_data_loaded"),"warn");return;}
   const markKey=Object.keys(APP.rawData).find(k=>k.includes("MARK")&&k.includes("CONTEXT"))
                  ||Object.keys(APP.rawData).find(k=>k.includes("MARK"));
   if(!markKey){toast(srT("val_cannot_find_marks_sheet"),"error");return;}
@@ -828,8 +828,8 @@ async function runSampleFile(fileNames){
     APP._isSampleData=true; // set AFTER — handleHomeImportFiles() itself resets this to false for real uploads
   }catch(err){
     statusEl.innerHTML=`<div class="card" style="border-color:var(--c-warn)">
-      <b style="color:var(--c-warn)">Couldn't load the sample directly</b>
-      <div style="font-size:12.5px;color:var(--c-text2);margin-top:6px">${esc(err.message)} — try again, or use <button type="button" data-action="showSampleFiles" style="background:none;border:none;padding:0;font:inherit;cursor:pointer;color:var(--c-primary);text-decoration:underline">Sample Files</button> and the download icon instead.</div>
+      <b style="color:var(--c-warn)">${esc(srT("val_couldnt_load_sample_directly"))}</b>
+      <div style="font-size:12.5px;color:var(--c-text2);margin-top:6px">${esc(err.message)} — ${esc(srT("val_try_again_or_use"))} <button type="button" data-action="showSampleFiles" style="background:none;border:none;padding:0;font:inherit;cursor:pointer;color:var(--c-primary);text-decoration:underline">${esc(srT("modal_sample_files_title"))}</button> ${esc(srT("val_and_download_icon_instead"))}</div>
     </div>`;
     statusEl.style.display="block";
   }

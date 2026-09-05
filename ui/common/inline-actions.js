@@ -35,6 +35,7 @@ import { vsShellToggle } from '../../core/vs-shell.js';
       case 'goStep': goStep(arg); break;
       case 'enableScholarshipAndOpenGrid': import('../scholarship/scholarship-nav.js').then(m => m.enableScholarshipAndOpenGrid()); break;
       case 'showSampleFiles': showSampleFiles(); break;
+      case 'showStudInProForm': showStudInProForm(); break;
       case 'vsShellToggle': vsShellToggle(arg); break;
       case 'toggleTrust': toggleTrust(arg); break;
       case 'triggerHomeImport':

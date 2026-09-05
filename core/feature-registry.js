@@ -129,3 +129,24 @@ export const FEATURE_REGISTRY = {
 export function isFeatureOn(flags, key) {
   return !!(flags && flags[key] === "on");
 }
+
+// Scholarship is India-specific (categories/quotas modeled on Indian
+// reservation policy — see i18n/TRANSLATION_REFERENCE.md's Architecture
+// notes section) and isn't a fit for other countries' school systems.
+// Rather than translate/build it out for a global audience, it's gated
+// off entirely outside India — same "off" state every existing check
+// site (render-buckets.js's dashboard row, scholarship-nav.js,
+// vs-shell.js's right rail) already treats as "hide this completely",
+// so this reuses that exact behavior instead of adding new UI-hiding
+// logic anywhere. Pure function, no APP/DOM dependency, matching
+// isFeatureOn()'s own invariant above — callers apply this to derive
+// the *effective* features object from the raw Excel-parsed one, they
+// don't mutate the raw one, so switching the country dropdown back to
+// India can always recover the original Feature_Scholarship setting
+// without needing to re-parse the file.
+export function applyCountryScholarshipGate(features, countryCode) {
+  if (features && countryCode && countryCode !== "IN") {
+    return { ...features, scholarship: "off" };
+  }
+  return features;
+}

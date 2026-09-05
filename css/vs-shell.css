@@ -606,6 +606,9 @@
     0%,100%{opacity:.45;width:32px}
     50%{opacity:1;width:52px}
   }
+  @media (prefers-reduced-motion: reduce){
+    .shell-first-visit .shell-panel-toggle::before{animation:none}
+  }
 }
 
 /* ════ CONTINUITY — Cohort Dashboard (prompt-03-cohort-dashboard-ui.md) ════

@@ -478,6 +478,8 @@ const SR_STRINGS_EN={
   finding_wellbeing_check:"Wellbeing check: {{level}} stress indicators.",
   flag_badge_data_error:"⚠ Data Error",
   flag_badge_at_risk:"At Risk",
+  flag_badge_outlier_high:"Outlier (High)",
+  flag_badge_outlier_low:"Outlier (Low)",
   flag_badge_first_below_pass:"First Time Below Pass",
   flag_badge_declining:"Declining",
   flag_badge_improving:"Improving",
@@ -590,6 +592,10 @@ const SR_STRINGS_EN={
   card_class_avg:"Class Avg",
   detail_rank_percentile:" · Rank #{{rank}} of {{total}} · {{pct}}th percentile (better than {{pct}}% of classmates — not a % score)",
   detail_rank_only:" · Rank #{{rank}} of {{total}}",
+  rank_hash_only:"Rank #{{rank}}",
+  rank_movement_up_tip:"Moved up {{n}} place(s) since the previous test",
+  rank_movement_down_tip:"Moved down {{n}} place(s) since the previous test",
+  rank_movement_none_tip:"No change in rank since the previous test",
   detail_rank_points_diff:" · {{points}} points {{dir}} the class average of {{avg}}%",
   detail_id_grade:"ID: {{id}} · Grade: {{grade}}",
   detail_id_standing_grade:"ID: {{id}}{{standing}} · Grade: {{grade}}",
@@ -688,6 +694,13 @@ const SR_STRINGS_EN={
   aria_dismiss_update_notice:"Dismiss update notice",
   bucket_compare_label:"Compare Two Students",
   bucket_compare_desc:"Side-by-side stats for any two students in this class",
+  compare_students_hint:"Pick any two students from this class — comparison only ever uses this same roster, so it's always apples-to-apples.",
+  compare_select_student_a:"Select student A…",
+  compare_select_student_b:"Select student B…",
+  compare_apples_to_apples_note:"Same class, same subjects, same tests, same max marks — this comparison is always apples-to-apples. Highlighted cell = better on that row.",
+  cluster_groups_hint:"Found by grouping students on average, consistency, trend and attendance together — not a single-number ranking. Groups only appear once a class is large enough (30+) for the pattern to be meaningful.",
+  cluster_group_averages_line:"Group averages: {{avg}}% overall, trend {{trend}} pts/test, {{absence}} absence days per test.",
+  cluster_group_summary_line:"{{label}} — {{shown}} of {{total}} students. Group averages: {{avg}}% overall, consistency score {{consistency}}, trend {{trend}} pts/test, {{absence}} absence days per test.",
   bucket_continuity_label:"Continuity",
   bucket_continuity_desc:"Cohort trends across periods/semesters",
   bucket_wellbeing_title:"Wellbeing — {{name}}",
@@ -710,6 +723,7 @@ const SR_STRINGS_EN={
   home_preview_avg:"class average",
   home_preview_atrisk:"at-risk flags",
   home_preview_top:"top performer",
+  feature_flags_default_info:"Tip: add Feature_Scholarship / Feature_Compare / Feature_SmartSearch / Feature_Reports rows to your SETUP tab to control these features directly (Yes = on, anything else = off). By default these are locked, Pro-only features — contact Sandeep@hakki.in or sandeephakki@gmail.com to unlock them for your institution.",
   toast_global_error_reload:"Something went wrong and the app couldn't continue. Your data was never saved, so nothing is lost beyond needing to re-upload — please reload and try again.",
   toast_image_generate_failed:"Couldn't generate the image — try again.",
   toast_image_downloaded_share:"Image downloaded — ready to share.",
@@ -718,6 +732,22 @@ const SR_STRINGS_EN={
   toast_workbook_not_found_reimport:"Can't find the original workbook in memory for this session — please re-import the file, then try again.",
   toast_workbook_copy_failed:"Couldn't safely copy the original workbook in this browser — try a different browser or device.",
   toast_all_ai_features_selected:"All {{count}} AI features selected.",
+  btn_ask:"Ask",
+  btn_clear:"Clear",
+  btn_close:"Close",
+  btn_download_updated_sheet:"Download Updated Sheet",
+  btn_save:"Save",
+  bucket_no_student_data_yet:"No student data yet",
+  bucket_subjects_marks_title:"Subjects & Marks — {{name}}",
+  card_class_trend_over_tests:"Class Trend Over Tests",
+  card_progress_trend:"Progress Trend",
+  card_subject_breakdown:"Subject Breakdown",
+  btn_dismiss:"Dismiss",
+  card_target_next_test:"Target for Next Test",
+  kpi_best_test:"Best Test",
+  kpi_weakest_test:"Weakest Test",
+  th_subjects:"Subjects",
+  continuity_cohort_avg_title:"Cohort average % across periods",
   smart_search_ai_tooltip:"AI feature — development in progress",
   smart_search_back:"Back to Insights",
   smart_search_coming_soon:"Coming soon",
@@ -772,6 +802,9 @@ const SR_STRINGS_EN={
   smart_name_count_one:"Found 1 student matching \"{{token}}\": {{names}}.",
   smart_name_count_many:"Found {{n}} students matching \"{{token}}\": {{names}}.",
   smart_which_student_prompt:"Which student would you like to ask about? Type their name and try again.",
+  smart_ask_a_question:"Ask a question",
+  smart_empty_example:"Type a question below — e.g. \"which subject is weakest\" or \"any students at risk\".",
+  smart_launcher_title:"Ask a question about this class",
   val_file_already_uploaded_compare:"{{fname}} was already uploaded for this comparison. Remove it first if you want to re-add it.",
   val_error_reading_named:"Error reading {{fname}}: {{msg}}",
   val_could_not_read_named:"Could not read {{fname}}.",
@@ -812,6 +845,26 @@ const SR_STRINGS_EN={
   toast_compare_pick_section_export:"Pick a section to export.",
   toast_compare_no_sections_to_export:"No analysed sections to export.",
   toast_compare_fix_data_issues:"Fix the data quality issue(s) in {{labels}} before exporting the comparison report.",
+  compare_no_valid_files_left:"No valid files left",
+  compare_drop_another_file:"Drop another Student Insight file below.",
+  compare_section_label_aria:"Section label for {{file}}",
+  compare_section_label_placeholder:"Section label",
+  kpi_school_avg:"School Avg",
+  kpi_school_pass_rate:"School Pass Rate",
+  kpi_total_at_risk:"Total At-Risk",
+  kpi_sections_compared:"Sections Compared",
+  kpi_top_section:"Top Section",
+  kpi_needs_attention:"Needs Attention",
+  bucket_no_analysed_sections:"No analysed sections yet.",
+  card_section_ranking:"Section Ranking",
+  pdf_class_section_grid:"Class × Section Grid (avg %)",
+  pdf_col_avg_pct:"Avg %",
+  pdf_col_pass_pct_full:"Pass %",
+  pdf_col_students:"Students",
+  pdf_kpi_class:"Class",
+  pdf_section_flagged_line:"{{label}} — {{avg}}% avg, {{atRisk}} at-risk of {{n}}",
+  pdf_sections_needing_attention:"Sections Needing Attention",
+  compare_click_row_hint:"Click any row to open that section's full dashboard.",
   scholarship_navpanel_notenabled_title:"Scholarship module isn't turned on yet",
   scholarship_navpanel_notenabled_desc:"Automatically shortlist eligible students for scholarships based on marks, attendance, and the criteria you set — no manual cross-checking of the class list.",
   scholarship_navpanel_enable_btn:"Enable Scholarship Module",
@@ -848,8 +901,8 @@ const SR_STRINGS_EN={
   scholarship_dashboard_th_rank_in_category:"Rank in Category",
   scholarship_dashboard_th_overall_avg:"Overall Avg",
   scholarship_dashboard_no_rows:"No students match the current filters.",
-  scholarship_dashboard_error_grid_title:"Students With Missing Data",
-  scholarship_dashboard_error_grid_missing:"Missing Fields",
+  scholarship_dashboard_error_grid_title:"Students With Incomplete Data In The Input Sheet",
+  scholarship_dashboard_error_grid_missing:"What's Missing",
   scholarship_dashboard_detail_stub_toast:"Detail view is coming soon.",
   scholarship_dashboard_download_stub_toast:"Report download is coming soon.",
   scholarship_reason_academic_below_min:"Academic average is {{actual}}%, which is below the {{threshold}}% minimum required for this scheme.",
@@ -1345,6 +1398,12 @@ const SR_STRINGS_EN={
   val_individual_one_child_per_file:"This file has more than one child in the STUDENTS tab. Individual mode supports one child per workbook — Subjects and Max Marks are set once for the whole file, so a second child (different grade, different subjects, different max marks) can't share it safely. Download a separate template for each child instead.",
   val_students_tab_empty:"That file's STUDENTS tab has a header but no student rows yet — nothing to preserve. Use a fresh Download Template instead.",
   val_students_tab_all_sample:"That file's STUDENTS tab still has only the 5 unfilled template sample rows (SAMPLE-1..5) — replace them with your real students, then re-upload.",
+  val_setup_incomplete_title:"Setup Incomplete — {{n}} issue(s) found in SETUP tab",
+  val_file_issues_title:"{{n}} issue(s) found in your file",
+  val_fix_setup_tab_hint:"Fix the required fields in your Excel SETUP tab and re-import.",
+  val_fix_file_issues_hint:"Fix the issue(s) listed above in your Excel file and re-import.",
+  val_edit_setup_in_app_btn:"Edit Setup in App",
+  val_not_this_file_start_over:"↺ Not this file — start over / import a different one",
   val_no_new_test_found:"No new test found — every test in your Setup form already has a tab in the loaded sheet. Add the new test's name first (✚ Add Test).",
   val_subjects_list_changed:"Your Subjects list is different from the loaded file's. Existing test tabs are untouched either way, but double-check this was intentional.",
   val_subjects_added_to_existing:"New subject(s) added — {{subjects}}. A blank column for each has been added to every existing test tab too, so you can fill in marks for them on past tests, not just new ones.",
@@ -1399,6 +1458,8 @@ const SR_STRINGS_EN={
   val_cannot_find_students_tab:"Cannot find the STUDENTS tab in the loaded data.",
   val_fetching_sample_data:"Fetching sample data…",
   val_upload_data_first:"Upload data first.",
+  val_rows_detected_one:"{{n}} row detected",
+  val_rows_detected_other:"{{n}} rows detected",
   val_cant_find_subjects_individual:"We couldn't find your subjects — go back to Setup and re-generate the template.",
   val_cant_detect_subjects:"Cannot detect subjects. Check SETUP tab or fill Step 1.",
   val_cant_find_tests_individual:"We couldn't find your tests — go back to Setup and re-generate the template.",
@@ -1460,6 +1521,23 @@ const SR_STRINGS_EN={
   val_run_analysis_first:"Run Analysis first.",
   val_run_analysis_first_title:"Run Analysis on Home first",
   val_no_data_loaded:"No data loaded.",
+  val_and_download_icon_instead:"and the download icon instead.",
+  val_existing_sheet_loaded:"Existing sheet loaded — add your new test, then click Update & Download.",
+  val_import_failed_hint:"Make sure the file is a valid .xlsx or .xls file.",
+  val_import_failed_label:"Import failed:",
+  val_no_multiperiod_data:"No multi-period data loaded.",
+  val_no_prior_period:"No prior period to compare against.",
+  val_no_students_match_filter:"No students match the filter.",
+  val_no_subject_data_yet:"No subject data available yet.",
+  val_search_by_name:"Search by name…",
+  val_search_by_subject:"Search by subject…",
+  val_try_again_or_use:"try again, or use",
+  val_update_aborted_integrity:"Update aborted — integrity check failed: {{reason}}",
+  val_cant_analyse_files:"Can't analyse these files",
+  val_cant_analyse_files_detail:"None of these look like Student Insight templates — check you're uploading the filled Excel file(s) exported from Setup, with SETUP and MARKS+CONTEXT tabs intact.",
+  val_couldnt_load_sample_directly:"Couldn't load the sample directly",
+  val_no_data_short:"No data.",
+  val_target_pct:"Target %",
   pdf_no_students_export:"No students to export.",
   pdf_fix_data_issues:"Fix the {{count}} data quality issue(s) on the Dashboard before exporting.",
   pdf_select_report_type:"Select at least one report type to export.",
@@ -1762,18 +1840,33 @@ window.I18N_LOADING = false;
 // except en) — loadLanguage() below checks for the split common file
 // first and only falls back to the old single-file layout if it's
 // missing, so splitting a new language later needs zero code changes.
-const I18N_FEATURES = ["common","smart-search","compare","scholarship","about","faq","setup","validation","pdf","ai","shell"];
+const I18N_FEATURES = ["common","smart-search","compare","scholarship","about","faq","setup","validation","pdf","ai","shell","studinpro"];
 function fetchJsonOrNull(url){
   return fetch(url).then(r=>r.ok?r.json():null).catch(()=>null);
 }
 function loadSplitOrLegacyLanguage(code){
   return fetchJsonOrNull(`i18n/common/${code}.json`).then(common=>{
     if(!common){
-      // Not split for this language yet — fall back to the old single file.
-      return fetch(`i18n/${code}.json`).then(r=>{
-        if(!r.ok) throw new Error("i18n fetch failed ("+r.status+")");
-        return r.json();
-      });
+      // BUG FIX: this used to throw a real fetch error (via `fetch()`,
+      // not `fetchJsonOrNull()`) whenever i18n/<code>.json didn't exist
+      // either — which is now guaranteed for every non-Indian language
+      // added to the country/language dropdown (de, fr, ru, zh — see
+      // core/state-nav.js's COUNTRY_LANGUAGES) since none of them have
+      // real translation files yet. That thrown error propagated all
+      // the way up to loadLanguage()'s .catch(), which showed the user
+      // an error toast and left the UI on whatever language it was
+      // already on — i.e. picking "Deutsch" from the dropdown visibly
+      // failed instead of doing anything. Every OTHER shard below
+      // already used fetchJsonOrNull (graceful null-on-404, filtered
+      // out before merging) — this legacy single-file fallback was the
+      // one path that still threw. Now it degrades the exact same way:
+      // no i18n/common/<code>.json AND no legacy i18n/<code>.json means
+      // an empty {} merges in below, and render-i18n.js's own
+      // table[key]||SR_STRINGS_EN[key] chain (see srT()) renders every
+      // string in English — same safe, already-documented fallback
+      // behavior as a language that's split but missing individual keys,
+      // not a crash.
+      return fetchJsonOrNull(`i18n/${code}.json`).then(legacy=>legacy||{});
     }
     return Promise.all(
       I18N_FEATURES.slice(1).map(f=>fetchJsonOrNull(`i18n/${f}/${code}.json`))
@@ -1989,11 +2082,47 @@ async function reapplyI18nStrings(){
   }catch(err){
     console.error("Shell rail refresh failed on language switch:",err);
   }
+  // StudInPro ticker is JS-injected text (same reason as buckets/AI panel
+  // above) — re-render on every language switch so it doesn't keep
+  // showing the old language after the rest of the app has switched.
+  if(typeof window.renderStudInProTicker==="function"){
+    window.renderStudInProTicker();
+  }
+}
+// Pluralization: resolves the CLDR plural CATEGORY (one/two/few/many/
+// other) for `count` in the active language via the browser's native
+// Intl.PluralRules — not a hand-rolled English-style "1 vs everything
+// else" rule. This matters as soon as a language with more than two
+// plural forms is added (Russian/Polish: one/few/many/other; Arabic:
+// zero/one/two/few/many/other) — English/Hindi/Bengali/etc. only ever
+// resolve to "one"/"other" so existing `_one`/`_other` key pairs keep
+// working unchanged; this is additive, not a breaking rewrite.
+// Falls back to the old binary rule if Intl.PluralRules is unavailable
+// (very old runtimes) so nothing breaks in that edge case.
+const _pluralRulesCache={};
+function _pluralCategoryFor(langCode,count){
+  if(typeof Intl==="undefined"||typeof Intl.PluralRules!=="function")
+    return count===1?"one":"other";
+  const tag=bcp47TagFor(langCode);
+  if(!_pluralRulesCache[tag]){
+    try{_pluralRulesCache[tag]=new Intl.PluralRules(tag);}
+    catch(e){_pluralRulesCache[tag]=new Intl.PluralRules("en");}
+  }
+  return _pluralRulesCache[tag].select(count);
 }
 function srT(key,params,count){
   const table = window.I18N_TABLES[window.SR_LANG] || SR_STRINGS_EN;
   let k=key;
-  if(count!==undefined&&(table[key+"_one"]||table[key+"_other"]))k=(count===1)?key+"_one":key+"_other";
+  if(count!==undefined){
+    const hasPluralForms=["_zero","_one","_two","_few","_many","_other"].some(sfx=>table[key+sfx]!==undefined);
+    if(hasPluralForms){
+      const category=_pluralCategoryFor(window.SR_LANG,count);
+      // CLDR fallback chain per the spec: exact category → "other" is
+      // always defined for every locale's plural rule set, so it's the
+      // guaranteed last resort before falling through to the plain key.
+      k=table[key+"_"+category]!==undefined?key+"_"+category:(table[key+"_other"]!==undefined?key+"_other":key);
+    }
+  }
   let s=table[k]||SR_STRINGS_EN[k]||key;
   if(params)Object.keys(params).forEach(p=>{s=s.split("{{"+p+"}}").join(params[p]);});
   return s;

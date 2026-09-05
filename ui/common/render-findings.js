@@ -139,8 +139,8 @@ function renderFilteredList(kind){
   const rows=items.map(x=>`<div class="bucket-picker-row" data-action="openFinding" data-arg="help" data-arg2="${esc(x.st.id)}">${esc(x.st.name)}</div>`).join("");
   const railHtml=`
     <div style="display:flex;gap:8px;align-items:center">
-      <input type="text" class="bucket-picker-input" placeholder="Search by name…" autocomplete="off" id="bucket-help-input" style="flex:1">
-      <button type="button" data-action="clearPickerInput" data-arg="bucket-help-input" data-arg2="bucket-help-results" aria-label="Clear" title="Clear" style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:16px;line-height:1">×</button>
+      <input type="text" class="bucket-picker-input" placeholder="${esc(srT("val_search_by_name"))}" autocomplete="off" id="bucket-help-input" style="flex:1">
+      <button type="button" data-action="clearPickerInput" data-arg="bucket-help-input" data-arg2="bucket-help-results" aria-label="${esc(srT("btn_clear"))}" title="${esc(srT("btn_clear"))}" style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:16px;line-height:1">×</button>
     </div>
     <div id="bucket-help-results" class="bucket-picker-list">${rows||emptyStateHtml(srT("bucket_all_good"))}</div>`;
   if(typeof setRightRail==="function") setRightRail(railHtml);
@@ -187,16 +187,16 @@ function renderClusterGroups(){
   if(!cc||!cc.groups||!cc.groups.length){ $("#bucket-answer-screen").html(`<div class="bucket-empty">${esc(srT("bucket_all_good"))}</div>`); return; }
   const cards=cc.groups.map((g,i)=>{
     const c=g.centroid;
-    const names=g.students.map(st=>`<div class="subject-row"><span>${esc(st.name)}</span><span>${esc(String(st.analysis.overallAvg))}% · Rank #${esc(String(st.analysis.rank))}</span></div>`).join("");
+    const names=g.students.map(st=>`<div class="subject-row"><span>${esc(st.name)}</span><span>${esc(String(st.analysis.overallAvg))}% · ${esc(srT("rank_hash_only",{rank:st.analysis.rank}))}</span></div>`).join("");
     return `<details class="shell-details cluster-group-card" name="cluster-group-accordion"${i===0?" open":""}>
       <summary class="shell-panel-title shell-panel-title-summary" style="cursor:pointer"><b>${esc(g.label)}</b> — ${g.students.length} student${g.students.length===1?"":"s"} · ${c.overallAvg}% avg · ${c.consistency} consistency</summary>
-      <p style="font-size:12px;color:var(--c-text2);margin:8px 0">Group averages: ${c.overallAvg}% overall, trend ${c.slope>=0?"+":""}${c.slope} pts/test, ${c.absenceRate.toFixed(2)} absence days per test.</p>
+      <p style="font-size:12px;color:var(--c-text2);margin:8px 0">${esc(srT("cluster_group_averages_line",{avg:c.overallAvg,trend:(c.slope>=0?"+":"")+c.slope,absence:c.absenceRate.toFixed(2)}))}</p>
       <div class="subject-row-list cluster-group-scroll">${names}</div>
     </details>`;
   }).join("");
   $("#bucket-answer-screen").html(`
     <div class="bucket-answer-title">${esc(srT("bucket_clusters_label"))}</div>
-    <div class="bucket-picker-hint">Found by grouping students on average, consistency, trend and attendance together — not a single-number ranking. Groups only appear once a class is large enough (30+) for the pattern to be meaningful.</div>
+    <div class="bucket-picker-hint">${esc(srT("cluster_groups_hint"))}</div>
     ${cards}
   `);
 }
@@ -204,9 +204,9 @@ function openClusterGroup(clusterIndex){
   const cc=APP.cohortClusters;
   const g=cc&&cc.groups&&cc.groups.find(x=>x.clusterIndex===clusterIndex);
   if(!g)return;
-  const names=g.students.map(st=>`<div class="subject-row"><span>${esc(st.name)}</span><span>${esc(String(st.analysis.overallAvg))}% · Rank #${esc(String(st.analysis.rank))}</span></div>`).join("");
+  const names=g.students.map(st=>`<div class="subject-row"><span>${esc(st.name)}</span><span>${esc(String(st.analysis.overallAvg))}% · ${esc(srT("rank_hash_only",{rank:st.analysis.rank}))}</span></div>`).join("");
   const c=g.centroid;
-  const summary=`<p>${esc(g.label)} — ${g.students.length} of ${(APP.students||[]).length} students. Group averages: ${c.overallAvg}% overall, consistency score ${c.consistency}, trend ${c.slope>=0?"+":""}${c.slope} pts/test, ${c.absenceRate.toFixed(2)} absence days per test.</p>`;
+  const summary=`<p>${esc(srT("cluster_group_summary_line",{label:g.label,shown:g.students.length,total:(APP.students||[]).length,avg:c.overallAvg,consistency:c.consistency,trend:(c.slope>=0?"+":"")+c.slope,absence:c.absenceRate.toFixed(2)}))}</p>`;
   $("#bucket-answer-screen").html(`
     <div class="bucket-answer-title">${esc(g.label)}</div>
     <div class="bucket-answer-body">${summary}
@@ -235,8 +235,8 @@ function renderStudentPicker(){
   const railHtml=`
     <div class="bucket-picker-hint">${esc(srT("student_picker_prompt"))}</div>
     <div style="display:flex;gap:8px;align-items:center">
-      <input type="text" class="bucket-picker-input" placeholder="Search by name…" autocomplete="off" id="bucket-student-input" style="flex:1">
-      <button type="button" data-action="clearPickerInput" data-arg="bucket-student-input" data-arg2="bucket-student-results" aria-label="Clear" title="Clear" style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:16px;line-height:1">×</button>
+      <input type="text" class="bucket-picker-input" placeholder="${esc(srT("val_search_by_name"))}" autocomplete="off" id="bucket-student-input" style="flex:1">
+      <button type="button" data-action="clearPickerInput" data-arg="bucket-student-input" data-arg2="bucket-student-results" aria-label="${esc(srT("btn_clear"))}" title="${esc(srT("btn_clear"))}" style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:16px;line-height:1">×</button>
     </div>
     <div id="bucket-student-results" class="bucket-picker-list">${rows||emptyStateHtml(srT("bucket_all_good"))}</div>`;
   if(typeof setRightRail==="function") setRightRail(railHtml);
@@ -262,8 +262,8 @@ function renderSubjectPicker(){
   const railHtml=`
     <div class="bucket-picker-hint">${esc(srT("subject_picker_prompt"))}</div>
     <div style="display:flex;gap:8px;align-items:center">
-      <input type="text" class="bucket-picker-input" placeholder="Search by subject…" autocomplete="off" id="bucket-subject-input" style="flex:1">
-      <button type="button" data-action="clearPickerInput" data-arg="bucket-subject-input" data-arg2="bucket-subject-results" aria-label="Clear" title="Clear" style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:16px;line-height:1">×</button>
+      <input type="text" class="bucket-picker-input" placeholder="${esc(srT("val_search_by_subject"))}" autocomplete="off" id="bucket-subject-input" style="flex:1">
+      <button type="button" data-action="clearPickerInput" data-arg="bucket-subject-input" data-arg2="bucket-subject-results" aria-label="${esc(srT("btn_clear"))}" title="${esc(srT("btn_clear"))}" style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface);color:var(--c-text2);cursor:pointer;font-size:16px;line-height:1">×</button>
     </div>
     <div id="bucket-subject-results" class="bucket-picker-list">${rows||emptyStateHtml(srT("bucket_all_good"))}</div>`;
   if(typeof setRightRail==="function") setRightRail(railHtml);
@@ -313,8 +313,8 @@ function renderClassAnswer(){
   if(!parts.length)parts.push(`<p>${esc(srT("bucket_all_good"))}</p>`);
   const sts=APP.students||[];
   const chartsHtml=sts.length?`
-    <div class="chart-container" style="margin-top:14px"><div class="card-title">Subject Averages</div><canvas id="bucket-chart-classsubj"></canvas></div>
-    <div class="chart-container" style="margin-top:14px"><div class="card-title">Class Trend Over Tests</div><canvas id="bucket-chart-classtrend"></canvas></div>
+    <div class="chart-container" style="margin-top:14px"><div class="card-title">${esc(srT("card_subject_averages"))}</div><canvas id="bucket-chart-classsubj"></canvas></div>
+    <div class="chart-container" style="margin-top:14px"><div class="card-title">${esc(srT("card_class_trend_over_tests"))}</div><canvas id="bucket-chart-classtrend"></canvas></div>
     <div class="card" style="margin-top:14px">
       <div class="card-title" style="margin-bottom:8px">Performance Heatmap — Student × Subject</div>
       <div class="heatmap-wrap" id="bucket-heatmap-wrap"></div>

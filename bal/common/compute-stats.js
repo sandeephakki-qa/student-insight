@@ -81,14 +81,18 @@ async function runAnalysis(){
     // actually sees the progress instead of staring at a checkbox list that
     // looks frozen while work happens off-screen above them.
     scrollToEl(document.getElementById("ai-loader"));
-    const steps=[srT("loading_reading_file"),srT("loading_parsing_records"),srT("loading_computing_marks"),srT("loading_trend_detection"),srT("loading_percentile_ranks"),srT("loading_detecting_support"),srT("loading_sentiment_analysis"),srT("loading_stress_wellbeing"),srT("loading_ai_insights"),srT("loading_next_test_trajectory"),srT("loading_finalising")];
-    for(let i=0;i<steps.length;i++){
-      $("#ai-loader-msg").text(steps[i]);
-      $("#ai-loader-step").text("Step "+(i+1)+" of "+steps.length);
-      const pct=Math.round(((i+1)/steps.length)*100);
-      $("#ai-prog").css("transform","scaleX("+(pct/100)+")");$("#ai-prog-label").text(pct+"%");
-      await sleep(420+Math.random()*280);
-    }
+    const PARSE_LABEL=srT("loading_parsing_records");
+    const COMPUTE_LABEL=srT("loading_computing_marks");
+    // Review P1 #4 (was 11 fake sleep stages; now 2 honest phases + yield
+    // to event loop between them). Each label below corresponds to a real
+    // chunk of work, so the progress bar reflects actual progress instead
+    // of hitting 100% and freezing for seconds on a large file.
+    const _yield=()=>new Promise(r=>setTimeout(r,0));
+    // ── Phase 1: parse students from raw workbook ──
+    $("#ai-loader-msg").text(PARSE_LABEL);
+    $("#ai-loader-step").text("Step 1 of 2");
+    $("#ai-prog").css("transform","scaleX(0.5)");$("#ai-prog-label").text("50%");
+    await _yield();
     parseStudents();
     // CONTINUITY: a multi-period roster (STUDENTS tab) can include
     // students who left before the current/last period — parseStudents()
@@ -118,7 +122,14 @@ async function runAnalysis(){
       toast(srT("val_no_student_rows_students_tab"),"error");
       return;
     }
+    await _yield();
+    // ── Phase 2: compute analysis (the heavy one) ──
+    $("#ai-loader-msg").text(COMPUTE_LABEL);
+    $("#ai-loader-step").text("Step 2 of 2");
+    $("#ai-prog").css("transform","scaleX(0.5)");$("#ai-prog-label").text("50%");
+    await _yield();
     await computeAnalysis();await computeGenderAnalysis();
+    $("#ai-prog").css("transform","scaleX(1)");$("#ai-prog-label").text("100%");
     $("#ai-loader").hide();
     stopAiLoaderCardCycle();
     // btn-analyse / phase-actionbar-btns removed (v3.2) — panel-ai is now a pure progress screen, nothing to re-enable.
@@ -846,7 +857,7 @@ async function computePeerOutliers(){
       st.analysis.peerOutlier=dir;
       const fn=st.name.split(" ")[0]||st.name;
       const type=dir==="high"?"peer-outlier-high":"peer-outlier-low";
-      const label=dir==="high"?"Outlier (High)":"Outlier (Low)";
+      const label=dir==="high"?srT("flag_badge_outlier_high"):srT("flag_badge_outlier_low");
       const color=dir==="high"?"#0ca678":"#e8590c";
       const reason=srT("val_outlier_reason",{name:fn,pct:st.analysis.overallAvg,z:st.analysis.zScore,mean:mean,sd:sd,dir:dir==="high"?srT("val_far_ahead"):srT("val_far_below")});
       st.flags.push({type,label,color});

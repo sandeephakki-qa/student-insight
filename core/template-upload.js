@@ -6,6 +6,7 @@ import { buildDashboardControlsHtml } from '../ui/common/render-buckets.js';
 import { closeModal, gsapModalEntrance, showSampleFiles, updateExportGate } from '../ui/common/render-core.js';
 import { i18nLabel, srT } from '../core/render-i18n.js';
 import { readFeatureFlags } from '../core/read-feature-flags.js';
+import { applyCountryScholarshipGate } from '../core/feature-registry.js';
 import { swGoto } from './setup-wizard.js';
 import { updateSmartLauncherVisibility } from '../ui/smart-search/smart-query-v2-ui.js';
 import { APP, updateScholarshipNavVisibility } from '../core/state-nav.js';
@@ -701,7 +702,7 @@ function loadMergeSourceFromArrayBuffer_OLD(arrayBuffer,fileName){
   }
   $("#merge-banner-text").html(bannerHtml);
   $("#merge-banner").show();
-  toast("Existing sheet loaded — add your new test, then click Update & Download.","success");
+  toast(srT("val_existing_sheet_loaded"),"success");
   APP.setupCard1Choice='update';
   if(typeof swGoto==="function") swGoto(2);
   return true;
@@ -863,7 +864,7 @@ function generateMergedTemplate_OLD(){
   const origHasTest=name=>src.header.some(h=>h.startsWith(name+" - ")||h.startsWith(name+" — "));
   const newTests=tests.filter(t=>!origHasTest(t.name));
   if(!newTests.length){
-    toast("No new test found — every test in your Setup form already exists in the loaded sheet. Add the new test's name first (✚ Add Test).","warn");
+    toast(srT("val_no_new_test_found"),"warn");
     return;
   }
   const missingOrigTests=(src.origTestNames||[]).filter(n=>!tests.some(t=>t.name===n));
@@ -887,7 +888,7 @@ function generateMergedTemplate_OLD(){
     }
   });
   if(integrityErrors.length){
-    toast("Update aborted — integrity check failed: "+integrityErrors[0],"error");
+    toast(srT("val_update_aborted_integrity",{reason:integrityErrors[0]}),"error");
     return;
   }
   const wsMarks=XLSX.utils.aoa_to_sheet(markRows);
@@ -1617,9 +1618,9 @@ async function afterAllCompareFilesLoaded(){
     updateScholarshipNavVisibility(); // Task 07: compare-mode equivalent of the single-file path above
     return;
   }
-  const detail="None of these look like Student Insight templates — check you're uploading the filled Excel file(s) exported from Setup, with SETUP and MARKS+CONTEXT tabs intact.";
+  const detail=srT("val_cant_analyse_files_detail");
   statusEl.innerHTML=`<div class="card" style="border-color:var(--c-warn)">
-    <b style="color:var(--c-warn)">Can't analyse these files</b>
+    <b style="color:var(--c-warn)">${esc(srT("val_cant_analyse_files"))}</b>
     <div style="font-size:12.5px;color:var(--c-text2);margin-top:6px">${esc(detail)}</div>
     <div style="margin-top:10px;font-size:11px"><button type="button" data-action="resetHomeImport" style="background:none;border:none;padding:0;font:inherit;cursor:pointer;color:var(--c-text3);text-decoration:underline">↺ Start over — pick different files</button></div>
   </div>`;
@@ -1690,15 +1691,15 @@ function handleHomeImport(file){
           const requiredErrs=errs.filter(e=>e.required);
           const hasSetupTabIssue=requiredErrs.some(e=>e.tab==="setup");
           const allSetupTab=requiredErrs.every(e=>e.tab==="setup");
-          const cardTitle=allSetupTab?`Setup Incomplete — ${errs.length} issue(s) found in SETUP tab`:`${errs.length} issue(s) found in your file`;
-          const fixHint=allSetupTab?"Fix the required fields in your Excel SETUP tab and re-import.":"Fix the issue(s) listed above in your Excel file and re-import.";
-          const editSetupBtn=hasSetupTabIssue?`<button class="btn btn-secondary btn-sm" style="margin-top:10px" data-action="goStep" data-arg="setup">Edit Setup in App</button>`:"";
+          const cardTitle=allSetupTab?srT("val_setup_incomplete_title",{n:errs.length}):srT("val_file_issues_title",{n:errs.length});
+          const fixHint=allSetupTab?srT("val_fix_setup_tab_hint"):srT("val_fix_file_issues_hint");
+          const editSetupBtn=hasSetupTabIssue?`<button class="btn btn-secondary btn-sm" style="margin-top:10px" data-action="goStep" data-arg="setup">${esc(srT("val_edit_setup_in_app_btn"))}</button>`:"";
           statusEl.innerHTML=`<div class="card" style="border-color:var(--c-danger)">
-            <div style="font-weight:700;font-size:13px;margin-bottom:8px;color:var(--c-danger)"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10'/><line x1='15' y1='9' x2='9' y2='15'/><line x1='9' y1='9' x2='15' y2='15'/></svg> ${cardTitle}</div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:8px;color:var(--c-danger)"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10'/><line x1='15' y1='9' x2='9' y2='15'/><line x1='9' y1='9' x2='15' y2='15'/></svg> ${esc(cardTitle)}</div>
             ${errHtml}
-            <div style="margin-top:10px;font-size:12px;color:var(--c-text2)">${fixHint}</div>
+            <div style="margin-top:10px;font-size:12px;color:var(--c-text2)">${esc(fixHint)}</div>
             ${editSetupBtn}
-            <div style="margin-top:10px;font-size:11px"><button type="button" data-action="resetHomeImport" style="background:none;border:none;padding:0;font:inherit;cursor:pointer;color:var(--c-text3);text-decoration:underline">↺ Not this file — start over / import a different one</button></div>
+            <div style="margin-top:10px;font-size:11px"><button type="button" data-action="resetHomeImport" style="background:none;border:none;padding:0;font:inherit;cursor:pointer;color:var(--c-text3);text-decoration:underline">${esc(srT("val_not_this_file_start_over"))}</button></div>
           </div>`;
           statusEl.style.display="block";
           scrollToEl(statusEl);
@@ -1722,7 +1723,7 @@ function handleHomeImport(file){
       renderHomeFileList();
       afterImportSuccess();
     }catch(err){
-      statusEl.innerHTML=`<div class="card" style="border-color:var(--c-danger)"><b style="color:var(--c-danger)"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10'/><line x1='15' y1='9' x2='9' y2='15'/><line x1='9' y1='9' x2='15' y2='15'/></svg> Import failed:</b> ${esc(err.message)}<br><span style="font-size:11.5px;color:var(--c-text2)">Make sure the file is a valid .xlsx or .xls file.</span></div>`;
+      statusEl.innerHTML=`<div class="card" style="border-color:var(--c-danger)"><b style="color:var(--c-danger)"><svg class='ic' width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true' focusable='false'><circle cx='12' cy='12' r='10'/><line x1='15' y1='9' x2='9' y2='15'/><line x1='9' y1='9' x2='15' y2='15'/></svg> ${esc(srT("val_import_failed_label"))}</b> ${esc(err.message)}<br><span style="font-size:11.5px;color:var(--c-text2)">${esc(srT("val_import_failed_hint"))}</span></div>`;
       statusEl.style.display="block";
       scrollToEl(statusEl);
     }
@@ -2234,7 +2235,17 @@ function autoInferSetup(){
   // file load. Missing rows default to Yes, so every existing sample/
   // institution file (none of which have Feature_X rows today) behaves
   // identically to before this step. See core/read-feature-flags.js.
-  APP.features=readFeatureFlags(setupSheet);
+  // APP._rawFeatures keeps the untouched Excel-parsed Feature_X flags;
+  // APP.features is the *effective* set every check site in the app
+  // actually reads, derived from the raw set via applyCountryScholarshipGate()
+  // (India-only feature — see that function's own comment). Kept as two
+  // separate fields, not one mutated in place, so switching the country
+  // dropdown back to India can restore the file's real
+  // Feature_Scholarship setting instead of it staying stuck "off" —
+  // see onCountryChange() in core/state-nav.js, which recomputes
+  // APP.features from APP._rawFeatures on every country change.
+  APP._rawFeatures=readFeatureFlags(setupSheet);
+  APP.features=applyCountryScholarshipGate(APP._rawFeatures, APP.country);
   updateSmartLauncherVisibility();
   // Issue 3 fix: a single-period workbook replacing a file within an
   // already-open Home page must not leave a PRIOR file's continuity state
