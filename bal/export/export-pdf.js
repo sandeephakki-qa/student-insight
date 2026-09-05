@@ -525,12 +525,81 @@ function buildStudentPDF(doc,st,continuityData){
   }
   y+=MODULE_GAP-2;
 
-  // Test Trend and Teacher Remarks sections removed (per Aug 2026 review
-  // — the sparkline duplicated the "All Test Scores" table right above it
-  // with no new information, and the remarks line was one teacher's note
-  // repeated on every keepsake copy; both stay available in-app on the
-  // Dashboard). Flags now follow directly after Subject Performance /
-  // All Test Scores with the standard MODULE_GAP.
+  // ── PROGRESS TREND (re-added on request — was dropped in the Aug 2026
+  //    one-page redesign on the reasoning that it duplicated "All Test
+  //    Scores" above it. Drawn with the same ink-line vector style as the
+  //    rest of this report (hairline grid + accent-coloured line/points)
+  //    rather than embedding a Chart.js canvas image — keeps the report
+  //    fully vector (crisp at any print size, no offscreen-canvas timing
+  //    to get right) and matches the report's existing look. Skipped
+  //    entirely when there are fewer than 2 tests with a valid average —
+  //    same threshold the in-app Dashboard trend chart uses, since a
+  //    single point can't show a trend. ──
+  const trendVals=testsShown.map(t=>a.testAvgs[allTests.indexOf(t)]);
+  const validTrendCount=trendVals.filter(v=>v!==null&&v!==undefined).length;
+  // Space guard: this report is deliberately capped to one A4 page (no
+  // addPage() anywhere in this function — see the top-of-function note),
+  // and everything above here (Subject Performance + All Test Scores) is
+  // variable-height depending on how many subjects/tests the class has.
+  // Same fallback philosophy as MAX_TESTS_SHOWN/showSubjectCols above:
+  // rather than silently drawing the chart past the footer on a
+  // subject/test-heavy file, skip it and say so in one line once there
+  // genuinely isn't ~38mm of room left before the footer.
+  const FOOTER_Y=H-12;
+  const hasRoomForTrend=(y+38)<(FOOTER_Y-4);
+  if(validTrendCount>=2&&hasRoomForTrend){
+    doc.setFont("helvetica","bold");doc.setFontSize(9.5);doc.setTextColor(...T.INK);
+    doc.text(pdfT("pdf_progress_trend","Progress Trend").toUpperCase(),M,y);
+    pdfRule(doc,M,y+1.5,W-M,1.2,T.INK);
+    y+=6;
+    const chartH=24,chartTop=y,chartBottom=y+chartH;
+    const labelColW=9; // room for the 0/50/100 axis labels on the left
+    const chartLeft=M+labelColW,chartRight=W-M,chartW=chartRight-chartLeft;
+    // Gridlines at 0/50/100%, with their labels — same three-line minimal
+    // axis the Subject Performance bars imply via their track, just made
+    // explicit here since a line chart needs a vertical scale to read.
+    [0,50,100].forEach(pctLine=>{
+      const gy=chartBottom-(pctLine/100)*chartH;
+      doc.setDrawColor(...T.LINE);doc.setLineWidth(0.3*0.352778);doc.line(chartLeft,gy,chartRight,gy);
+      doc.setFont("helvetica","normal");doc.setFontSize(6);doc.setTextColor(...T.INK_SOFT);
+      doc.text(String(pctLine),M,gy+1,{align:"left"});
+    });
+    // Point x-positions spread evenly across chartW — same spacing Chart.js
+    // uses for a category axis with one point per test.
+    const n=testsShown.length;
+    const px=(i)=>n>1?chartLeft+(i/(n-1))*chartW:chartLeft+chartW/2;
+    const py=(v)=>chartBottom-(Math.max(0,Math.min(100,v))/100)*chartH;
+    doc.setDrawColor(...T.ACCENT);doc.setLineWidth(0.8*0.352778);
+    for(let i=0;i<n-1;i++){
+      const v1=trendVals[i],v2=trendVals[i+1];
+      if(v1===null||v1===undefined||v2===null||v2===undefined)continue; // gap across a missing test, never interpolated through it
+      doc.line(px(i),py(v1),px(i+1),py(v2));
+    }
+    trendVals.forEach((v,i)=>{
+      if(v===null||v===undefined)return;
+      doc.setFillColor(...T.WHITE);doc.setDrawColor(...T.ACCENT);doc.setLineWidth(0.6*0.352778);
+      doc.circle(px(i),py(v),1.1,"FD");
+    });
+    y=chartBottom+3.5;
+    // X-axis labels — same fitText truncation used for test names in the
+    // All Test Scores table above, so a long test name never overlaps its
+    // neighbour even with many points crammed into one page width.
+    const labelSlotW=chartW/n;
+    doc.setFont("helvetica","normal");doc.setFontSize(6);doc.setTextColor(...T.INK_SOFT);
+    testsShown.forEach((t,i)=>{
+      doc.text(fitText(doc,t.name,labelSlotW-2),px(i),y,{align:"center"});
+    });
+    y+=MODULE_GAP-1;
+  } else if(validTrendCount>=2&&!hasRoomForTrend){
+    doc.setFont("helvetica","italic");doc.setFontSize(6.6);doc.setTextColor(...T.INK_SOFT);
+    doc.text(pdfT("pdf_trend_chart_omitted","Progress trend chart omitted (page full) — full history on Dashboard"),M,y);
+    y+=4.5;
+  }
+
+  // Teacher Remarks section removed (per Aug 2026 review — the remarks
+  // line was one teacher's note repeated on every keepsake copy; that
+  // stays available in-app on the Dashboard). Progress Trend was removed
+  // in the same pass but has since been re-added above per request.
 
   // Flags/Alerts section removed from the student keepsake report (per
   // Aug 2026 review — chip labels like "Burnout Risk" read as alarming on
