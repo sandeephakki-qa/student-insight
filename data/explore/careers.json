@@ -1,0 +1,1885 @@
+{
+ "schemaVersion": 1,
+ "language": "en",
+ "note": "General guide written by the StudIn owner for orientation only. Exams, eligibility, fees and seat rules change every year: always confirm on the official site of the exam or institute. No salary or cut-off figures are given on purpose.",
+ "tree": [
+  {
+   "t": "After 10th",
+   "s": "Class 10 done. Four main roads: stay in school (Class 11-12), diploma, ITI, or skill courses.",
+   "c": [
+    {
+     "t": "How to choose a stream",
+     "s": "Start from what you enjoy and are good at, then check where it leads.",
+     "c": [
+      {
+       "t": "Enjoy Maths, Physics, problem solving, building things",
+       "s": "Look at Science PCM.",
+       "id": "after-10th.how-to-choose-a-stream.enjoy-maths-physics-problem-solving-buil"
+      },
+      {
+       "t": "Enjoy Biology, health, caring for people, animals or plants",
+       "s": "Look at Science PCB.",
+       "id": "after-10th.how-to-choose-a-stream.enjoy-biology-health-caring-for-people-a"
+      },
+      {
+       "t": "Enjoy numbers, money, business, markets",
+       "s": "Look at Commerce.",
+       "id": "after-10th.how-to-choose-a-stream.enjoy-numbers-money-business-markets"
+      },
+      {
+       "t": "Enjoy people, language, society, history, art, media",
+       "s": "Look at Arts / Humanities.",
+       "id": "after-10th.how-to-choose-a-stream.enjoy-people-language-society-history-ar"
+      },
+      {
+       "t": "Not sure",
+       "s": "Class 11 subject choices (Computer Science, Economics, Psychology, Informatics Practices, Fine Arts) can add flavour. Talk to a teacher or counsellor; you can still move across many courses after Class 12.",
+       "id": "after-10th.how-to-choose-a-stream.not-sure"
+      }
+     ],
+     "id": "after-10th.how-to-choose-a-stream"
+    },
+    {
+     "t": "Stay in school: Class 11-12",
+     "s": "Your stream decides which degrees you can enter later.",
+     "cr": [
+      "class-11-12-science-pcm-pcb"
+     ],
+     "c": [
+      {
+       "t": "Science PCM",
+       "s": "Physics, Chemistry, Maths (+ English, optional Computer Science).",
+       "x": "JEE Main, JEE Advanced, state CETs, NDA, CUET",
+       "ex": [
+        "nta",
+        "jee-adv"
+       ],
+       "c": [
+        {
+         "t": "Combinations: PCM + Computer Science / Informatics Practices / Physical Education / Biotechnology",
+         "s": "Offered by some schools.",
+         "id": "after-10th.stay-in-school-class-11-12.science-pcm.combinations-pcm-computer-science-inform"
+        },
+        {
+         "t": "Opens: engineering, architecture, defence, pure science, computing, aviation, merchant navy",
+         "id": "after-10th.stay-in-school-class-11-12.science-pcm.opens-engineering-architecture-defence-p"
+        }
+       ],
+       "id": "after-10th.stay-in-school-class-11-12.science-pcm"
+      },
+      {
+       "t": "Science PCB",
+       "s": "Physics, Chemistry, Biology.",
+       "x": "NEET-UG, CUET, state exams",
+       "ex": [
+        "nta",
+        "mcc"
+       ],
+       "c": [
+        {
+         "t": "Opens: medicine, dentistry, AYUSH, veterinary, nursing, pharmacy, allied health, agriculture, life sciences",
+         "id": "after-10th.stay-in-school-class-11-12.science-pcb.opens-medicine-dentistry-ayush-veterinar"
+        }
+       ],
+       "id": "after-10th.stay-in-school-class-11-12.science-pcb"
+      },
+      {
+       "t": "Science PCMB",
+       "s": "All four subjects. Keeps both doors open; heavier workload.",
+       "c": [
+        {
+         "t": "Decide PCM or PCB path after Class 12 based on marks and interest.",
+         "id": "after-10th.stay-in-school-class-11-12.science-pcmb.decide-pcm-or-pcb-path-after-class-12-ba"
+        }
+       ],
+       "id": "after-10th.stay-in-school-class-11-12.science-pcmb"
+      },
+      {
+       "t": "Commerce",
+       "s": "Accountancy, Business Studies, Economics (+ Maths optional).",
+       "x": "CUET, CA Foundation, IPMAT",
+       "ex": [
+        "nta",
+        "icai"
+       ],
+       "c": [
+        {
+         "t": "Maths helps for Economics, Actuarial, Data roles; not compulsory for CA or B.Com.",
+         "id": "after-10th.stay-in-school-class-11-12.commerce.maths-helps-for-economics-actuarial-data"
+        }
+       ],
+       "id": "after-10th.stay-in-school-class-11-12.commerce"
+      },
+      {
+       "t": "Arts / Humanities",
+       "s": "History, Political Science, Geography, Economics, Psychology, Sociology, languages, Fine Arts.",
+       "x": "CUET, CLAT, design tests",
+       "ex": [
+        "nta",
+        "clat"
+       ],
+       "c": [
+        {
+         "t": "Many students pair Arts with Psychology, Economics or Computer Applications for wider options.",
+         "id": "after-10th.stay-in-school-class-11-12.arts-humanities.many-students-pair-arts-with-psychology-"
+        }
+       ],
+       "id": "after-10th.stay-in-school-class-11-12.arts-humanities"
+      }
+     ],
+     "id": "after-10th.stay-in-school-class-11-12"
+    },
+    {
+     "t": "Diploma / Polytechnic (3 years)",
+     "s": "Job-ready technical course; can also lead to a degree.",
+     "x": "State polytechnic entrance (varies by state)",
+     "cr": [
+      "diploma-in-engineering-polytechnic"
+     ],
+     "ex": [
+      "aicte",
+      "jeecup"
+     ],
+     "c": [
+      {
+       "t": "Engineering branches",
+       "s": "Civil, Mechanical, Electrical, Electronics, Computer, Automobile, Chemical, Mining, Textile.",
+       "c": [
+        {
+         "t": "Junior engineer / technician / supervisor",
+         "s": "Private industry and government (many posts need a separate recruitment exam).",
+         "id": "after-10th.diploma-polytechnic-3-years.engineering-branches.junior-engineer-technician-supervisor"
+        },
+        {
+         "t": "Lateral entry to B.Tech 2nd year",
+         "s": "Via state lateral entry tests. Check your state.",
+         "id": "after-10th.diploma-polytechnic-3-years.engineering-branches.lateral-entry-to-b-tech-2nd-year"
+        },
+        {
+         "t": "Self-employment",
+         "s": "Workshops, contracting, service centres.",
+         "id": "after-10th.diploma-polytechnic-3-years.engineering-branches.self-employment"
+        }
+       ],
+       "id": "after-10th.diploma-polytechnic-3-years.engineering-branches"
+      },
+      {
+       "t": "Other diplomas",
+       "s": "Hotel/catering, fashion, interior design, agriculture, animation, pharmacy (after 12th).",
+       "cr": [
+        "diploma-in-hotel-management-catering",
+        "diploma-in-fashion-interior-design",
+        "diploma-in-agriculture-horticulture"
+       ],
+       "c": [
+        {
+         "t": "Check that the institute and diploma are recognised before joining.",
+         "id": "after-10th.diploma-polytechnic-3-years.other-diplomas.check-that-the-institute-and-diploma-are"
+        }
+       ],
+       "id": "after-10th.diploma-polytechnic-3-years.other-diplomas"
+      }
+     ],
+     "id": "after-10th.diploma-polytechnic-3-years"
+    },
+    {
+     "t": "ITI (1-2 years)",
+     "s": "Trade training. Strong for hands-on jobs and apprenticeships.",
+     "x": "Admission by merit / state counselling",
+     "cr": [
+      "iti-trades-electrician-fitter-welder-mechanic-co",
+      "apprenticeship-training"
+     ],
+     "ex": [
+      "dgt"
+     ],
+     "c": [
+      {
+       "t": "Engineering trades",
+       "s": "Fitter, Turner, Machinist, Welder, Mechanic (Motor Vehicle, Diesel, Refrigeration and AC), Draughtsman (Civil / Mechanical).",
+       "c": [
+        {
+         "t": "Factory technician, maintenance, tool room",
+         "s": "Manufacturing and automobile sector.",
+         "id": "after-10th.iti-1-2-years.engineering-trades.factory-technician-maintenance-tool-room"
+        },
+        {
+         "t": "Railways / PSU trade posts",
+         "s": "Read each recruitment notice.",
+         "id": "after-10th.iti-1-2-years.engineering-trades.railways-psu-trade-posts"
+        },
+        {
+         "t": "Own workshop",
+         "s": "Repair and fabrication.",
+         "id": "after-10th.iti-1-2-years.engineering-trades.own-workshop"
+        }
+       ],
+       "id": "after-10th.iti-1-2-years.engineering-trades"
+      },
+      {
+       "t": "Electrical and electronics trades",
+       "s": "Electrician, Wireman, Electronics Mechanic, Instrument Mechanic.",
+       "c": [
+        {
+         "t": "Electrician / panel technician",
+         "s": "Housing, industry, utilities.",
+         "id": "after-10th.iti-1-2-years.electrical-and-electronics-trades.electrician-panel-technician"
+        },
+        {
+         "t": "Electronics repair / installation",
+         "s": "Mobile, appliances, CCTV, solar installation.",
+         "id": "after-10th.iti-1-2-years.electrical-and-electronics-trades.electronics-repair-installation"
+        }
+       ],
+       "id": "after-10th.iti-1-2-years.electrical-and-electronics-trades"
+      },
+      {
+       "t": "IT and office trades",
+       "s": "COPA (computer operator and programming assistant), Stenography, Secretarial Practice.",
+       "c": [
+        {
+         "t": "Data entry / office assistant",
+         "s": "Government and private.",
+         "id": "after-10th.iti-1-2-years.it-and-office-trades.data-entry-office-assistant"
+        },
+        {
+         "t": "Further study",
+         "s": "Diploma lateral entry in some states.",
+         "id": "after-10th.iti-1-2-years.it-and-office-trades.further-study"
+        }
+       ],
+       "id": "after-10th.iti-1-2-years.it-and-office-trades"
+      },
+      {
+       "t": "Service and other trades",
+       "s": "Plumber, Carpenter, Mason, Sewing Technology, Beauty and Wellness, Food Production.",
+       "c": [
+        {
+         "t": "Skilled worker / contractor",
+         "s": "Construction and services.",
+         "id": "after-10th.iti-1-2-years.service-and-other-trades.skilled-worker-contractor"
+        },
+        {
+         "t": "Entrepreneur",
+         "s": "Salon, tailoring unit, catering.",
+         "id": "after-10th.iti-1-2-years.service-and-other-trades.entrepreneur"
+        }
+       ],
+       "id": "after-10th.iti-1-2-years.service-and-other-trades"
+      }
+     ],
+     "id": "after-10th.iti-1-2-years"
+    },
+    {
+     "t": "Skill courses (weeks to months)",
+     "s": "Good to start earning or to add skills.",
+     "cr": [
+      "skill-india-pmkvy-short-term-courses",
+      "open-schooling-class-10-12-nios"
+     ],
+     "ex": [
+      "nsdc",
+      "skillindia",
+      "nios"
+     ],
+     "c": [
+      {
+       "t": "Sector skill areas",
+       "s": "Retail, IT-ITeS, Healthcare assistant, Electronics, Automotive, Construction, Tourism and Hospitality, Banking and Finance, Logistics, Agriculture, Beauty and Wellness.",
+       "c": [
+        {
+         "t": "Pick a sector, then a certificate on Skill India or NSDC partner centres",
+         "s": "Check the course is NSQF-aligned.",
+         "id": "after-10th.skill-courses-weeks-to-months.sector-skill-areas.pick-a-sector-then-a-certificate-on-skil"
+        }
+       ],
+       "id": "after-10th.skill-courses-weeks-to-months.sector-skill-areas"
+      },
+      {
+       "t": "Open schooling (NIOS) Class 10/12",
+       "s": "Study at your own pace while working or training.",
+       "id": "after-10th.skill-courses-weeks-to-months.open-schooling-nios-class-10-12"
+      }
+     ],
+     "id": "after-10th.skill-courses-weeks-to-months"
+    },
+    {
+     "t": "Government jobs after 10th",
+     "s": "Examples only. Eligibility, age and exam pattern change; read the official notice.",
+     "cr": [
+      "railway-group-d-ssc-mts-government-jobs",
+      "agniveer-army-gd-tradesman-after-10th"
+     ],
+     "ex": [
+      "army"
+     ],
+     "c": [
+      {
+       "t": "Railway Group D, SSC MTS, state police constable, Agniveer (Army GD / Tradesman)",
+       "id": "after-10th.government-jobs-after-10th.railway-group-d-ssc-mts-state-police-con"
+      }
+     ],
+     "id": "after-10th.government-jobs-after-10th"
+    }
+   ],
+   "id": "after-10th"
+  },
+  {
+   "t": "After 12th",
+   "s": "Pick by stream. Many courses accept any stream; check each course page.",
+   "c": [
+    {
+     "t": "Science PCM",
+     "c": [
+      {
+       "t": "Engineering branches (B.Tech / BE)",
+       "s": "Each branch leads to different roles. Many roles overlap, and skills matter more than the branch label.",
+       "cr": [
+        "b-tech-be-engineering"
+       ],
+       "ex": [
+        "nta",
+        "jee-adv",
+        "josaa"
+       ],
+       "c": [
+        {
+         "t": "Computer Science / IT / AI and Data Science",
+         "s": "Programming, algorithms, data, systems.",
+         "c": [
+          {
+           "t": "Software developer",
+           "s": "Apps, web, backend.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.computer-science-it-ai-and-data-science.software-developer"
+          },
+          {
+           "t": "Data analyst / data scientist",
+           "s": "Needs maths, statistics and coding.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.computer-science-it-ai-and-data-science.data-analyst-data-scientist"
+          },
+          {
+           "t": "Machine learning engineer",
+           "s": "Often after strong projects or M.Tech.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.computer-science-it-ai-and-data-science.machine-learning-engineer"
+          },
+          {
+           "t": "Cloud / DevOps engineer",
+           "s": "Infrastructure and deployment.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.computer-science-it-ai-and-data-science.cloud-devops-engineer"
+          },
+          {
+           "t": "Cybersecurity analyst",
+           "s": "Security operations, testing.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.computer-science-it-ai-and-data-science.cybersecurity-analyst"
+          },
+          {
+           "t": "Game / graphics developer",
+           "s": "Real-time systems.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.computer-science-it-ai-and-data-science.game-graphics-developer"
+          }
+         ],
+         "id": "after-12th.science-pcm.engineering-branches-b-tech-be.computer-science-it-ai-and-data-science"
+        },
+        {
+         "t": "Electronics and Communication (ECE)",
+         "s": "Circuits, signals, communication.",
+         "c": [
+          {
+           "t": "Embedded systems engineer",
+           "s": "Devices, IoT, automotive electronics.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.electronics-and-communication-ece.embedded-systems-engineer"
+          },
+          {
+           "t": "VLSI / chip design engineer",
+           "s": "Usually with M.Tech or strong specialisation.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.electronics-and-communication-ece.vlsi-chip-design-engineer"
+          },
+          {
+           "t": "Telecom / network engineer",
+           "s": "Networks, 5G, satellite.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.electronics-and-communication-ece.telecom-network-engineer"
+          }
+         ],
+         "id": "after-12th.science-pcm.engineering-branches-b-tech-be.electronics-and-communication-ece"
+        },
+        {
+         "t": "Electrical and Electronics (EEE)",
+         "s": "Power, machines, control.",
+         "c": [
+          {
+           "t": "Power systems engineer",
+           "s": "Utilities, grid, renewable energy.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.electrical-and-electronics-eee.power-systems-engineer"
+          },
+          {
+           "t": "Control and automation engineer",
+           "s": "Industry automation.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.electrical-and-electronics-eee.control-and-automation-engineer"
+          },
+          {
+           "t": "EV and battery engineer",
+           "s": "Growing area.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.electrical-and-electronics-eee.ev-and-battery-engineer"
+          }
+         ],
+         "id": "after-12th.science-pcm.engineering-branches-b-tech-be.electrical-and-electronics-eee"
+        },
+        {
+         "t": "Mechanical",
+         "s": "Design, thermal, manufacturing.",
+         "c": [
+          {
+           "t": "Design / CAD engineer",
+           "s": "Product design.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.mechanical.design-cad-engineer"
+          },
+          {
+           "t": "Manufacturing / production engineer",
+           "s": "Factories.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.mechanical.manufacturing-production-engineer"
+          },
+          {
+           "t": "Automotive engineer",
+           "s": "Vehicles and components.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.mechanical.automotive-engineer"
+          },
+          {
+           "t": "Robotics / mechatronics",
+           "s": "With electronics and coding.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.mechanical.robotics-mechatronics"
+          }
+         ],
+         "id": "after-12th.science-pcm.engineering-branches-b-tech-be.mechanical"
+        },
+        {
+         "t": "Civil",
+         "s": "Structures, transport, water, environment.",
+         "c": [
+          {
+           "t": "Structural / site engineer",
+           "s": "Buildings, bridges.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.civil.structural-site-engineer"
+          },
+          {
+           "t": "Construction manager",
+           "s": "Projects.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.civil.construction-manager"
+          },
+          {
+           "t": "Transportation / water resources engineer",
+           "s": "Government departments and consultants.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.civil.transportation-water-resources-engineer"
+          }
+         ],
+         "id": "after-12th.science-pcm.engineering-branches-b-tech-be.civil"
+        },
+        {
+         "t": "Chemical and Petroleum",
+         "s": "Processes, materials, energy.",
+         "cr": [
+          "mining-petroleum-geology-engineering"
+         ],
+         "c": [
+          {
+           "t": "Process engineer",
+           "s": "Refineries, fertiliser, pharma.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.chemical-and-petroleum.process-engineer"
+          },
+          {
+           "t": "Petroleum / gas engineer",
+           "s": "Oil and gas sector.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.chemical-and-petroleum.petroleum-gas-engineer"
+          }
+         ],
+         "id": "after-12th.science-pcm.engineering-branches-b-tech-be.chemical-and-petroleum"
+        },
+        {
+         "t": "Aerospace / Aeronautical",
+         "s": "Aircraft and spacecraft.",
+         "c": [
+          {
+           "t": "Aircraft design / maintenance engineer",
+           "s": "Industry and research labs.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.aerospace-aeronautical.aircraft-design-maintenance-engineer"
+          },
+          {
+           "t": "Space and defence research",
+           "s": "Government organisations recruit through their own notices.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.aerospace-aeronautical.space-and-defence-research"
+          }
+         ],
+         "id": "after-12th.science-pcm.engineering-branches-b-tech-be.aerospace-aeronautical"
+        },
+        {
+         "t": "Biotechnology / Biomedical / Agriculture engineering",
+         "s": "Biology meets engineering.",
+         "c": [
+          {
+           "t": "Medical device engineer",
+           "s": "Hospitals and device makers.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.biotechnology-biomedical-agriculture-eng.medical-device-engineer"
+          },
+          {
+           "t": "Bioprocess engineer",
+           "s": "Pharma and biotech plants.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.biotechnology-biomedical-agriculture-eng.bioprocess-engineer"
+          }
+         ],
+         "id": "after-12th.science-pcm.engineering-branches-b-tech-be.biotechnology-biomedical-agriculture-eng"
+        },
+        {
+         "t": "Other branches",
+         "s": "Industrial / Production, Instrumentation, Textile, Mining, Marine, Metallurgy, Environmental.",
+         "c": [
+          {
+           "t": "Check college placement records for the specific branch.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.other-branches.check-college-placement-records-for-the-"
+          }
+         ],
+         "id": "after-12th.science-pcm.engineering-branches-b-tech-be.other-branches"
+        },
+        {
+         "t": "Where you can study",
+         "s": "Rank decides the ladder: IITs, NITs, IIITs, state government colleges, then private universities.",
+         "x": "JEE Main, JEE Advanced, state CETs, BITSAT, VITEEE",
+         "ex": [
+          "josaa",
+          "nta",
+          "jee-adv"
+         ],
+         "c": [
+          {
+           "t": "National counselling for IITs/NITs/IIITs: JoSAA",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.where-you-can-study.national-counselling-for-iits-nits-iiits"
+          },
+          {
+           "t": "State government and private colleges: state counselling (see your state exam)",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.where-you-can-study.state-government-and-private-colleges-st"
+          }
+         ],
+         "id": "after-12th.science-pcm.engineering-branches-b-tech-be.where-you-can-study"
+        },
+        {
+         "t": "After the degree",
+         "c": [
+          {
+           "t": "Job via campus placement or off-campus",
+           "s": "Build projects and internships from year 2.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.after-the-degree.job-via-campus-placement-or-off-campus"
+          },
+          {
+           "t": "M.Tech via GATE, then research or PSU jobs",
+           "s": "GATE score is also used by many PSU recruitments.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.after-the-degree.m-tech-via-gate-then-research-or-psu-job"
+          },
+          {
+           "t": "MS abroad",
+           "s": "GRE and English tests; check costs and scholarships.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.after-the-degree.ms-abroad"
+          },
+          {
+           "t": "MBA via CAT / MAT",
+           "s": "For management roles.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.after-the-degree.mba-via-cat-mat"
+          },
+          {
+           "t": "UPSC Engineering Services / state PSC",
+           "s": "Government engineer posts.",
+           "id": "after-12th.science-pcm.engineering-branches-b-tech-be.after-the-degree.upsc-engineering-services-state-psc"
+          }
+         ],
+         "id": "after-12th.science-pcm.engineering-branches-b-tech-be.after-the-degree"
+        }
+       ],
+       "id": "after-12th.science-pcm.engineering-branches-b-tech-be"
+      },
+      {
+       "t": "Architecture (B.Arch, 5 years)",
+       "s": "Needs drawing/aptitude test.",
+       "x": "NATA, JEE Main Paper 2",
+       "cr": [
+        "b-arch-architecture"
+       ],
+       "ex": [
+        "nata",
+        "nta"
+       ],
+       "c": [
+        {
+         "t": "Architect (Council of Architecture registration)",
+         "s": "Practice or firms.",
+         "id": "after-12th.science-pcm.architecture-b-arch-5-years.architect-council-of-architecture-regist"
+        },
+        {
+         "t": "Urban / landscape planner",
+         "s": "With M.Plan or M.Arch.",
+         "id": "after-12th.science-pcm.architecture-b-arch-5-years.urban-landscape-planner"
+        },
+        {
+         "t": "Interior / conservation specialist",
+         "s": "Specialisation.",
+         "id": "after-12th.science-pcm.architecture-b-arch-5-years.interior-conservation-specialist"
+        }
+       ],
+       "id": "after-12th.science-pcm.architecture-b-arch-5-years"
+      },
+      {
+       "t": "B.Sc (Physics, Chemistry, Maths, Statistics, Computer Science, Electronics)",
+       "s": "3-year degree; research and teaching friendly.",
+       "x": "CUET-UG, university merit",
+       "cr": [
+        "b-sc-physics-chemistry-maths-statistics-cs"
+       ],
+       "ex": [
+        "nta"
+       ],
+       "c": [
+        {
+         "t": "Physics",
+         "c": [
+          {
+           "t": "M.Sc then research (IISER, IIT JAM routes)",
+           "s": "PhD pathway.",
+           "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-.physics.m-sc-then-research-iiser-iit-jam-routes"
+          },
+          {
+           "t": "ISRO / DRDO scientist",
+           "s": "Through their own recruitment.",
+           "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-.physics.isro-drdo-scientist"
+          },
+          {
+           "t": "Teaching",
+           "s": "B.Ed or NET.",
+           "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-.physics.teaching"
+          }
+         ],
+         "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-.physics"
+        },
+        {
+         "t": "Chemistry",
+         "c": [
+          {
+           "t": "Analytical / quality chemist",
+           "s": "Pharma, food, materials.",
+           "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-.chemistry.analytical-quality-chemist"
+          },
+          {
+           "t": "Research",
+           "s": "M.Sc, PhD.",
+           "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-.chemistry.research"
+          }
+         ],
+         "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-.chemistry"
+        },
+        {
+         "t": "Mathematics and Statistics",
+         "c": [
+          {
+           "t": "Data analyst / statistician",
+           "s": "Needs coding.",
+           "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-.mathematics-and-statistics.data-analyst-statistician"
+          },
+          {
+           "t": "Actuarial / quant paths",
+           "s": "Professional exams.",
+           "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-.mathematics-and-statistics.actuarial-quant-paths"
+          },
+          {
+           "t": "Cryptography / research",
+           "s": "Higher studies.",
+           "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-.mathematics-and-statistics.cryptography-research"
+          }
+         ],
+         "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-.mathematics-and-statistics"
+        },
+        {
+         "t": "Computer Science / Electronics",
+         "cr": [
+          "b-sc-data-science-ai"
+         ],
+         "c": [
+          {
+           "t": "Software / IT roles",
+           "s": "Skills and projects matter.",
+           "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-.computer-science-electronics.software-it-roles"
+          },
+          {
+           "t": "MCA / M.Sc",
+           "s": "Higher study.",
+           "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-.computer-science-electronics.mca-m-sc"
+          }
+         ],
+         "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-.computer-science-electronics"
+        }
+       ],
+       "id": "after-12th.science-pcm.b-sc-physics-chemistry-maths-statistics-"
+      },
+      {
+       "t": "BCA (3 years)",
+       "s": "Computer applications. Then MCA or jobs.",
+       "x": "CUET-UG, university tests",
+       "cr": [
+        "bca-computer-applications"
+       ],
+       "ex": [
+        "nta"
+       ],
+       "c": [
+        {
+         "t": "Software / web / app developer",
+         "id": "after-12th.science-pcm.bca-3-years.software-web-app-developer"
+        },
+        {
+         "t": "Testing, support, data entry to analytics",
+         "id": "after-12th.science-pcm.bca-3-years.testing-support-data-entry-to-analytics"
+        },
+        {
+         "t": "MCA for higher roles",
+         "id": "after-12th.science-pcm.bca-3-years.mca-for-higher-roles"
+        }
+       ],
+       "id": "after-12th.science-pcm.bca-3-years"
+      },
+      {
+       "t": "Defence (after 12th)",
+       "s": "Armed forces.",
+       "x": "NDA (UPSC), Navy 10+2 B.Tech Entry",
+       "cr": [
+        "nda-army-navy-air-force-officer",
+        "navy-10-2-b-tech-entry"
+       ],
+       "ex": [
+        "upsc",
+        "army",
+        "navy",
+        "iaf"
+       ],
+       "c": [
+        {
+         "t": "NDA: Army / Navy / Air Force officer",
+         "s": "Written exam, SSB interview, medical. Unmarried candidates; check age rules.",
+         "id": "after-12th.science-pcm.defence-after-12th.nda-army-navy-air-force-officer"
+        },
+        {
+         "t": "Navy 10+2 B.Tech Entry",
+         "s": "PCM with minimum marks; JEE Main rank; SSB.",
+         "id": "after-12th.science-pcm.defence-after-12th.navy-10-2-b-tech-entry"
+        },
+        {
+         "t": "Later routes after graduation",
+         "s": "CDS, AFCAT, TES, technical graduate entries (check notices).",
+         "id": "after-12th.science-pcm.defence-after-12th.later-routes-after-graduation"
+        }
+       ],
+       "id": "after-12th.science-pcm.defence-after-12th"
+      },
+      {
+       "t": "Maritime and Aviation",
+       "cr": [
+        "b-sc-nautical-science-b-tech-marine-engineering",
+        "commercial-pilot-licence-cpl",
+        "aircraft-maintenance-engineering-ame"
+       ],
+       "ex": [
+        "imu",
+        "dgshipping",
+        "dgca"
+       ],
+       "c": [
+        {
+         "t": "Merchant Navy: deck officer / marine engineer",
+         "s": "Approved course, IMU-CET or institute test, medical fitness.",
+         "id": "after-12th.science-pcm.maritime-and-aviation.merchant-navy-deck-officer-marine-engine"
+        },
+        {
+         "t": "Commercial pilot",
+         "s": "CPL training, DGCA medical, high cost.",
+         "id": "after-12th.science-pcm.maritime-and-aviation.commercial-pilot"
+        },
+        {
+         "t": "Aircraft Maintenance Engineer (AME)",
+         "s": "DGCA-approved institute.",
+         "id": "after-12th.science-pcm.maritime-and-aviation.aircraft-maintenance-engineer-ame"
+        }
+       ],
+       "id": "after-12th.science-pcm.maritime-and-aviation"
+      },
+      {
+       "t": "Design after PCM",
+       "x": "UCEED, NID DAT, NIFT",
+       "cr": [
+        "b-des-design"
+       ],
+       "ex": [
+        "uceed",
+        "nid",
+        "nift"
+       ],
+       "c": [
+        {
+         "t": "B.Des: product, UX, communication design",
+         "id": "after-12th.science-pcm.design-after-pcm.b-des-product-ux-communication-design"
+        }
+       ],
+       "id": "after-12th.science-pcm.design-after-pcm"
+      }
+     ],
+     "id": "after-12th.science-pcm"
+    },
+    {
+     "t": "Science PCB",
+     "c": [
+      {
+       "t": "MBBS (5.5 years)",
+       "s": "Doctor of medicine; includes a compulsory internship.",
+       "x": "NEET-UG",
+       "cr": [
+        "mbbs-medicine"
+       ],
+       "ex": [
+        "nta",
+        "mcc",
+        "aiims"
+       ],
+       "c": [
+        {
+         "t": "After MBBS: specialise or serve",
+         "x": "NEET-PG (check current rules)",
+         "cr": [
+          "mbbs-medicine"
+         ],
+         "ex": [
+          "mcc",
+          "nta"
+         ],
+         "c": [
+          {
+           "t": "Clinical specialties (MD / MS)",
+           "s": "Medicine, Surgery, Paediatrics, Obstetrics and Gynaecology, Orthopaedics, Anaesthesia, Dermatology, Psychiatry, ENT, Ophthalmology, Radiology, Pathology, Community Medicine, Emergency Medicine.",
+           "c": [
+            {
+             "t": "Super-specialty (DM / MCh): cardiology, neurology, nephrology and others",
+             "s": "After MD/MS.",
+             "id": "after-12th.science-pcb.mbbs-5-5-years.after-mbbs-specialise-or-serve.clinical-specialties-md-ms.super-specialty-dm-mch-cardiology-neurol"
+            }
+           ],
+           "id": "after-12th.science-pcb.mbbs-5-5-years.after-mbbs-specialise-or-serve.clinical-specialties-md-ms"
+          },
+          {
+           "t": "General practice / medical officer",
+           "s": "Government and private hospitals.",
+           "id": "after-12th.science-pcb.mbbs-5-5-years.after-mbbs-specialise-or-serve.general-practice-medical-officer"
+          },
+          {
+           "t": "Public health, research, hospital administration",
+           "s": "Further courses help (MPH, MHA).",
+           "id": "after-12th.science-pcb.mbbs-5-5-years.after-mbbs-specialise-or-serve.public-health-research-hospital-administ"
+          },
+          {
+           "t": "Medical education / teaching",
+           "s": "Faculty posts follow regulator rules.",
+           "id": "after-12th.science-pcb.mbbs-5-5-years.after-mbbs-specialise-or-serve.medical-education-teaching"
+          }
+         ],
+         "id": "after-12th.science-pcb.mbbs-5-5-years.after-mbbs-specialise-or-serve"
+        }
+       ],
+       "id": "after-12th.science-pcb.mbbs-5-5-years"
+      },
+      {
+       "t": "BDS (5 years)",
+       "s": "Dentistry.",
+       "x": "NEET-UG",
+       "cr": [
+        "bds-dentistry"
+       ],
+       "ex": [
+        "nta",
+        "mcc"
+       ],
+       "c": [
+        {
+         "t": "Dentist / clinic owner",
+         "id": "after-12th.science-pcb.bds-5-years.dentist-clinic-owner"
+        },
+        {
+         "t": "MDS specialisations",
+         "s": "Orthodontics, endodontics, oral surgery and others.",
+         "id": "after-12th.science-pcb.bds-5-years.mds-specialisations"
+        }
+       ],
+       "id": "after-12th.science-pcb.bds-5-years"
+      },
+      {
+       "t": "AYUSH: BAMS / BHMS / BUMS / BNYS",
+       "s": "Ayurveda, Homoeopathy, Unani, Naturopathy and Yoga.",
+       "x": "NEET-UG counselling",
+       "cr": [
+        "bams-bhms-bums-ayush",
+        "bnys-naturopathy-and-yogic-sciences"
+       ],
+       "ex": [
+        "nta",
+        "mcc"
+       ],
+       "c": [
+        {
+         "t": "Practitioner",
+         "s": "Registered with the relevant council.",
+         "id": "after-12th.science-pcb.ayush-bams-bhms-bums-bnys.practitioner"
+        },
+        {
+         "t": "Government AYUSH medical officer",
+         "id": "after-12th.science-pcb.ayush-bams-bhms-bums-bnys.government-ayush-medical-officer"
+        },
+        {
+         "t": "Wellness, research, product development",
+         "id": "after-12th.science-pcb.ayush-bams-bhms-bums-bnys.wellness-research-product-development"
+        }
+       ],
+       "id": "after-12th.science-pcb.ayush-bams-bhms-bums-bnys"
+      },
+      {
+       "t": "Veterinary (BVSc & AH)",
+       "s": "Animal health.",
+       "x": "NEET-UG",
+       "cr": [
+        "bvsc-ah-veterinary"
+       ],
+       "ex": [
+        "nta",
+        "mcc"
+       ],
+       "c": [
+        {
+         "t": "Veterinarian",
+         "s": "Clinics, livestock, dairy, wildlife.",
+         "id": "after-12th.science-pcb.veterinary-bvsc-ah.veterinarian"
+        },
+        {
+         "t": "Government veterinary officer",
+         "id": "after-12th.science-pcb.veterinary-bvsc-ah.government-veterinary-officer"
+        }
+       ],
+       "id": "after-12th.science-pcb.veterinary-bvsc-ah"
+      },
+      {
+       "t": "Nursing (B.Sc Nursing)",
+       "x": "State / university entrance or merit",
+       "cr": [
+        "b-sc-nursing"
+       ],
+       "ex": [
+        "nta"
+       ],
+       "c": [
+        {
+         "t": "Staff nurse / nursing officer",
+         "s": "Government exams and private hospitals.",
+         "id": "after-12th.science-pcb.nursing-b-sc-nursing.staff-nurse-nursing-officer"
+        },
+        {
+         "t": "Community health / public health nurse",
+         "id": "after-12th.science-pcb.nursing-b-sc-nursing.community-health-public-health-nurse"
+        },
+        {
+         "t": "M.Sc Nursing, teaching, overseas nursing",
+         "s": "Check licensing rules of each country.",
+         "id": "after-12th.science-pcb.nursing-b-sc-nursing.m-sc-nursing-teaching-overseas-nursing"
+        }
+       ],
+       "id": "after-12th.science-pcb.nursing-b-sc-nursing"
+      },
+      {
+       "t": "Pharmacy (D.Pharm / B.Pharm)",
+       "x": "State CETs or merit",
+       "cr": [
+        "d-pharm-b-pharm-pharmacy"
+       ],
+       "ex": [
+        "kcet",
+        "mhtcet",
+        "apeapcet",
+        "keam"
+       ],
+       "c": [
+        {
+         "t": "Retail / hospital pharmacist",
+         "s": "Needs pharmacist registration.",
+         "id": "after-12th.science-pcb.pharmacy-d-pharm-b-pharm.retail-hospital-pharmacist"
+        },
+        {
+         "t": "Pharma industry: production, quality, regulatory",
+         "id": "after-12th.science-pcb.pharmacy-d-pharm-b-pharm.pharma-industry-production-quality-regul"
+        },
+        {
+         "t": "M.Pharm and research",
+         "id": "after-12th.science-pcb.pharmacy-d-pharm-b-pharm.m-pharm-and-research"
+        }
+       ],
+       "id": "after-12th.science-pcb.pharmacy-d-pharm-b-pharm"
+      },
+      {
+       "t": "Allied health",
+       "s": "Physiotherapy, Medical Lab Technology, Radiology and Imaging, Optometry, Operation Theatre technology, Dialysis, Emergency Medical Technology.",
+       "x": "University / state entrance or merit",
+       "cr": [
+        "bpt-physiotherapy",
+        "bmlt-medical-lab-technology-radiology-ot",
+        "b-optom-optometry",
+        "perfusion-dialysis-emergency-medical-technology"
+       ],
+       "ex": [
+        "nta"
+       ],
+       "c": [
+        {
+         "t": "Roles: physiotherapist, lab technologist, imaging technologist, optometrist, perfusionist, paramedic",
+         "s": "Check council recognition.",
+         "id": "after-12th.science-pcb.allied-health.roles-physiotherapist-lab-technologist-i"
+        }
+       ],
+       "id": "after-12th.science-pcb.allied-health"
+      },
+      {
+       "t": "Agriculture and allied sciences",
+       "s": "Agriculture, Horticulture, Forestry, Fisheries, Dairy, Food Technology.",
+       "x": "CUET-UG (ICAR seats), state exams",
+       "cr": [
+        "b-sc-agriculture-horticulture-forestry",
+        "b-sc-fisheries-dairy-food-technology"
+       ],
+       "ex": [
+        "icar",
+        "nta"
+       ],
+       "c": [
+        {
+         "t": "Agriculture officer / agri-business",
+         "s": "Government and private.",
+         "id": "after-12th.science-pcb.agriculture-and-allied-sciences.agriculture-officer-agri-business"
+        },
+        {
+         "t": "Banking (agri) and insurance",
+         "id": "after-12th.science-pcb.agriculture-and-allied-sciences.banking-agri-and-insurance"
+        },
+        {
+         "t": "Research (ICAR institutes, M.Sc, PhD)",
+         "id": "after-12th.science-pcb.agriculture-and-allied-sciences.research-icar-institutes-m-sc-phd"
+        }
+       ],
+       "id": "after-12th.science-pcb.agriculture-and-allied-sciences"
+      },
+      {
+       "t": "Life sciences",
+       "s": "Biotechnology, Microbiology, Forensic Science, Psychology.",
+       "x": "CUET-UG, university tests",
+       "cr": [
+        "b-sc-biotechnology-life-sciences-microbiology",
+        "b-sc-forensic-science",
+        "b-sc-psychology"
+       ],
+       "ex": [
+        "nta"
+       ],
+       "c": [
+        {
+         "t": "Lab / research assistant, quality control",
+         "id": "after-12th.science-pcb.life-sciences.lab-research-assistant-quality-control"
+        },
+        {
+         "t": "Clinical research associate",
+         "id": "after-12th.science-pcb.life-sciences.clinical-research-associate"
+        },
+        {
+         "t": "Forensic expert (needs M.Sc and department posts)",
+         "id": "after-12th.science-pcb.life-sciences.forensic-expert-needs-m-sc-and-departmen"
+        },
+        {
+         "t": "Counselling psychologist (needs M.A./M.Sc and supervised practice)",
+         "id": "after-12th.science-pcb.life-sciences.counselling-psychologist-needs-m-a-m-sc-"
+        }
+       ],
+       "id": "after-12th.science-pcb.life-sciences"
+      },
+      {
+       "t": "Sports and wellness",
+       "s": "B.Sc Sports Science, B.P.Ed, Yoga.",
+       "x": "Physical tests, university rules",
+       "cr": [
+        "b-sc-sports-science-b-p-ed-physical-education",
+        "yoga-naturopathy-certificate-and-degree"
+       ],
+       "ex": [
+        "nis"
+       ],
+       "c": [
+        {
+         "t": "Physical education teacher",
+         "s": "B.P.Ed / M.P.Ed plus TET/NET for some posts.",
+         "id": "after-12th.science-pcb.sports-and-wellness.physical-education-teacher"
+        },
+        {
+         "t": "Coach / fitness trainer",
+         "id": "after-12th.science-pcb.sports-and-wellness.coach-fitness-trainer"
+        },
+        {
+         "t": "Sports science support roles",
+         "id": "after-12th.science-pcb.sports-and-wellness.sports-science-support-roles"
+        }
+       ],
+       "id": "after-12th.science-pcb.sports-and-wellness"
+      }
+     ],
+     "id": "after-12th.science-pcb"
+    },
+    {
+     "t": "Commerce",
+     "c": [
+      {
+       "t": "B.Com (3 years)",
+       "s": "General, Accounting and Finance, Taxation, Banking and Insurance, Computer Applications, Honours.",
+       "x": "CUET-UG, university merit",
+       "cr": [
+        "b-com"
+       ],
+       "ex": [
+        "nta"
+       ],
+       "c": [
+        {
+         "t": "Accountant / audit assistant",
+         "id": "after-12th.commerce.b-com-3-years.accountant-audit-assistant"
+        },
+        {
+         "t": "Tax assistant (GST, income tax)",
+         "s": "Certificate courses help.",
+         "id": "after-12th.commerce.b-com-3-years.tax-assistant-gst-income-tax"
+        },
+        {
+         "t": "Bank / insurance jobs via exams",
+         "id": "after-12th.commerce.b-com-3-years.bank-insurance-jobs-via-exams"
+        },
+        {
+         "t": "M.Com / MBA / CA / CS after B.Com",
+         "id": "after-12th.commerce.b-com-3-years.m-com-mba-ca-cs-after-b-com"
+        }
+       ],
+       "id": "after-12th.commerce.b-com-3-years"
+      },
+      {
+       "t": "BBA / BMS (3 years)",
+       "s": "Specialisations: Marketing, Finance, HR, Business Analytics, International Business, Entrepreneurship, Digital Marketing.",
+       "x": "CUET-UG, IPMAT, NPAT, SET",
+       "cr": [
+        "bba-bms-management",
+        "bba-aviation-logistics-supply-chain"
+       ],
+       "ex": [
+        "nta",
+        "ipmat"
+       ],
+       "c": [
+        {
+         "t": "Management trainee / executive",
+         "id": "after-12th.commerce.bba-bms-3-years.management-trainee-executive"
+        },
+        {
+         "t": "Marketing, sales, HR, operations roles",
+         "id": "after-12th.commerce.bba-bms-3-years.marketing-sales-hr-operations-roles"
+        },
+        {
+         "t": "MBA via CAT / GMAT after work experience",
+         "id": "after-12th.commerce.bba-bms-3-years.mba-via-cat-gmat-after-work-experience"
+        },
+        {
+         "t": "Start-up founder",
+         "id": "after-12th.commerce.bba-bms-3-years.start-up-founder"
+        }
+       ],
+       "id": "after-12th.commerce.bba-bms-3-years"
+      },
+      {
+       "t": "Chartered Accountancy (CA)",
+       "s": "ICAI route: Foundation, Intermediate, Articleship (training), Final.",
+       "x": "ICAI exams",
+       "cr": [
+        "chartered-accountancy-ca"
+       ],
+       "ex": [
+        "icai"
+       ],
+       "c": [
+        {
+         "t": "Practising CA: audit, tax, advisory",
+         "id": "after-12th.commerce.chartered-accountancy-ca.practising-ca-audit-tax-advisory"
+        },
+        {
+         "t": "Finance controller / CFO track",
+         "s": "After experience.",
+         "id": "after-12th.commerce.chartered-accountancy-ca.finance-controller-cfo-track"
+        },
+        {
+         "t": "Corporate finance, investment banking",
+         "s": "Competitive.",
+         "id": "after-12th.commerce.chartered-accountancy-ca.corporate-finance-investment-banking"
+        }
+       ],
+       "id": "after-12th.commerce.chartered-accountancy-ca"
+      },
+      {
+       "t": "Company Secretary (CS)",
+       "s": "ICSI route: Foundation, Executive, Professional.",
+       "x": "ICSI exams",
+       "cr": [
+        "company-secretary-cs"
+       ],
+       "ex": [
+        "icsi"
+       ],
+       "c": [
+        {
+         "t": "Company secretary / compliance officer",
+         "id": "after-12th.commerce.company-secretary-cs.company-secretary-compliance-officer"
+        },
+        {
+         "t": "Legal and governance roles",
+         "id": "after-12th.commerce.company-secretary-cs.legal-and-governance-roles"
+        }
+       ],
+       "id": "after-12th.commerce.company-secretary-cs"
+      },
+      {
+       "t": "Cost and Management Accountancy (CMA)",
+       "s": "ICMAI route.",
+       "x": "ICMAI exams",
+       "cr": [
+        "cost-and-management-accountancy-cma"
+       ],
+       "ex": [
+        "icmai"
+       ],
+       "c": [
+        {
+         "t": "Cost accountant in manufacturing",
+         "id": "after-12th.commerce.cost-and-management-accountancy-cma.cost-accountant-in-manufacturing"
+        },
+        {
+         "t": "Management accounting, pricing, strategy",
+         "id": "after-12th.commerce.cost-and-management-accountancy-cma.management-accounting-pricing-strategy"
+        }
+       ],
+       "id": "after-12th.commerce.cost-and-management-accountancy-cma"
+      },
+      {
+       "t": "Economics, Actuarial and Finance",
+       "x": "CUET-UG, ACET",
+       "cr": [
+        "economics-ba-b-sc",
+        "actuarial-science",
+        "banking-insurance-and-finance-bbi-bfm"
+       ],
+       "ex": [
+        "nta",
+        "iai"
+       ],
+       "c": [
+        {
+         "t": "Economist / policy analyst",
+         "s": "Higher study helps.",
+         "id": "after-12th.commerce.economics-actuarial-and-finance.economist-policy-analyst"
+        },
+        {
+         "t": "Actuary",
+         "s": "Long professional exam path.",
+         "id": "after-12th.commerce.economics-actuarial-and-finance.actuary"
+        },
+        {
+         "t": "Banking: PO / Clerk via IBPS / SBI exams",
+         "id": "after-12th.commerce.economics-actuarial-and-finance.banking-po-clerk-via-ibps-sbi-exams"
+        },
+        {
+         "t": "Stock market, mutual funds, wealth management",
+         "s": "Certifications (for example NISM) are needed for many roles.",
+         "id": "after-12th.commerce.economics-actuarial-and-finance.stock-market-mutual-funds-wealth-managem"
+        }
+       ],
+       "id": "after-12th.commerce.economics-actuarial-and-finance"
+      },
+      {
+       "t": "Law with business",
+       "s": "BBA LLB / B.Com LLB (5 years).",
+       "x": "CLAT, AILET, LSAT-India",
+       "cr": [
+        "bba-llb-b-com-llb-law-with-business"
+       ],
+       "ex": [
+        "clat",
+        "ailet"
+       ],
+       "c": [
+        {
+         "t": "Corporate lawyer",
+         "id": "after-12th.commerce.law-with-business.corporate-lawyer"
+        },
+        {
+         "t": "Legal advisor in companies",
+         "id": "after-12th.commerce.law-with-business.legal-advisor-in-companies"
+        }
+       ],
+       "id": "after-12th.commerce.law-with-business"
+      },
+      {
+       "t": "Digital and new-age business skills",
+       "s": "Digital marketing, analytics, e-commerce, supply chain.",
+       "cr": [
+        "digital-marketing-business-analytics-certificate",
+        "tourism-and-travel-management"
+       ],
+       "ex": [
+        "nsdc"
+       ],
+       "c": [
+        {
+         "t": "Add these to any degree; check course quality and placement claims.",
+         "id": "after-12th.commerce.digital-and-new-age-business-skills.add-these-to-any-degree-check-course-qua"
+        }
+       ],
+       "id": "after-12th.commerce.digital-and-new-age-business-skills"
+      }
+     ],
+     "id": "after-12th.commerce"
+    },
+    {
+     "t": "Arts / Humanities",
+     "c": [
+      {
+       "t": "BA (3 years)",
+       "s": "Choose subjects you can sustain: History, Political Science, Sociology, Geography, Psychology, Economics, languages.",
+       "x": "CUET-UG, university merit",
+       "cr": [
+        "ba-history-political-science-sociology-geography"
+       ],
+       "ex": [
+        "nta"
+       ],
+       "c": [
+        {
+         "t": "History / Archaeology",
+         "c": [
+          {
+           "t": "Museum, heritage and archive roles",
+           "s": "With M.A. or diplomas.",
+           "id": "after-12th.arts-humanities.ba-3-years.history-archaeology.museum-heritage-and-archive-roles"
+          },
+          {
+           "t": "Teaching and research",
+           "id": "after-12th.arts-humanities.ba-3-years.history-archaeology.teaching-and-research"
+          },
+          {
+           "t": "Civil services preparation",
+           "id": "after-12th.arts-humanities.ba-3-years.history-archaeology.civil-services-preparation"
+          }
+         ],
+         "id": "after-12th.arts-humanities.ba-3-years.history-archaeology"
+        },
+        {
+         "t": "Political Science / Public Administration",
+         "c": [
+          {
+           "t": "Civil services (UPSC / state PSC)",
+           "s": "Any graduate can apply.",
+           "id": "after-12th.arts-humanities.ba-3-years.political-science-public-administration.civil-services-upsc-state-psc"
+          },
+          {
+           "t": "Policy research, think tanks, NGOs",
+           "id": "after-12th.arts-humanities.ba-3-years.political-science-public-administration.policy-research-think-tanks-ngos"
+          },
+          {
+           "t": "Journalism and communication",
+           "id": "after-12th.arts-humanities.ba-3-years.political-science-public-administration.journalism-and-communication"
+          }
+         ],
+         "id": "after-12th.arts-humanities.ba-3-years.political-science-public-administration"
+        },
+        {
+         "t": "Sociology / Social Work",
+         "cr": [
+          "social-work-bsw-rural-management"
+         ],
+         "c": [
+          {
+           "t": "NGO / development sector",
+           "s": "MSW helps.",
+           "id": "after-12th.arts-humanities.ba-3-years.sociology-social-work.ngo-development-sector"
+          },
+          {
+           "t": "HR and CSR roles",
+           "id": "after-12th.arts-humanities.ba-3-years.sociology-social-work.hr-and-csr-roles"
+          }
+         ],
+         "id": "after-12th.arts-humanities.ba-3-years.sociology-social-work"
+        },
+        {
+         "t": "Geography",
+         "c": [
+          {
+           "t": "GIS and remote sensing analyst",
+           "s": "With technical skills.",
+           "id": "after-12th.arts-humanities.ba-3-years.geography.gis-and-remote-sensing-analyst"
+          },
+          {
+           "t": "Urban / environmental planning",
+           "id": "after-12th.arts-humanities.ba-3-years.geography.urban-environmental-planning"
+          }
+         ],
+         "id": "after-12th.arts-humanities.ba-3-years.geography"
+        },
+        {
+         "t": "Psychology",
+         "cr": [
+          "b-sc-psychology"
+         ],
+         "c": [
+          {
+           "t": "Counsellor (after M.A. and supervised practice)",
+           "id": "after-12th.arts-humanities.ba-3-years.psychology.counsellor-after-m-a-and-supervised-prac"
+          },
+          {
+           "t": "HR / organisational roles",
+           "id": "after-12th.arts-humanities.ba-3-years.psychology.hr-organisational-roles"
+          },
+          {
+           "t": "Clinical psychologist",
+           "s": "Needs recognised M.Phil / PG diploma and registration.",
+           "id": "after-12th.arts-humanities.ba-3-years.psychology.clinical-psychologist"
+          }
+         ],
+         "id": "after-12th.arts-humanities.ba-3-years.psychology"
+        },
+        {
+         "t": "Languages and Literature",
+         "cr": [
+          "sanskrit-vedic-and-indian-knowledge-systems"
+         ],
+         "c": [
+          {
+           "t": "Translation, content, editing",
+           "id": "after-12th.arts-humanities.ba-3-years.languages-and-literature.translation-content-editing"
+          },
+          {
+           "t": "Teaching, publishing",
+           "id": "after-12th.arts-humanities.ba-3-years.languages-and-literature.teaching-publishing"
+          },
+          {
+           "t": "Interpreter, foreign language roles",
+           "s": "Add a foreign language certificate.",
+           "id": "after-12th.arts-humanities.ba-3-years.languages-and-literature.interpreter-foreign-language-roles"
+          }
+         ],
+         "id": "after-12th.arts-humanities.ba-3-years.languages-and-literature"
+        }
+       ],
+       "id": "after-12th.arts-humanities.ba-3-years"
+      },
+      {
+       "t": "Law (5-year integrated BA LLB)",
+       "s": "Court practice, judiciary, corporate law.",
+       "x": "CLAT, AILET, LSAT-India",
+       "cr": [
+        "ba-llb-law-5-year-integrated"
+       ],
+       "ex": [
+        "clat",
+        "ailet"
+       ],
+       "c": [
+        {
+         "t": "Advocate (Bar Council enrolment)",
+         "s": "Litigation.",
+         "id": "after-12th.arts-humanities.law-5-year-integrated-ba-llb.advocate-bar-council-enrolment"
+        },
+        {
+         "t": "Judiciary exams",
+         "s": "State judicial services.",
+         "id": "after-12th.arts-humanities.law-5-year-integrated-ba-llb.judiciary-exams"
+        },
+        {
+         "t": "Corporate counsel / legal advisor",
+         "id": "after-12th.arts-humanities.law-5-year-integrated-ba-llb.corporate-counsel-legal-advisor"
+        },
+        {
+         "t": "Specialisations",
+         "s": "Criminal, IP, cyber, tax, environmental law.",
+         "id": "after-12th.arts-humanities.law-5-year-integrated-ba-llb.specialisations"
+        }
+       ],
+       "id": "after-12th.arts-humanities.law-5-year-integrated-ba-llb"
+      },
+      {
+       "t": "Media and Communication",
+       "s": "Journalism, mass communication, film, animation.",
+       "x": "CUET-UG, institute tests",
+       "cr": [
+        "journalism-and-mass-communication-bjmc",
+        "film-television-and-animation-vfx-game-design"
+       ],
+       "ex": [
+        "nta",
+        "ftii",
+        "srfti"
+       ],
+       "c": [
+        {
+         "t": "Reporter / editor / anchor",
+         "id": "after-12th.arts-humanities.media-and-communication.reporter-editor-anchor"
+        },
+        {
+         "t": "Digital content, social media, PR",
+         "id": "after-12th.arts-humanities.media-and-communication.digital-content-social-media-pr"
+        },
+        {
+         "t": "Film: direction, cinematography, editing, sound",
+         "s": "FTII / SRFTI route.",
+         "id": "after-12th.arts-humanities.media-and-communication.film-direction-cinematography-editing-so"
+        },
+        {
+         "t": "Animation, VFX, game design",
+         "s": "Portfolio matters.",
+         "id": "after-12th.arts-humanities.media-and-communication.animation-vfx-game-design"
+        }
+       ],
+       "id": "after-12th.arts-humanities.media-and-communication"
+      },
+      {
+       "t": "Design and Fine Arts",
+       "x": "UCEED, NID DAT, NIFT, portfolio",
+       "cr": [
+        "b-des-design",
+        "bfa-fine-arts-photography",
+        "fashion-technology-textile-leather-footwear-desi",
+        "interior-design-jewellery-design"
+       ],
+       "ex": [
+        "uceed",
+        "nid",
+        "nift"
+       ],
+       "c": [
+        {
+         "t": "UX / product / graphic designer",
+         "id": "after-12th.arts-humanities.design-and-fine-arts.ux-product-graphic-designer"
+        },
+        {
+         "t": "Fashion and textile designer",
+         "id": "after-12th.arts-humanities.design-and-fine-arts.fashion-and-textile-designer"
+        },
+        {
+         "t": "Interior / jewellery designer",
+         "id": "after-12th.arts-humanities.design-and-fine-arts.interior-jewellery-designer"
+        },
+        {
+         "t": "Artist, illustrator, photographer, art teacher",
+         "id": "after-12th.arts-humanities.design-and-fine-arts.artist-illustrator-photographer-art-teac"
+        }
+       ],
+       "id": "after-12th.arts-humanities.design-and-fine-arts"
+      },
+      {
+       "t": "Performing Arts",
+       "s": "Music, dance, theatre.",
+       "x": "Audition",
+       "cr": [
+        "performing-arts-music-dance-theatre"
+       ],
+       "ex": [
+        "nsd"
+       ],
+       "c": [
+        {
+         "t": "Performer, composer, teacher",
+         "id": "after-12th.arts-humanities.performing-arts.performer-composer-teacher"
+        },
+        {
+         "t": "Theatre and film",
+         "id": "after-12th.arts-humanities.performing-arts.theatre-and-film"
+        }
+       ],
+       "id": "after-12th.arts-humanities.performing-arts"
+      },
+      {
+       "t": "Hospitality and Tourism",
+       "s": "Hotel Management, Culinary, Tourism, Aviation ground roles.",
+       "x": "NCHM JEE",
+       "cr": [
+        "hotel-management-bhm",
+        "culinary-arts-bakery-and-confectionery",
+        "tourism-and-travel-management",
+        "b-sc-aviation-airport-management"
+       ],
+       "ex": [
+        "nchm",
+        "nta"
+       ],
+       "c": [
+        {
+         "t": "Hotel operations, front office, food and beverage",
+         "id": "after-12th.arts-humanities.hospitality-and-tourism.hotel-operations-front-office-food-and-b"
+        },
+        {
+         "t": "Chef, baker, restaurateur",
+         "id": "after-12th.arts-humanities.hospitality-and-tourism.chef-baker-restaurateur"
+        },
+        {
+         "t": "Airline / airport ground staff, cabin crew",
+         "s": "Check selection rules.",
+         "id": "after-12th.arts-humanities.hospitality-and-tourism.airline-airport-ground-staff-cabin-crew"
+        },
+        {
+         "t": "Travel and event management",
+         "id": "after-12th.arts-humanities.hospitality-and-tourism.travel-and-event-management"
+        }
+       ],
+       "id": "after-12th.arts-humanities.hospitality-and-tourism"
+      },
+      {
+       "t": "Education",
+       "s": "Integrated B.Ed, or B.Ed after graduation.",
+       "x": "NCET",
+       "cr": [
+        "integrated-b-ed-4-year"
+       ],
+       "ex": [
+        "nta"
+       ],
+       "c": [
+        {
+         "t": "School teacher",
+         "s": "TET / CTET for government schools.",
+         "id": "after-12th.arts-humanities.education.school-teacher"
+        },
+        {
+         "t": "College lecturer",
+         "s": "Master's + NET.",
+         "id": "after-12th.arts-humanities.education.college-lecturer"
+        },
+        {
+         "t": "Education technology, curriculum design",
+         "id": "after-12th.arts-humanities.education.education-technology-curriculum-design"
+        }
+       ],
+       "id": "after-12th.arts-humanities.education"
+      },
+      {
+       "t": "Other Arts-friendly fields",
+       "s": "Library science, disaster management, mountaineering, cyber awareness.",
+       "cr": [
+        "library-and-information-science",
+        "disaster-management-environmental-science",
+        "mountaineering-and-adventure-sports-courses",
+        "cyber-security-ethical-hacking-courses"
+       ],
+       "c": [
+        {
+         "t": "Explore these in the Courses tab with the search box.",
+         "id": "after-12th.arts-humanities.other-arts-friendly-fields.explore-these-in-the-courses-tab-with-th"
+        }
+       ],
+       "id": "after-12th.arts-humanities.other-arts-friendly-fields"
+      }
+     ],
+     "id": "after-12th.arts-humanities"
+    },
+    {
+     "t": "Diploma, ITI and skills after 12th",
+     "s": "Faster routes to work or to a degree later.",
+     "cr": [
+      "skill-india-pmkvy-short-term-courses",
+      "drone-pilot-remote-pilot-certificate"
+     ],
+     "ex": [
+      "dgt",
+      "nsdc",
+      "aicte"
+     ],
+     "c": [
+      {
+       "t": "Diploma courses (D.Pharm, DMLT, hotel, design, animation)",
+       "s": "Short and job-linked. Check recognition.",
+       "id": "after-12th.diploma-iti-and-skills-after-12th.diploma-courses-d-pharm-dmlt-hotel-desig"
+      },
+      {
+       "t": "ITI after 12th",
+       "s": "Trade training; apprenticeships.",
+       "id": "after-12th.diploma-iti-and-skills-after-12th.iti-after-12th"
+      },
+      {
+       "t": "Short skill certificates",
+       "s": "Digital marketing, data entry to analytics, coding, languages, drone pilot. Check quality and placement claims.",
+       "id": "after-12th.diploma-iti-and-skills-after-12th.short-skill-certificates"
+      }
+     ],
+     "id": "after-12th.diploma-iti-and-skills-after-12th"
+    }
+   ],
+   "id": "after-12th"
+  },
+  {
+   "t": "After graduation (any stream)",
+   "s": "Every road meets here again.",
+   "c": [
+    {
+     "t": "Master's degrees",
+     "cr": [
+      "m-sc-m-a-m-com-cuet-pg",
+      "m-tech-via-gate"
+     ],
+     "ex": [
+      "nta"
+     ],
+     "c": [
+      {
+       "t": "M.Tech via GATE",
+       "s": "Engineering graduates.",
+       "id": "after-graduation-any-stream.master-s-degrees.m-tech-via-gate"
+      },
+      {
+       "t": "M.Sc via IIT JAM / CUET-PG",
+       "s": "Science graduates.",
+       "id": "after-graduation-any-stream.master-s-degrees.m-sc-via-iit-jam-cuet-pg"
+      },
+      {
+       "t": "M.A. / M.Com via CUET-PG",
+       "id": "after-graduation-any-stream.master-s-degrees.m-a-m-com-via-cuet-pg"
+      },
+      {
+       "t": "LLM via CLAT-PG",
+       "s": "Law graduates.",
+       "id": "after-graduation-any-stream.master-s-degrees.llm-via-clat-pg"
+      },
+      {
+       "t": "M.Ed, MSW, MPH, M.Des and others",
+       "s": "Check each entrance.",
+       "id": "after-graduation-any-stream.master-s-degrees.m-ed-msw-mph-m-des-and-others"
+      }
+     ],
+     "id": "after-graduation-any-stream.master-s-degrees"
+    },
+    {
+     "t": "Management (MBA / PGDM)",
+     "x": "CAT, MAT, XAT, state tests",
+     "cr": [
+      "mba-pgdm"
+     ],
+     "ex": [
+      "iim-cat"
+     ],
+     "c": [
+      {
+       "t": "Specialise: Finance, Marketing, HR, Operations, Analytics, International Business",
+       "id": "after-graduation-any-stream.management-mba-pgdm.specialise-finance-marketing-hr-operatio"
+      },
+      {
+       "t": "Work experience first improves selection at many schools",
+       "id": "after-graduation-any-stream.management-mba-pgdm.work-experience-first-improves-selection"
+      }
+     ],
+     "id": "after-graduation-any-stream.management-mba-pgdm"
+    },
+    {
+     "t": "Government jobs",
+     "cr": [
+      "upsc-civil-services",
+      "banking-ssc-and-railway-recruitment"
+     ],
+     "ex": [
+      "upsc",
+      "ugc"
+     ],
+     "c": [
+      {
+       "t": "UPSC Civil Services",
+       "s": "IAS, IPS, IFS and other services. Any graduate; attempt and age limits apply.",
+       "ex": [
+        "upsc"
+       ],
+       "c": [
+        {
+         "t": "Stages: Prelims, Mains, Interview.",
+         "id": "after-graduation-any-stream.government-jobs.upsc-civil-services.stages-prelims-mains-interview"
+        }
+       ],
+       "id": "after-graduation-any-stream.government-jobs.upsc-civil-services"
+      },
+      {
+       "t": "Banking: IBPS PO / Clerk, SBI",
+       "s": "Graduate; age limits.",
+       "id": "after-graduation-any-stream.government-jobs.banking-ibps-po-clerk-sbi"
+      },
+      {
+       "t": "SSC CGL and railways (RRB NTPC)",
+       "s": "Graduate-level posts.",
+       "id": "after-graduation-any-stream.government-jobs.ssc-cgl-and-railways-rrb-ntpc"
+      },
+      {
+       "t": "State PSC and state services",
+       "s": "Notices on each state commission site.",
+       "id": "after-graduation-any-stream.government-jobs.state-psc-and-state-services"
+      },
+      {
+       "t": "Defence: CDS, AFCAT, TES for graduates",
+       "s": "Check notices.",
+       "id": "after-graduation-any-stream.government-jobs.defence-cds-afcat-tes-for-graduates"
+      },
+      {
+       "t": "Teaching: CTET / TET, NET / SET for college lecturers",
+       "s": "B.Ed and Master's rules apply.",
+       "id": "after-graduation-any-stream.government-jobs.teaching-ctet-tet-net-set-for-college-le"
+      }
+     ],
+     "id": "after-graduation-any-stream.government-jobs"
+    },
+    {
+     "t": "Research",
+     "x": "NET / JRF, GATE, IIT JAM, university tests",
+     "ex": [
+      "ugc",
+      "nta"
+     ],
+     "c": [
+      {
+       "t": "PhD with fellowship; academic or industry research roles.",
+       "id": "after-graduation-any-stream.research.phd-with-fellowship-academic-or-industry"
+      }
+     ],
+     "id": "after-graduation-any-stream.research"
+    },
+    {
+     "t": "Study abroad",
+     "x": "IELTS / TOEFL, GRE / GMAT for many courses",
+     "cr": [
+      "study-abroad"
+     ],
+     "c": [
+      {
+       "t": "Plan costs, scholarships, visa and return options early. Verify universities on official sites.",
+       "id": "after-graduation-any-stream.study-abroad.plan-costs-scholarships-visa-and-return-"
+      }
+     ],
+     "id": "after-graduation-any-stream.study-abroad"
+    },
+    {
+     "t": "Start something",
+     "c": [
+      {
+       "t": "Business, freelancing, family enterprise, start-ups. Skills, savings and mentors matter.",
+       "id": "after-graduation-any-stream.start-something.business-freelancing-family-enterprise-s"
+      }
+     ],
+     "id": "after-graduation-any-stream.start-something"
+    }
+   ],
+   "id": "after-graduation-any-stream"
+  }
+ ]
+}

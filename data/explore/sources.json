@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "id": "pib",
+      "name": "PIB",
+      "homepage": "https://pib.gov.in/",
+      "feedUrl": "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3",
+      "type": "rss",
+      "language": "en",
+      "level": [
+        "any"
+      ],
+      "domains": [
+        "pib.gov.in"
+      ],
+      "termsNote": "Press Information Bureau, Govt of India. Copyright policy: free reuse, reproduce accurately, acknowledge source prominently. We store headline, date and link only. English feed (Lang=1) is UNVERIFIED: first Actions run must confirm it.",
+      "checkedOn": "2026-11-22",
+      "enabled": true,
+      "filter": "education"
+    },
+    {
+      "id": "pib-hi",
+      "name": "PIB",
+      "homepage": "https://pib.gov.in/",
+      "feedUrl": "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=2&Regid=3",
+      "type": "rss",
+      "language": "hi",
+      "level": [
+        "any"
+      ],
+      "domains": [
+        "pib.gov.in"
+      ],
+      "termsNote": "Same terms as pib. Hindi press-release feed listed on https://www.pib.gov.in/ViewRss.aspx.",
+      "checkedOn": "2026-11-22",
+      "enabled": true,
+      "filter": "education"
+    },
+    {
+      "id": "mit-ocw",
+      "name": "MIT OpenCourseWare",
+      "homepage": "https://ocw.mit.edu/",
+      "feedUrl": null,
+      "type": "rss",
+      "language": "en",
+      "level": [
+        "ug",
+        "pg"
+      ],
+      "domains": [
+        "ocw.mit.edu"
+      ],
+      "termsNote": "DISABLED until terms are re-checked (CC BY-NC-SA seen on archived pages only) and the feed URL is confirmed. Title and link only.",
+      "checkedOn": "2026-11-22",
+      "enabled": false
+    },
+    {
+      "id": "ugc",
+      "name": "UGC",
+      "homepage": "https://www.ugc.gov.in/",
+      "feedUrl": null,
+      "type": "curated",
+      "language": "en",
+      "level": [
+        "ug",
+        "pg",
+        "phd"
+      ],
+      "domains": [
+        "ugc.gov.in",
+        "deb.ugc.ac.in"
+      ],
+      "termsNote": "No RSS, no terms for automated reading. Hand-curated links only. Official notices exist only on ugc.gov.in and deb.ugc.ac.in; fake notices circulate on social media.",
+      "checkedOn": "2026-11-22",
+      "enabled": true
+    },
+    {
+      "id": "aicte",
+      "name": "AICTE",
+      "homepage": "https://www.aicte-india.org/",
+      "feedUrl": null,
+      "type": "curated",
+      "language": "en",
+      "level": [
+        "ug",
+        "pg"
+      ],
+      "domains": [
+        "aicte-india.org"
+      ],
+      "termsNote": "No RSS found, no terms for automated reading. Hand-curated links only. Domain to be confirmed by owner.",
+      "checkedOn": "2026-11-22",
+      "enabled": true
+    },
+    {
+      "id": "cbse",
+      "name": "CBSE",
+      "homepage": "https://www.cbse.gov.in/",
+      "feedUrl": null,
+      "type": "curated",
+      "language": "en",
+      "level": [
+        "school"
+      ],
+      "domains": [
+        "cbse.gov.in",
+        "cbseacademic.nic.in"
+      ],
+      "termsNote": "No RSS found, no terms for automated reading. Hand-curated links only. Domains to be confirmed by owner.",
+      "checkedOn": "2026-11-22",
+      "enabled": true
+    },
+    {
+      "id": "nta",
+      "name": "NTA",
+      "homepage": "https://www.nta.ac.in/",
+      "feedUrl": null,
+      "type": "curated",
+      "language": "en",
+      "level": [
+        "ug",
+        "pg"
+      ],
+      "domains": [
+        "nta.ac.in"
+      ],
+      "termsNote": "No RSS found, no terms for automated reading. Hand-curated links only. Domain to be confirmed by owner.",
+      "checkedOn": "2026-11-22",
+      "enabled": true
+    },
+    {
+      "id": "nsp",
+      "name": "National Scholarship Portal",
+      "homepage": "https://scholarships.gov.in/",
+      "feedUrl": null,
+      "type": "curated",
+      "language": "en",
+      "level": [
+        "school",
+        "ug",
+        "pg",
+        "phd"
+      ],
+      "domains": [
+        "scholarships.gov.in"
+      ],
+      "termsNote": "No RSS found, no terms for automated reading. Hand-curated links only. Domain to be confirmed by owner.",
+      "checkedOn": "2026-11-22",
+      "enabled": true
+    },
+    {
+      "id": "moe",
+      "name": "Ministry of Education",
+      "homepage": "https://www.education.gov.in/",
+      "feedUrl": null,
+      "type": "curated",
+      "language": "en",
+      "level": [
+        "any"
+      ],
+      "domains": [
+        "education.gov.in"
+      ],
+      "termsNote": "No RSS found, no terms for automated reading. Hand-curated links only.",
+      "checkedOn": "2026-11-22",
+      "enabled": true
+    }
+  ]
+}
