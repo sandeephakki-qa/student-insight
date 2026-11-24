@@ -1,0 +1,476 @@
+{
+ "schemaVersion": 1,
+ "note": "Official sites only. Every host must be in hosts (reviewed by the owner). Links are checked daily by scripts/explore/check-links.mjs; broken or moved links show a warning in the app. URLs marked unverified were written without network access.",
+ "hosts": [
+  "acpc.gujarat.gov.in",
+  "bceceboard.bihar.gov.in",
+  "cee.kerala.gov.in",
+  "cetcell.mahacet.org",
+  "cetonline.karnataka.gov.in",
+  "cets.apsche.ap.gov.in",
+  "consortiumofnlus.ac.in",
+  "dgt.gov.in",
+  "eapcet.tsche.ac.in",
+  "icar.org.in",
+  "icmai.in",
+  "iimcat.ac.in",
+  "indianairforce.nic.in",
+  "jceceb.jharkhand.gov.in",
+  "jeeadv.ac.in",
+  "jeecup.admissions.nic.in",
+  "jkbopee.gov.in",
+  "joinindianarmy.nic.in",
+  "josaa.nic.in",
+  "kea.kar.nic.in",
+  "mcc.nic.in",
+  "nchm.gov.in",
+  "nludelhi.ac.in",
+  "nsd.gov.in",
+  "nsnis.org",
+  "nta.ac.in",
+  "ojee.nic.in",
+  "srfti.ac.in",
+  "uceed.iitb.ac.in",
+  "upsc.gov.in",
+  "uptac.admissions.nic.in",
+  "wbjeeb.nic.in",
+  "www.actuariesindia.org",
+  "www.aicte-india.org",
+  "www.aiimsexams.ac.in",
+  "www.dgca.gov.in",
+  "www.dgshipping.gov.in",
+  "www.ftii.ac.in",
+  "www.icai.org",
+  "www.icsi.edu",
+  "www.iimidr.ac.in",
+  "www.imu.edu.in",
+  "www.ipu.ac.in",
+  "www.joinindiannavy.gov.in",
+  "www.nata.in",
+  "www.nid.edu",
+  "www.nift.ac.in",
+  "www.nios.ac.in",
+  "www.nsdcindia.org",
+  "www.skillindiadigital.gov.in",
+  "www.tneaonline.org",
+  "www.ugc.gov.in"
+ ],
+ "exams": [
+  {
+   "id": "nta",
+   "name": "NTA (JEE Main, NEET-UG, CUET-UG/PG, NCET, NCHM JEE, UGC-NET)",
+   "url": "https://nta.ac.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "body"
+  },
+  {
+   "id": "jee-adv",
+   "name": "JEE Advanced (IITs)",
+   "url": "https://jeeadv.ac.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "josaa",
+   "name": "JoSAA counselling (IITs, NITs, IIITs)",
+   "url": "https://josaa.nic.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "counselling"
+  },
+  {
+   "id": "mcc",
+   "name": "MCC counselling (NEET-UG / NEET-PG)",
+   "url": "https://mcc.nic.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "counselling"
+  },
+  {
+   "id": "clat",
+   "name": "CLAT (National Law Universities)",
+   "url": "https://consortiumofnlus.ac.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "ailet",
+   "name": "AILET (NLU Delhi)",
+   "url": "https://nludelhi.ac.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "nata",
+   "name": "NATA (Architecture)",
+   "url": "https://www.nata.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "uceed",
+   "name": "UCEED (B.Des at IITs)",
+   "url": "https://uceed.iitb.ac.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "nid",
+   "name": "NID (design institute)",
+   "url": "https://www.nid.edu/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "nift",
+   "name": "NIFT (fashion and design)",
+   "url": "https://www.nift.ac.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "upsc",
+   "name": "UPSC (NDA, Civil Services, CDS)",
+   "url": "https://upsc.gov.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "iim-cat",
+   "name": "CAT (IIMs, MBA)",
+   "url": "https://iimcat.ac.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "ipmat",
+   "name": "IPMAT (IIM Indore integrated management)",
+   "url": "https://www.iimidr.ac.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "icai",
+   "name": "ICAI (Chartered Accountancy)",
+   "url": "https://www.icai.org/",
+   "scope": "national",
+   "state": "",
+   "kind": "professional"
+  },
+  {
+   "id": "icsi",
+   "name": "ICSI (Company Secretary)",
+   "url": "https://www.icsi.edu/",
+   "scope": "national",
+   "state": "",
+   "kind": "professional"
+  },
+  {
+   "id": "icmai",
+   "name": "ICMAI (Cost and Management Accountancy)",
+   "url": "https://icmai.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "professional"
+  },
+  {
+   "id": "iai",
+   "name": "Institute of Actuaries of India (ACET)",
+   "url": "https://www.actuariesindia.org/",
+   "scope": "national",
+   "state": "",
+   "kind": "professional"
+  },
+  {
+   "id": "dgca",
+   "name": "DGCA (pilot licences, aircraft maintenance)",
+   "url": "https://www.dgca.gov.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "regulator"
+  },
+  {
+   "id": "imu",
+   "name": "Indian Maritime University (IMU-CET)",
+   "url": "https://www.imu.edu.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "dgshipping",
+   "name": "DG Shipping (sea careers)",
+   "url": "https://www.dgshipping.gov.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "regulator"
+  },
+  {
+   "id": "nios",
+   "name": "NIOS (open schooling)",
+   "url": "https://www.nios.ac.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "board"
+  },
+  {
+   "id": "nsdc",
+   "name": "NSDC / Skill India (short skill courses)",
+   "url": "https://www.nsdcindia.org/",
+   "scope": "national",
+   "state": "",
+   "kind": "skills"
+  },
+  {
+   "id": "skillindia",
+   "name": "Skill India Digital",
+   "url": "https://www.skillindiadigital.gov.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "skills"
+  },
+  {
+   "id": "dgt",
+   "name": "DGT (ITI and apprenticeship, NCVT)",
+   "url": "https://dgt.gov.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "skills"
+  },
+  {
+   "id": "aicte",
+   "name": "AICTE (technical education approvals and schemes)",
+   "url": "https://www.aicte-india.org/",
+   "scope": "national",
+   "state": "",
+   "kind": "regulator"
+  },
+  {
+   "id": "ugc",
+   "name": "UGC (universities, UGC-NET)",
+   "url": "https://www.ugc.gov.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "regulator"
+  },
+  {
+   "id": "icar",
+   "name": "ICAR (agriculture education)",
+   "url": "https://icar.org.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "aiims",
+   "name": "AIIMS exams",
+   "url": "https://www.aiimsexams.ac.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "nchm",
+   "name": "NCHM (hotel management)",
+   "url": "https://nchm.gov.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "ftii",
+   "name": "FTII (film and television)",
+   "url": "https://www.ftii.ac.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "srfti",
+   "name": "SRFTI (film and television, Kolkata)",
+   "url": "https://srfti.ac.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "nsd",
+   "name": "National School of Drama",
+   "url": "https://nsd.gov.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "nis",
+   "name": "NSNIS Patiala (sports coaching)",
+   "url": "https://nsnis.org/",
+   "scope": "national",
+   "state": "",
+   "kind": "entrance"
+  },
+  {
+   "id": "navy",
+   "name": "Join Indian Navy",
+   "url": "https://www.joinindiannavy.gov.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "defence"
+  },
+  {
+   "id": "army",
+   "name": "Join Indian Army",
+   "url": "https://joinindianarmy.nic.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "defence"
+  },
+  {
+   "id": "iaf",
+   "name": "Indian Air Force careers",
+   "url": "https://indianairforce.nic.in/",
+   "scope": "national",
+   "state": "",
+   "kind": "defence"
+  },
+  {
+   "id": "kcet",
+   "name": "KCET (Karnataka)",
+   "url": "https://cetonline.karnataka.gov.in/",
+   "scope": "state",
+   "state": "Karnataka",
+   "kind": "entrance"
+  },
+  {
+   "id": "kea",
+   "name": "KEA (Karnataka admissions)",
+   "url": "https://kea.kar.nic.in/",
+   "scope": "state",
+   "state": "Karnataka",
+   "kind": "counselling"
+  },
+  {
+   "id": "mhtcet",
+   "name": "MHT-CET (Maharashtra)",
+   "url": "https://cetcell.mahacet.org/",
+   "scope": "state",
+   "state": "Maharashtra",
+   "kind": "entrance"
+  },
+  {
+   "id": "tnea",
+   "name": "TNEA (Tamil Nadu engineering admissions)",
+   "url": "https://www.tneaonline.org/",
+   "scope": "state",
+   "state": "Tamil Nadu",
+   "kind": "counselling"
+  },
+  {
+   "id": "apeapcet",
+   "name": "AP EAPCET (Andhra Pradesh)",
+   "url": "https://cets.apsche.ap.gov.in/",
+   "scope": "state",
+   "state": "Andhra Pradesh",
+   "kind": "entrance"
+  },
+  {
+   "id": "tseapcet",
+   "name": "TS EAPCET (Telangana)",
+   "url": "https://eapcet.tsche.ac.in/",
+   "scope": "state",
+   "state": "Telangana",
+   "kind": "entrance"
+  },
+  {
+   "id": "keam",
+   "name": "KEAM (Kerala)",
+   "url": "https://cee.kerala.gov.in/",
+   "scope": "state",
+   "state": "Kerala",
+   "kind": "entrance"
+  },
+  {
+   "id": "wbjee",
+   "name": "WBJEE (West Bengal)",
+   "url": "https://wbjeeb.nic.in/",
+   "scope": "state",
+   "state": "West Bengal",
+   "kind": "entrance"
+  },
+  {
+   "id": "ojee",
+   "name": "OJEE (Odisha)",
+   "url": "https://ojee.nic.in/",
+   "scope": "state",
+   "state": "Odisha",
+   "kind": "entrance"
+  },
+  {
+   "id": "acpc",
+   "name": "ACPC (Gujarat professional courses)",
+   "url": "https://acpc.gujarat.gov.in/",
+   "scope": "state",
+   "state": "Gujarat",
+   "kind": "counselling"
+  },
+  {
+   "id": "bceceb",
+   "name": "BCECE Board (Bihar)",
+   "url": "https://bceceboard.bihar.gov.in/",
+   "scope": "state",
+   "state": "Bihar",
+   "kind": "entrance"
+  },
+  {
+   "id": "jeecup",
+   "name": "JEECUP (Uttar Pradesh polytechnic)",
+   "url": "https://jeecup.admissions.nic.in/",
+   "scope": "state",
+   "state": "Uttar Pradesh",
+   "kind": "entrance"
+  },
+  {
+   "id": "uptac",
+   "name": "UPTAC (Uttar Pradesh counselling)",
+   "url": "https://uptac.admissions.nic.in/",
+   "scope": "state",
+   "state": "Uttar Pradesh",
+   "kind": "counselling"
+  },
+  {
+   "id": "ipu",
+   "name": "GGSIPU (Delhi)",
+   "url": "https://www.ipu.ac.in/",
+   "scope": "state",
+   "state": "Delhi",
+   "kind": "entrance"
+  },
+  {
+   "id": "jkbopee",
+   "name": "JKBOPEE (Jammu and Kashmir)",
+   "url": "https://jkbopee.gov.in/",
+   "scope": "state",
+   "state": "Jammu and Kashmir",
+   "kind": "entrance"
+  },
+  {
+   "id": "jceceb",
+   "name": "JCECEB (Jharkhand)",
+   "url": "https://jceceb.jharkhand.gov.in/",
+   "scope": "state",
+   "state": "Jharkhand",
+   "kind": "entrance"
+  }
+ ]
+}

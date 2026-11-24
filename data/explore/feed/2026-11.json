@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "month": "2026-11",
+  "items": [
+    {
+      "id": "f43bc18bf6ef6dd7",
+      "title": "UGC public notices: check the latest before acting",
+      "date": "2026-11-21",
+      "checkedOn": "2026-11-22",
+      "source": "UGC",
+      "sourceId": "ugc",
+      "url": "https://www.ugc.gov.in/",
+      "lang": "en",
+      "states": [
+        "all"
+      ],
+      "levels": [
+        "ug",
+        "pg",
+        "phd"
+      ],
+      "topics": [
+        "policy"
+      ],
+      "kind": "notice",
+      "summary": "Placeholder. Replace with a real notice title and its official link.",
+      "placeholder": true
+    },
+    {
+      "id": "3eec85644c14607c",
+      "title": "UGC-DEB: recognised open and distance learning programmes",
+      "date": "2026-11-20",
+      "checkedOn": "2026-11-22",
+      "source": "UGC",
+      "sourceId": "ugc",
+      "url": "https://deb.ugc.ac.in/",
+      "lang": "en",
+      "states": [
+        "all"
+      ],
+      "levels": [
+        "ug",
+        "pg"
+      ],
+      "topics": [
+        "course",
+        "admission"
+      ],
+      "kind": "notice",
+      "summary": "Placeholder. Owner to write one or two lines from the official page.",
+      "placeholder": true
+    },
+    {
+      "id": "a5ff9ab5a5bc6931",
+      "title": "AICTE: approval process handbook and scholarship schemes",
+      "date": "2026-11-19",
+      "checkedOn": "2026-11-22",
+      "source": "AICTE",
+      "sourceId": "aicte",
+      "url": "https://www.aicte-india.org/",
+      "lang": "en",
+      "states": [
+        "all"
+      ],
+      "levels": [
+        "ug",
+        "pg"
+      ],
+      "topics": [
+        "scholarship",
+        "admission"
+      ],
+      "kind": "notice",
+      "summary": "Placeholder.",
+      "placeholder": true
+    },
+    {
+      "id": "9c29405f3db329cc",
+      "title": "CBSE: board exam circulars and date sheet updates",
+      "date": "2026-11-18",
+      "checkedOn": "2026-11-22",
+      "source": "CBSE",
+      "sourceId": "cbse",
+      "url": "https://www.cbse.gov.in/",
+      "lang": "en",
+      "states": [
+        "all"
+      ],
+      "levels": [
+        "school"
+      ],
+      "topics": [
+        "exam"
+      ],
+      "kind": "exam",
+      "summary": "",
+      "placeholder": true
+    },
+    {
+      "id": "c32cdd314564848c",
+      "title": "CBSE Academic: curriculum, sample papers and circulars",
+      "date": "2026-11-17",
+      "checkedOn": "2026-11-22",
+      "source": "CBSE",
+      "sourceId": "cbse",
+      "url": "https://cbseacademic.nic.in/",
+      "lang": "en",
+      "states": [
+        "all"
+      ],
+      "levels": [
+        "school"
+      ],
+      "topics": [
+        "exam",
+        "course"
+      ],
+      "kind": "notice",
+      "summary": "",
+      "placeholder": true
+    },
+    {
+      "id": "09c440148f2cb901",
+      "title": "NTA: exam notices and application windows",
+      "date": "2026-11-16",
+      "checkedOn": "2026-11-22",
+      "source": "NTA",
+      "sourceId": "nta",
+      "url": "https://www.nta.ac.in/",
+      "lang": "en",
+      "states": [
+        "all"
+      ],
+      "levels": [
+        "ug",
+        "pg"
+      ],
+      "topics": [
+        "exam",
+        "admission"
+      ],
+      "kind": "deadline",
+      "summary": "",
+      "placeholder": true
+    },
+    {
+      "id": "50f286c30cafc448",
+      "title": "NTA: admit card and result announcements",
+      "date": "2026-11-15",
+      "checkedOn": "2026-11-22",
+      "source": "NTA",
+      "sourceId": "nta",
+      "url": "https://www.nta.ac.in/#placeholder-2",
+      "lang": "en",
+      "states": [
+        "all"
+      ],
+      "levels": [
+        "ug",
+        "pg"
+      ],
+      "topics": [
+        "exam"
+      ],
+      "kind": "exam",
+      "summary": "",
+      "placeholder": true
+    },
+    {
+      "id": "7fa28dc688f51f64",
+      "title": "National Scholarship Portal: application window and scheme list",
+      "date": "2026-11-14",
+      "checkedOn": "2026-11-22",
+      "source": "National Scholarship Portal",
+      "sourceId": "nsp",
+      "url": "https://scholarships.gov.in/",
+      "lang": "en",
+      "states": [
+        "all"
+      ],
+      "levels": [
+        "school",
+        "ug",
+        "pg",
+        "phd"
+      ],
+      "topics": [
+        "scholarship"
+      ],
+      "kind": "deadline",
+      "summary": "",
+      "placeholder": true
+    },
+    {
+      "id": "6e26c2858e1aa252",
+      "title": "Ministry of Education: schemes, notices and announcements",
+      "date": "2026-11-13",
+      "checkedOn": "2026-11-22",
+      "source": "Ministry of Education",
+      "sourceId": "moe",
+      "url": "https://www.education.gov.in/",
+      "lang": "en",
+      "states": [
+        "all"
+      ],
+      "levels": [
+        "any"
+      ],
+      "topics": [
+        "policy"
+      ],
+      "kind": "news",
+      "summary": "",
+      "placeholder": true
+    },
+    {
+      "id": "242a3a36aec87a95",
+      "title": "Ministry of Education: higher education updates",
+      "date": "2026-11-12",
+      "checkedOn": "2026-11-22",
+      "source": "Ministry of Education",
+      "sourceId": "moe",
+      "url": "https://www.education.gov.in/#placeholder-2",
+      "lang": "en",
+      "states": [
+        "all"
+      ],
+      "levels": [
+        "ug",
+        "pg",
+        "phd"
+      ],
+      "topics": [
+        "policy",
+        "career"
+      ],
+      "kind": "news",
+      "summary": "",
+      "placeholder": true
+    }
+  ]
+}
