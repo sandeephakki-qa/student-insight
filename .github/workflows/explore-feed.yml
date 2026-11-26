@@ -1,0 +1,56 @@
+# Daily Explore feed refresh. Runs ONLY in the QA repository: set repository variable EXPLORE_QA=true there.
+# Without that variable every job is skipped, so copying this folder to production changes nothing.
+name: Explore feed
+on:
+  schedule:
+    - cron: '17 2 * * *'   # once a day, 02:17 UTC (quiet time)
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: explore-feed
+  cancel-in-progress: false
+jobs:
+  feed:
+    if: ${{ vars.EXPLORE_QA == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 22
+      - name: Fetch feeds
+        id: fetch
+        continue-on-error: true
+        env:
+          EXPLORE_REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+          EXPLORE_CONTACT: ${{ vars.EXPLORE_CONTACT }}
+        run: npm run explore:fetch   # writes per-source status to the job summary
+      - name: Check official links (daily)
+        id: links
+        continue-on-error: true
+        env:
+          EXPLORE_REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+          EXPLORE_CONTACT: ${{ vars.EXPLORE_CONTACT }}
+        run: npm run explore:check-links
+      - name: Validate data
+        if: steps.fetch.outcome == 'success' || steps.links.outcome == 'success'
+        run: npm run explore:validate
+      - name: Commit changes (only real data changes)
+        if: steps.fetch.outcome == 'success' || steps.links.outcome == 'success'
+        run: |
+          git add data/explore
+          if git diff --cached --quiet; then
+            echo "No data change: nothing to commit." >> "$GITHUB_STEP_SUMMARY"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "chore(explore): update feed $(date -u +%F)"
+            git push
+          fi
+      - name: Fail loudly if every source failed
+        if: steps.fetch.outcome != 'success' && steps.links.outcome != 'success'
+        run: |
+          echo "::error::All attempted feed sources failed. Nothing was committed. See the per-source table in the job summary."
+          exit 1

@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+**/.DS_Store
+.kilo/
+.kilocode/
+
+# saved feed files (read by npm run explore:import, never published)
+data/explore/inbox/

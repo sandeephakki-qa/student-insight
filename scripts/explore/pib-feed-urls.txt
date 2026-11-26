@@ -1,0 +1,22 @@
+# PIB Press Release feeds supplied by the owner (one per line). ModId=6 is the press-release module.
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=2&Regid=3
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=1
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=9&Regid=1
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=6
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=6&Regid=17
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=17
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=4&Regid=19
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=19
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=8&Regid=20
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=20
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=18&Regid=21
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=21
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=13&Regid=22
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=22
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=10&Regid=23
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=23
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=15&Regid=24
+https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=24
+# Not press releases (ModId=8): skipped unless you run with --include-other
+https://pib.gov.in/RssMain.aspx?ModId=8&Lang=11&Regid=6

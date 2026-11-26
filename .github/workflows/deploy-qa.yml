@@ -1,0 +1,55 @@
+# Deploys the QA site to GitHub Pages (Source: GitHub Actions). QA repository only: EXPLORE_QA=true.
+# Never publishes CNAME (the production domain) and never touches production.
+name: Deploy QA
+on:
+  push:
+    branches: [main]            # in the QA repo, main IS the QA branch
+  workflow_run:
+    workflows: ['Explore feed']
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    if: ${{ vars.EXPLORE_QA == 'true' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 22
+      - uses: actions/configure-pages@v5.0.0
+      - name: Stage site (precache list, QA flag file, no CNAME)
+        run: |
+          python3 scripts/gen-sw-precache.py
+          python3 scripts/gen-sw-precache.py --check
+          SHA=$(git rev-parse --short=7 HEAD)
+          # QA-only service-worker cache name, so every QA deploy refreshes installed copies (source file is untouched)
+          sed -i "s/^const CACHE_VERSION = '.*';/const CACHE_VERSION = 'sia-qa-${SHA}';/" sw.js
+          mkdir _site
+          tar --exclude=./_site --exclude=./.git --exclude=./.github --exclude=./node_modules \
+              --exclude=./docs --exclude=./dev-tests --exclude=./scripts --exclude=./CNAME -cf - . | tar -xf - -C _site
+          UPDATED=$(node -e "try{console.log(JSON.parse(require('fs').readFileSync('data/explore/index.json','utf8')).updatedAt)}catch(e){console.log('')}")
+          printf '{"qa":true,"sha":"%s","builtAt":"%s","feedUpdatedAt":"%s"}\n' "$SHA" "$(date -u +%FT%TZ)" "$UPDATED" > _site/qa-build.json
+          touch _site/.nojekyll
+          test ! -e _site/CNAME
+      - uses: actions/upload-pages-artifact@v3.0.0
+        with:
+          path: _site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4.0.5

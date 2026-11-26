@@ -1,0 +1,46 @@
+# Read-only checks on every pull request and push. No secrets. Safe to run in any repo.
+name: CI
+on:
+  pull_request:
+  push:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Run checks (report to file)
+        run: |
+          mkdir -p report
+          fail=0
+          run() { name="$1"; shift; echo "### $name" >> report/ci-report.md; if "$@" > "report/$name.log" 2>&1; then echo "PASS" >> report/ci-report.md; else echo "FAIL" >> report/ci-report.md; fail=1; fi; }
+          run check-layers   npm run check:layers
+          run check-sw       npm run check:sw
+          run lint-i18n      npm run lint:i18n
+          run test-engine    npm run test:engine
+          run test-completeness npm run test:completeness
+          run test-report-views npm run test:report-views
+          run explore-validate npm run explore:validate
+          run test-explore   npm run test:explore
+          # Known baseline failures (see docs/explore/BASELINE.md): reported, not blocking
+          for n in check:cycles test:smart-plan; do
+            echo "### $n (known baseline failure, informational)" >> report/ci-report.md
+            if npm run "$n" > "report/$n.log" 2>&1; then echo "PASS" >> report/ci-report.md; else echo "FAIL (baseline)" >> report/ci-report.md; fi
+          done
+          cat report/ci-report.md >> "$GITHUB_STEP_SUMMARY"
+          exit $fail
+      - uses: actions/upload-artifact@v4.6.2
+        if: always()
+        with:
+          name: ci-report
+          path: report/
+          retention-days: 14

@@ -1,0 +1,218 @@
+{
+  "_note": "Education filter for all-ministries feeds (PIB). An item is kept if a ministry hint equals one of ministries (case-insensitive) OR the title contains one of titleKeywords (case-insensitive, whole word or phrase). Ministry hint fields in real PIB items are UNVERIFIED; see docs/explore/PIB_FEED_NOTES.md. Native-language words for Kannada, Tamil, Telugu, Marathi, Bengali, Gujarati, Malayalam, Punjabi, Odia, Assamese and Urdu were added so regional press-release feeds are not all dropped. Word list written from general knowledge; review with a native speaker.",
+  "ministryHintTags": [
+    "category",
+    "dc:subject",
+    "author",
+    "source"
+  ],
+  "ministries": [
+    "Ministry of Education",
+    "Ministry of Skill Development and Entrepreneurship"
+  ],
+  "titleKeywords": [
+    "education",
+    "school",
+    "schools",
+    "student",
+    "students",
+    "scholarship",
+    "scholarships",
+    "university",
+    "universities",
+    "college",
+    "colleges",
+    "UGC",
+    "AICTE",
+    "CBSE",
+    "NTA",
+    "NEET",
+    "JEE",
+    "CUET",
+    "NCERT",
+    "NEP",
+    "exam",
+    "examination",
+    "admission",
+    "curriculum",
+    "literacy",
+    "skilling",
+    "IIT",
+    "IIM",
+    "NIT",
+    "Samagra Shiksha",
+    "PM Vidyalaxmi",
+    "शिक्षा",
+    "विद्यालय",
+    "छात्र",
+    "छात्रवृत्ति",
+    "विश्वविद्यालय",
+    "परीक्षा",
+    "ಶಿಕ್ಷಣ",
+    "ವಿದ್ಯಾರ್ಥಿ",
+    "ವಿದ್ಯಾರ್ಥಿವೇತನ",
+    "ಶಾಲೆ",
+    "ವಿಶ್ವವಿದ್ಯಾಲಯ",
+    "ಪರೀಕ್ಷೆ",
+    "கல்வி",
+    "மாணவர்",
+    "உதவித்தொகை",
+    "பள்ளி",
+    "பல்கலைக்கழகம்",
+    "தேர்வு",
+    "విద్య",
+    "విద్యార్థి",
+    "ఉపకారవేతనం",
+    "పాఠశాల",
+    "విశ్వవిద్యాలయం",
+    "పరీక్ష",
+    "शिक्षण",
+    "विद्यार्थी",
+    "शिष्यवृत्ती",
+    "शाळा",
+    "विद्यापीठ",
+    "শিক্ষা",
+    "ছাত্র",
+    "বৃত্তি",
+    "স্কুল",
+    "বিশ্ববিদ্যালয়",
+    "পরীক্ষা",
+    "શિક્ષણ",
+    "વિદ્યાર્થી",
+    "શિષ્યવૃત્તિ",
+    "શાળા",
+    "યુનિવર્સિટી",
+    "પરીક્ષા",
+    "വിദ്യാഭ്യാസം",
+    "വിദ്യാർത്ഥി",
+    "സ്കോളർഷിപ്പ്",
+    "സ്കൂൾ",
+    "സർവകലാശാല",
+    "പരീക്ഷ",
+    "ਸਿੱਖਿਆ",
+    "ਵਿਦਿਆਰਥੀ",
+    "ਵਜ਼ੀਫ਼ਾ",
+    "ਸਕੂਲ",
+    "ਯੂਨੀਵਰਸਿਟੀ",
+    "ਪ੍ਰੀਖਿਆ",
+    "ଶିକ୍ଷା",
+    "ଛାତ୍ର",
+    "ବିଦ୍ୟାଳୟ",
+    "ବିଶ୍ୱବିଦ୍ୟାଳୟ",
+    "ପରୀକ୍ଷା",
+    "ছাত্ৰ",
+    "বিদ্যালয়",
+    "পৰীক্ষা",
+    "تعلیم",
+    "طلباء",
+    "اسکالرشپ",
+    "اسکول",
+    "یونیورسٹی",
+    "امتحان"
+  ],
+  "kindRules": [
+    {
+      "kind": "deadline",
+      "words": [
+        "last date",
+        "deadline",
+        "apply by",
+        "applications invited",
+        "अंतिम तिथि"
+      ]
+    },
+    {
+      "kind": "exam",
+      "words": [
+        "exam",
+        "examination",
+        "NEET",
+        "JEE",
+        "CUET",
+        "result",
+        "परीक्षा"
+      ]
+    },
+    {
+      "kind": "career",
+      "words": [
+        "skilling",
+        "internship",
+        "recruitment",
+        "placement"
+      ]
+    },
+    {
+      "kind": "notice",
+      "words": [
+        "notice",
+        "guidelines",
+        "advisory",
+        "circular"
+      ]
+    }
+  ],
+  "topicRules": [
+    {
+      "topic": "scholarship",
+      "words": [
+        "scholarship",
+        "scholarships",
+        "fellowship",
+        "छात्रवृत्ति"
+      ]
+    },
+    {
+      "topic": "exam",
+      "words": [
+        "exam",
+        "examination",
+        "NEET",
+        "JEE",
+        "CUET",
+        "परीक्षा"
+      ]
+    },
+    {
+      "topic": "admission",
+      "words": [
+        "admission",
+        "admissions",
+        "counselling"
+      ]
+    },
+    {
+      "topic": "policy",
+      "words": [
+        "policy",
+        "NEP",
+        "guidelines",
+        "scheme",
+        "Cabinet"
+      ]
+    },
+    {
+      "topic": "course",
+      "words": [
+        "course",
+        "courses",
+        "curriculum",
+        "SWAYAM"
+      ]
+    },
+    {
+      "topic": "career",
+      "words": [
+        "skilling",
+        "internship",
+        "recruitment",
+        "placement",
+        "jobs"
+      ]
+    }
+  ],
+  "defaultKind": "news",
+  "defaultTopics": [
+    "policy"
+  ]
+}
