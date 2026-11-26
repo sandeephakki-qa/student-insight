@@ -84,7 +84,7 @@ export async function runCheck(opts = {}) {
   const md = ['## Official links check', '', `Date: ${today} · ${ok}/${rows.length} reachable`, '', '| Link | State | Detail |', '|---|---|---|', ...rows.map((r) => `| ${r.join(' | ')} |`)].join('\n') + '\n';
   log(md);
   if (!opts.noWrite) await writeFile(file, stableJson(out));
-  const sum = opts.summaryFile ?? process.env.GITHUB_STEP_SUMMARY;
+  const sum = 'summaryFile' in opts ? opts.summaryFile : process.env.GITHUB_STEP_SUMMARY;   // null = tests: write nothing
   if (sum) await writeFile(sum, md, { flag: 'a' });
   return { out, rows, ok, total: rows.length, allFailed: rows.length > 0 && ok === 0 };
 }

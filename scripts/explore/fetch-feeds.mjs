@@ -152,7 +152,7 @@ export async function runFetch(opts = {}) {
   if (q.items.length) lines.push('', `Review queue: ${q.items.length} item(s) held back by the blocklist`);
   const md = lines.join('\n') + '\n';
   log(md);
-  const sumFile = opts.summaryFile ?? process.env.GITHUB_STEP_SUMMARY;
+  const sumFile = 'summaryFile' in opts ? opts.summaryFile : process.env.GITHUB_STEP_SUMMARY;   // null = tests: write nothing
   if (sumFile) await writeFile(sumFile, md, { flag: 'a' });
   const allFailed = attempted > 0 && succeeded === 0;
   return { changed, attempted, succeeded, allFailed, rejected, summary, months };
