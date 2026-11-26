@@ -36,3 +36,4 @@ PIB answers 403 to programs while Safari works. Do not try to disguise the progr
 4. Back in Terminal: `npm run explore:import`. New feeds are added to `data/explore/sources.json` with the detected language and states (review them), and the news is read from your saved file.
 5. `npm run explore:validate`, then `git add -A`, `git commit -m "Update"`, `git push`.
 Files in `inbox` are never published (git ignores that folder). Repeat when you want fresh news. The better long-term fix is to ask PIB (contact on pib.gov.in) to allow read-only RSS access for your app.
+sample text
