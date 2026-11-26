@@ -33,8 +33,9 @@ jobs:
           run test-explore   npm run test:explore
           # Known baseline failures (see docs/explore/BASELINE.md): reported, not blocking
           for n in check:cycles test:smart-plan; do
+            safe="${n//:/-}"
             echo "### $n (known baseline failure, informational)" >> report/ci-report.md
-            if npm run "$n" > "report/$n.log" 2>&1; then echo "PASS" >> report/ci-report.md; else echo "FAIL (baseline)" >> report/ci-report.md; fi
+            if npm run "$n" > "report/$safe.log" 2>&1; then echo "PASS" >> report/ci-report.md; else echo "FAIL (baseline)" >> report/ci-report.md; fi
           done
           cat report/ci-report.md >> "$GITHUB_STEP_SUMMARY"
           exit $fail
